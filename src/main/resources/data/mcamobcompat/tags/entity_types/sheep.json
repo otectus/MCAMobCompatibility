@@ -1,0 +1,18 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:sheep",
+    {
+      "id": "#forge:sheep",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:o_sheep",
+      "required": false
+    },
+    {
+      "id": "eanimod:enhanced_sheep",
+      "required": false
+    }
+  ]
+}

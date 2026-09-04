@@ -1,0 +1,50 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:horse",
+    "minecraft:donkey",
+    "minecraft:mule",
+    "minecraft:skeleton_horse",
+    "minecraft:zombie_horse",
+    {
+      "id": "#forge:horses",
+      "required": false
+    },
+    {
+      "id": "#forge:horse",
+      "required": false
+    },
+    {
+      "id": "#forge:donkey",
+      "required": false
+    },
+    {
+      "id": "#forge:mule",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:o_horse",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:o_donkey",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:o_mule",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:unicorn",
+      "required": false
+    },
+    {
+      "id": "swem:swem_horse",
+      "required": false
+    },
+    {
+      "id": "eanimod:enhanced_horse",
+      "required": false
+    }
+  ]
+}

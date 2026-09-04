@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "guardvillagers:guard",
+      "required": false
+    }
+  ]
+}

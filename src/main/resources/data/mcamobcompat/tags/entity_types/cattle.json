@@ -1,0 +1,75 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:cow",
+    "minecraft:mooshroom",
+    {
+      "id": "#forge:cow",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:o_cow",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:o_mooshroom",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:wheat_moobloom",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:sweet_berry_moobloom",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:pumpkin_moobloom",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:potato_moobloom",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:melon_moobloom",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:glow_berry_moobloom",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:flowering_moobloom",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:carrot_moobloom",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:beetroot_moobloom",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:azalea_moobloom",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:peach_moobloom",
+      "required": false
+    },
+    {
+      "id": "eanimod:enhanced_cow",
+      "required": false
+    },
+    {
+      "id": "eanimod:enhanced_mooshroom",
+      "required": false
+    },
+    {
+      "id": "eanimod:enhanced_moobloom",
+      "required": false
+    }
+  ]
+}

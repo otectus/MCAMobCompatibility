@@ -1,0 +1,315 @@
+plugins {
+    id 'eclipse'
+    id 'idea'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+}
+
+version = mod_version
+group = mod_group_id
+
+base {
+    archivesName = mod_id
+}
+
+// Minecraft 1.18+ ships Java 17; target it explicitly (system default JDK may be newer).
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
+
+minecraft {
+    mappings channel: mapping_channel, version: mapping_version
+
+    copyIdeResources = true
+
+    runs {
+        configureEach {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+            mods {
+                "${mod_id}" {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        client {
+            property 'forge.enabledGameTestNamespaces', mod_id
+        }
+
+        server {
+            property 'forge.enabledGameTestNamespaces', mod_id
+            args '--nogui'
+        }
+
+        gameTestServer {
+            property 'forge.enabledGameTestNamespaces', mod_id
+        }
+
+        data {
+            workingDirectory project.file('run-data')
+            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+        }
+    }
+}
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+repositories {
+    // Architectury API (hard runtime dependency of MCA Reborn's Forge build).
+    maven { url = 'https://maven.architectury.dev/' }
+
+    // MCA Reborn via Modrinth Maven. exclusiveContent keeps this repo scoped to the
+    // maven.modrinth group and routes resolution through ForgeGradle's deobf pipeline.
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'Modrinth'
+                url = 'https://api.modrinth.com/maven'
+            }
+        }
+        forRepositories(fg.repository)
+        filter { includeGroup 'maven.modrinth' }
+    }
+}
+
+/**
+ * Adds libs/&lt;name&gt; to the dev run classpath if it is present, skipping it with one line otherwise.
+ * libs/ is gitignored (those jars are All Rights Reserved and must not be redistributed), so a
+ * fresh clone has none of them and must still build -- absence is the normal case, not an error.
+ */
+def devMod(String jarName, boolean byDefault) {
+    if (!byDefault && !project.hasProperty('devExtraMods')) {
+        return
+    }
+    def jar = file("libs/${jarName}")
+    if (jar.exists()) {
+        dependencies.add('runtimeOnly', fg.deobf(files(jar)))
+        logger.lifecycle("dev run will include ${jarName}")
+    } else {
+        logger.info("libs/${jarName} not present; dev runs will not include it.")
+    }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+    // MCA Reborn -- obfuscated production (Universal) jar, remapped to dev mappings by fg.deobf.
+    //
+    // runtimeOnly, NOT implementation. No class in src/main/java names an MCA type: MCA villagers
+    // are identified by their entity-type registry ids, and every behaviour this mod implements
+    // reaches them through vanilla APIs (VillagerEntityMCA extends net.minecraft...npc.Villager).
+    // NoOptionalModStaticLinkTest fails the build if a compile-time reference ever appears.
+    runtimeOnly fg.deobf("maven.modrinth:minecraft-comes-alive-reborn:${mca_version}")
+
+    // Architectury API (Forge) -- MCA 7.6's Forge build needs it on the dev run classpath. This mod
+    // names not one Architectury symbol, so runtimeOnly rather than implementation: an accidental
+    // `import dev.architectury.*` stays a compile error. (MCA 7.7 drops Architectury, which is why
+    // mods.toml does not declare it.)
+    runtimeOnly fg.deobf("dev.architectury:architectury-forge:${architectury_version}")
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// Optional mods for dev runs only. Nothing here is ever a compile dependency: the whole point of
+// this mod's architecture is that it references no optional mod's classes at all (enforced by
+// NoOptionalModStaticLinkTest), so these exist purely so `runClient` has something real to exercise
+// the handlers against.
+//
+// Guard Villagers is included by default because its only dependencies are Forge and Minecraft, and
+// because every safety-critical behaviour in 0.1.0 is about it. SWEM (geckolib + playeranimator),
+// DLO (geckolib + patchouli) and Genetic Animals pull dependency trees this build does not provide,
+// so they are opt-in via -PdevExtraMods=true and are really meant to be tested in a real CurseForge
+// instance via `gradlew installMod`.
+devMod('guardvillagers-1.20.1-1.6.19.jar', true)
+devMod('swem-1.20.1-1.6.6.jar', false)
+devMod('eanimod-0_11_9.jar', false)
+devMod('DragNs_Livestock_Overhaul-1.20.1-3.9.4.jar', false)
+
+test {
+    useJUnitPlatform()
+}
+
+// Expand metadata placeholders into mods.toml / pack.mcmeta at build time.
+tasks.named('processResources', ProcessResources).configure {
+    var replaceProperties = [
+            minecraft_version: minecraft_version, minecraft_version_range: minecraft_version_range,
+            forge_version: forge_version, forge_version_range: forge_version_range,
+            loader_version_range: loader_version_range,
+            mod_id: mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
+            mod_authors: mod_authors, mod_description: mod_description,
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
+        expand replaceProperties + [project: project]
+    }
+}
+
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes([
+                'Specification-Title'     : mod_id,
+                'Specification-Vendor'    : mod_authors,
+                'Specification-Version'   : '1',
+                'Implementation-Title'    : project.name,
+                'Implementation-Version'  : project.jar.archiveVersion,
+                'Implementation-Vendor'   : mod_authors
+        ])
+    }
+    finalizedBy 'reobfJar'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+/**
+ * The shipped artifact must not contain a single class from MCA or from any optional mod. This mod
+ * declares no compile dependency on any of them, so anything under these roots means a dependency
+ * scope was written wrong or a shadow/jarjar step crept in.
+ *
+ * <p>Matching is on the entry path prefix, so our own resources under data/mcamobcompat/ are
+ * unaffected.
+ *
+ * <p>It then byte-scans our own classes for MCA package roots in both slash and dotted form, with a
+ * single-class allowlist for the reflective binding layer. That duplicates
+ * NoOptionalModStaticLinkTest deliberately: this gate reads the finished artifact and still runs
+ * under `-x test`, and it is the last thing between a build and `installMod`. Keep the two lists in
+ * step -- src/test/java/dev/otectus/mcamobcompat/NoOptionalModStaticLinkTest.java.
+ */
+tasks.register('checkJarContents') {
+    dependsOn tasks.named('jar')
+    doLast {
+        def forbidden = ['tallestegg/guardvillagers/', 'com/alaharranhonor/swem/',
+                         'mokiyoki/enhancedanimals/', 'com/dragn0007/dragnlivestock/',
+                         'forge/net/mca/', 'net/mca/', 'forge/net/conczin/mca/',
+                         'net/conczin/mca/', 'dev/architectury/']
+        // Slash form is a real class reference; dotted form is a Class.forName name. Only the
+        // allowlisted class may carry the dotted form, and only that exact entry -- no prefixes.
+        def forbiddenBytes = ['forge/net/mca', 'net/conczin/mca', 'net/mca/',
+                              'tallestegg/guardvillagers', 'com/alaharranhonor/swem',
+                              'mokiyoki/enhancedanimals', 'com/dragn0007/dragnlivestock',
+                              'dev/architectury']
+        def forbiddenNames = ['forge.net.mca', 'net.conczin.mca', 'net.mca.']
+        def reflectionAllowlist = ['dev/otectus/mcamobcompat/mca/McaBinding.class'] as Set
+
+        def jarFile = tasks.named('jar').get().archiveFile.get().asFile
+        def offenders = []
+        def linked = []
+        def allowlistSeen = [] as Set
+        new java.util.zip.ZipFile(jarFile).withCloseable { zip ->
+            zip.entries().each { entry ->
+                if (forbidden.any { entry.name.startsWith(it) }) {
+                    offenders << entry.name
+                }
+                if (entry.name.startsWith('dev/otectus/mcamobcompat/') && entry.name.endsWith('.class')) {
+                    def text = new String(zip.getInputStream(entry).bytes, 'ISO-8859-1')
+                    def allowed = reflectionAllowlist.contains(entry.name)
+                    if (allowed) {
+                        allowlistSeen << entry.name
+                    }
+                    forbiddenBytes.each { root ->
+                        if (text.contains(root)) {
+                            linked << "${entry.name} -> ${root}"
+                        }
+                    }
+                    if (!allowed) {
+                        forbiddenNames.each { name ->
+                            if (text.contains(name)) {
+                                linked << "${entry.name} -> ${name}"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (!offenders.isEmpty()) {
+            throw new GradleException("Shaded classes found in ${jarFile.name}: ${offenders.take(20)}")
+        }
+        if (!linked.isEmpty()) {
+            throw new GradleException("Class(es) in ${jarFile.name} name MCA or an optional mod: "
+                    + "${linked.take(20)}. Reflective access belongs in mca/McaBinding alone; see "
+                    + "NoOptionalModStaticLinkTest.")
+        }
+        // A dead exemption is worse than none: it would silently cover nothing while looking safe.
+        def missing = reflectionAllowlist - allowlistSeen
+        if (!missing.isEmpty()) {
+            throw new GradleException("Allowlisted class(es) missing from ${jarFile.name}: ${missing}. "
+                    + "Update both this list and NoOptionalModStaticLinkTest.REFLECTION_ALLOWLIST.")
+        }
+        logger.lifecycle("checkJarContents: ${jarFile.name} is clean (no shaded MCA/optional-mod classes, "
+                + "no foreign package names outside the ${reflectionAllowlist.size()}-class allowlist).")
+    }
+}
+
+// ForgeGradle reobfuscates in place, so between `jar` and `reobfJar` the archive at
+// build/libs/mcamobcompat-<version>.jar still names Minecraft's members by their official (dev-only)
+// names, which no production runtime knows. Such a jar looks completely normal and then dies the
+// instant one of our classes touches Minecraft. Both tasks below therefore run after reobfJar and
+// read the finished artifact, and `installMod` exists so copying it by hand is unnecessary.
+tasks.register('verifyReobfJar') {
+    group = 'verification'
+    description = 'Fails if the built jar still names Minecraft members by their official (dev-only) names.'
+    dependsOn 'reobfJar'
+    def builtJar = tasks.named('jar', Jar).flatMap { it.archiveFile }
+    inputs.file(builtJar)
+    doLast {
+        def jarPath = builtJar.get().asFile
+        int srgRefs = 0
+        new java.util.zip.ZipFile(jarPath).withCloseable { zip ->
+            zip.entries().each { entry ->
+                if (!entry.name.endsWith('.class')) {
+                    return
+                }
+                // Constant-pool UTF8 entries are raw bytes; ISO-8859-1 round-trips them, and an SRG
+                // member name (m_12345_ / f_12345_) is plain ASCII, so a text scan is enough.
+                def text = new String(zip.getInputStream(entry).bytes, 'ISO-8859-1')
+                if (text =~ /[mf]_\d+_/) {
+                    srgRefs++
+                }
+            }
+        }
+        if (srgRefs == 0) {
+            throw new GradleException("${jarPath.name} names no Minecraft member by its SRG name, so it was " +
+                    "never reobfuscated. Installing it would fail at class-init. Run `gradlew build` to " +
+                    "completion and install build/libs/${jarPath.name} (or use `gradlew installMod`).")
+        }
+        logger.lifecycle("${jarPath.name}: reobfuscated (${srgRefs} classes carry SRG member names).")
+    }
+}
+
+// Installs the finished jar into a mods folder, so nobody has to copy build/libs by hand and race
+// reobfJar for it. Nothing is deleted, but an older mcamobcompat jar left behind is called out,
+// because two of them in one folder is a duplicate-mod error rather than an upgrade.
+tasks.register('installMod') {
+    group = 'build'
+    description = 'Copies the verified, reobfuscated jar into -PmodsDir=<dir> (or $MCAMOBCOMPAT_MODS_DIR).'
+    dependsOn 'verifyReobfJar'
+    def builtJar = tasks.named('jar', Jar).flatMap { it.archiveFile }
+    def target = (project.findProperty('modsDir') ?: System.getenv('MCAMOBCOMPAT_MODS_DIR'))?.toString()
+    inputs.file(builtJar)
+    doLast {
+        if (!target) {
+            throw new GradleException("No mods folder given. Pass -PmodsDir=<path to your instance's mods " +
+                    "folder> or set the MCAMOBCOMPAT_MODS_DIR environment variable.")
+        }
+        def modsDir = file(target)
+        if (!modsDir.isDirectory()) {
+            throw new GradleException("Mods folder does not exist: ${modsDir}")
+        }
+        def source = builtJar.get().asFile
+        modsDir.listFiles({ f -> f.name ==~ /^${mod_id}-.*\.jar$/ && f.name != source.name } as FileFilter)
+                ?.each { logger.warn("WARNING: ${it.name} is still in ${modsDir}; remove it, or Forge will refuse " +
+                        "to load two copies of ${mod_id}.") }
+        java.nio.file.Files.copy(source.toPath(), new File(modsDir, source.name).toPath(),
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+        logger.lifecycle("Installed ${source.name} to ${modsDir}.")
+    }
+}
+
+tasks.named('build').configure {
+    dependsOn 'checkJarContents', 'verifyReobfJar'
+}

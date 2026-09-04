@@ -1,0 +1,18 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:pig",
+    {
+      "id": "#forge:pig",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:o_pig",
+      "required": false
+    },
+    {
+      "id": "eanimod:enhanced_pig",
+      "required": false
+    }
+  ]
+}

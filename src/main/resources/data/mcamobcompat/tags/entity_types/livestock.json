@@ -1,0 +1,52 @@
+{
+  "replace": false,
+  "values": [
+    "#mcamobcompat:cattle",
+    "#mcamobcompat:sheep",
+    "#mcamobcompat:pig",
+    "#mcamobcompat:poultry",
+    "minecraft:llama",
+    "minecraft:rabbit",
+    "minecraft:goat",
+    {
+      "id": "#forge:llamas",
+      "required": false
+    },
+    {
+      "id": "#forge:rabbit",
+      "required": false
+    },
+    {
+      "id": "#forge:goat",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:o_llama",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:o_rabbit",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:o_goat",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:farm_goat",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:caribou",
+      "required": false
+    },
+    {
+      "id": "eanimod:enhanced_llama",
+      "required": false
+    },
+    {
+      "id": "eanimod:enhanced_rabbit",
+      "required": false
+    }
+  ]
+}

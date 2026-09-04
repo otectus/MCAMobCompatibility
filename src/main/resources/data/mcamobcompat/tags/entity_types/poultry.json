@@ -1,0 +1,18 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:chicken",
+    {
+      "id": "#forge:chicken",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:o_chicken",
+      "required": false
+    },
+    {
+      "id": "eanimod:enhanced_chicken",
+      "required": false
+    }
+  ]
+}

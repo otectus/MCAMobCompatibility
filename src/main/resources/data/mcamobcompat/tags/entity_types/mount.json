@@ -1,0 +1,20 @@
+{
+  "replace": false,
+  "values": [
+    "#mcamobcompat:horse",
+    "minecraft:camel",
+    "minecraft:strider",
+    {
+      "id": "#forge:camel",
+      "required": false
+    },
+    {
+      "id": "#dragnlivestock:draught_animals",
+      "required": false
+    },
+    {
+      "id": "dragnlivestock:o_camel",
+      "required": false
+    }
+  ]
+}

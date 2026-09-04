@@ -1,0 +1,82 @@
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="${mod_license}"
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+authors="${mod_authors}"
+description='''${mod_description}'''
+
+# MCA: Mob Compatibility is meaningless without MCA Reborn, so MCA is a mandatory dependency.
+# We load AFTER MCA so its entities and registries are present.
+[[dependencies.${mod_id}]]
+    modId="forge"
+    mandatory=true
+    versionRange="${forge_version_range}"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.${mod_id}]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.${mod_id}]]
+    modId="mca"
+    mandatory=true
+    versionRange="[7.6,8)"
+    ordering="AFTER"
+    side="BOTH"
+# Architectury is deliberately NOT declared. This mod names no Architectury type (its build only puts
+# Architectury on the dev runtime classpath because MCA 7.6 needs it there), and MCA Reborn declares
+# its own dependency on it. A redundant mandatory=true edge here would refuse to load on any future
+# MCA that stops needing Architectury -- which MCA 7.7 already does.
+
+# Every entry below is OPTIONAL, and every version range is deliberately left empty (= any version).
+#
+# Empty rather than a tested floor because Forge enforces an optional dependency's versionRange when
+# the mod IS present: a range would refuse to launch for someone running an older build, for a mod we
+# only ever touch through registry ids and datapack tags. There is nothing to be incompatible with --
+# no class of theirs is referenced anywhere in this jar -- so the correct range is "any", and any
+# genuine incompatibility is handled in Java by simply not classifying an entity.
+#
+# ordering="AFTER" so their entity types and tags are registered before our setup runs.
+
+# Guard Villagers. The reason this mod exists: its villager->guard conversion reaches MCA villagers
+# and destroys their family/marriage/genetics data (see ConversionGuardHandler).
+[[dependencies.${mod_id}]]
+    modId="guardvillagers"
+    mandatory=false
+    versionRange=""
+    ordering="AFTER"
+    side="BOTH"
+
+# SWEM (Star Worm Equestrian Mod) -- swem:swem_horse, classified as horse + mount.
+[[dependencies.${mod_id}]]
+    modId="swem"
+    mandatory=false
+    versionRange=""
+    ordering="AFTER"
+    side="BOTH"
+
+# Genetic Animals. Note the mod id is "eanimod", NOT "geneticanimals": the jar's own mods.toml
+# declares modId="eanimod" and its package root is mokiyoki.enhancedanimals. Its entities are
+# eanimod:enhanced_cow, enhanced_pig, enhanced_sheep, and so on.
+[[dependencies.${mod_id}]]
+    modId="eanimod"
+    mandatory=false
+    versionRange=""
+    ordering="AFTER"
+    side="BOTH"
+
+# DragN's Livestock Overhaul -- the "O-Animals" (dragnlivestock:o_cow, o_pig, ...). DLO already
+# registers its animals into the Forge conventional entity-type tags, so most of our classification
+# of it comes free through those.
+[[dependencies.${mod_id}]]
+    modId="dragnlivestock"
+    mandatory=false
+    versionRange=""
+    ordering="AFTER"
+    side="BOTH"
