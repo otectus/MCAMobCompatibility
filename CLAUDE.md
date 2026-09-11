@@ -27,15 +27,24 @@ and `pack.mcmeta`. Never hard-code one elsewhere, this file included.
 ```
 .api            public extension surface: MobCompatibilityAPI, ClassificationProvider, MobRole
 .api.event      Forge-bus events for the bridge: GuardInteractEvent, GuardIdentityCreatedEvent, GuardHeartsChangedEvent
-.bridge         bridged-guard identity store and lifecycle: GuardIdentityData, GuardIdentityStore, GuardIdentityView, GuardNames
+.bridge         bridged-guard identity store and lifecycle: GuardIdentityData, GuardIdentityStore, GuardIdentityView, GuardNames,
+                GuardInteractions (the crouch gesture), GuardProxy (hidden MCA villager lifecycle), GuardProxySync (per-tick mirroring)
 .classification caches, provider registry, tag-driven classifier
+.client         ProxyRenderHandler only: the `Dist.CLIENT` subscriber that cancels rendering a hidden proxy
+                and, while a screen is open (`ScreenEvent.Render`), draws its linked guard in the proxy's
+                place instead, so MCAConversations/MCAQuests portraits show the guard, not an empty box
 .command        /mcamobcompat command
-.event          Forge-bus handlers: reload, conversion guard, guard defense, bridge lifecycle
-.integration    one IntegrationModule subclass per optional mod, in a per-mod subpackage
+.event          Forge-bus handlers: reload, conversion guard, guard defense, bridge lifecycle, GuardProxyHandler (proxy lifecycle
+                and hit/target/interact redirects), GuardDamageRelayHandler (relays hurt/death onto the proxy)
+.integration    one IntegrationModule subclass per optional mod, in a per-mod subpackage; guardvillagers also holds
+                GuardReflection (by-name method handles) and GuardVariants (variant -> villager type)
 .mca            McaEntities (knows MCA entity ids), McaBinding (reflective layer)
 .util           ConfigAccess, ModIds
 ```
-There is no client package and no client config spec; nothing runs client-side.
+The `client` package exists solely to control rendering of hidden proxy villagers: it cancels the
+proxy's render in the world, and inside a screen (`ScreenEvent.Render.Pre`/`Post`) substitutes the
+linked guard, found by `GuardProxy.nearbyGuardOf`, for MCAConversations' dialogue frame and
+MCAQuests' quest menu. There is still no client config spec and nothing else runs client-side.
 
 ## Key Dependencies
 - MCA Reborn + Architectury API - **runtime only**, dev-launch only. Not compile deps, not pinned.
@@ -45,22 +54,52 @@ There is no client package and no client config spec; nothing runs client-side.
   via manual `addListener` lambdas in `McaMobCompat`.
 - Forge-bus handlers are `@Mod.EventBusSubscriber` classes with static `@SubscribeEvent` methods.
 - Config is `ForgeConfigSpec` with two specs in `McaMobCompatConfig`: COMMON (module toggles) and
-  SERVER (all gameplay tuning, so it is world-owned). Add gameplay options to SERVER. Current sections:
-  `[guard_villagers]` (conversion block, defense, hearts), `[chores]` (hunting restraint with
-  five options), `[swem]`, `[genetic_animals]`, `[dragn_livestock]` (all mod recognitions).
+  SERVER (all gameplay tuning, so it is world-owned). Add gameplay options to SERVER. Current
+  `[guard_villagers]` options: `blockGuardConversion`, `protectMcaVillagers`,
+  `preventGuardFriendlyFire`, `retaliateAgainstPlayers`, `guardHelpRange`, `maxGuardsAlerted`,
+  `treatGuardsAsMcaGuards` (bridges a guard to an MCA identity at all), `guardMcaInteraction`
+  (plain click opens MCA's own screen through the hidden proxy; crouch opens Guard Villagers'
+  inventory; off means stock gestures and no proxy), `recruitMcaVillagersAsGuards` (crouch-click
+  with a weapon recruits an MCA villager as a guard in place instead of blocking the conversion),
+  `guardShowNameTag`. Other sections: `[chores]` (hunting restraint, five options), `[swem]`,
+  `[genetic_animals]`, `[dragn_livestock]` (all mod recognitions).
 - Classification data is datapack tags under `data/mcamobcompat/tags/entity_types/`; see `DATAPACK.md`.
   Reload is vanilla `TagsUpdatedEvent`, consumed by `ClassificationReloadHandler` to invalidate caches.
   There is no custom reload listener.
+- No `IExtensionPoint.DisplayTest` is registered, on purpose: this mod is required on both sides, and
+  Forge's default display test already enforces that at a matching version.
 - Bridged-guard identities are stored in `SavedData` in the overworld's `DimensionDataStorage` under
-  the key `mcamobcompat_guard_identities`. The store is world-scoped (one per world, not per dimension)
-  because a guard UUID is global and must survive portal travel.
+  the key `mcamobcompat_guard_identities` (schema version 2, migrated automatically from version 1).
+  The store is world-scoped (one per world, not per dimension) because a guard UUID is global and
+  must survive portal travel.
+- **Hidden-proxy architecture.** Every bridged guard that should open MCA's own screen is paired
+  with a real, hidden `mca:*_villager` given profession `mca:guard`: invisible, `NoAI`, silent,
+  weightless, and pinned to the guard's position every tick by `GuardProxySync`. The guard keeps its
+  own model, combat AI and Guard Villagers inventory; the proxy carries MCA's name, personality,
+  memories/hearts, family tree and residency, and receives every MCA interaction. The link is
+  persistent-data on both sides — `mcamobcompat:proxy` on the guard, `mcamobcompat:guard` on the
+  proxy — plus a scoreboard tag `mcamobcompat_proxy` on every proxy for operator selectors. Proxies
+  are created only from the guard's own tick (with a grace period), never on `EntityJoinLevelEvent`,
+  to avoid spawning a duplicate on chunk load.
+- Guard Villagers has no API. Its guard is driven only by reflection **by method name** on the
+  guard's runtime class, in `GuardReflection` (`setFollowing`, `setPatrolling`, `setPatrolPos`,
+  `setOwnerId`, `getGuardVariant`) — never by naming its class, so both `checkJarContents` and
+  `NoOptionalModStaticLinkTest` stay green. This is safe only because those are Guard Villagers' own
+  member names, not ones inherited from Minecraft (which would be SRG-mangled).
+- The client identifies a proxy without seeing persistent data by a synced-flag heuristic,
+  `GuardProxy.looksLikeProxy`: an MCA villager type with `isInvisible()`, `isNoAi()`, `isSilent()`
+  and `isNoGravity()` all true. `ProxyRenderHandler` cancels its render always, but inside a screen
+  (tracked via `ScreenEvent.Render.Pre`/`Post`) it instead draws the guard found by
+  `GuardProxy.nearbyGuardOf` (bounding-box overlap) in the proxy's place, copying the proxy's
+  rotation fields onto the guard for that one call, so MCAConversations' dialogue frame and
+  MCAQuests' quest menu show the guard rather than an empty box.
 - **No mixins and no access transformers**, deliberately.
 - **Never import a class from MCA or an optional mod.** Detect with `ModList.get().isLoaded(...)`
   during `FMLCommonSetupEvent.enqueueWork`; refer to their content by registry-id string or `TagKey`.
   `checkJarContents` and `NoOptionalModStaticLinkTest` fail the build if this rule is broken.
   **Exception:** `mca/McaBinding` may name MCA classes only as dot-form string literals for reflection (e.g. `Class.forName("forge.net.conczin.mca.entity.VillagerEntityMCA")`). It is the single allowlisted entry in both build-time guards, matched exactly by class file name so it cannot widen silently. The no-static-import rule itself is unchanged.
   The bridge never references a Guard Villagers class; it detects the module and config option via
-  `ModIntegrations` and matches guards by tag and predicate only.
+  `ModIntegrations` and reaches guard-only state through `GuardReflection` by method name.
 
 ## Terminology
 - `MobRole` is the semantic role enum; named to avoid colliding with vanilla `MobCategory`

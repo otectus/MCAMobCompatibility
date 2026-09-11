@@ -2,7 +2,6 @@ package dev.otectus.mcamobcompat.integration.guardvillagers;
 
 import dev.otectus.mcamobcompat.McaMobCompatConfig;
 import dev.otectus.mcamobcompat.integration.IntegrationModule;
-import dev.otectus.mcamobcompat.util.ConfigAccess;
 import dev.otectus.mcamobcompat.util.ModIds;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -72,8 +71,31 @@ public final class GuardVillagersModule extends IntegrationModule {
         return isActive() && safeBoolean(McaMobCompatConfig.SERVER.treatGuardsAsMcaGuards, true);
     }
 
-    /** Hearts added to a bridged guard's record when a player hits it; negative costs hearts. */
-    public int guardHeartsLostPerHit() {
-        return ConfigAccess.integer(McaMobCompatConfig.SERVER.guardHeartsLostPerHit, -5);
+    /**
+     * Whether a plain right-click on a bridged guard opens MCA's own interaction screen, through
+     * the hidden proxy villager, and crouching opens Guard Villagers' inventory instead.
+     *
+     * <p>Gated on the module the same way {@link #bridgesGuards()} is: the proxy is seeded from the
+     * bridged identity, so with Guard Villagers absent there is nothing to stand in for.
+     */
+    public boolean opensMcaInteraction() {
+        return isActive() && safeBoolean(McaMobCompatConfig.SERVER.guardMcaInteraction, true);
+    }
+
+    /**
+     * Whether crouch-clicking an MCA villager with a convertible weapon recruits it as a guard in
+     * place, rather than simply being blocked.
+     *
+     * <p>Sits behind {@code blocksConversion}: this is what happens <em>instead of</em> the block,
+     * on the same gesture, so with the block off Guard Villagers' own destructive conversion is
+     * what runs and there is nothing to replace.
+     */
+    public boolean recruitsAsGuards() {
+        return isActive() && safeBoolean(McaMobCompatConfig.SERVER.recruitMcaVillagersAsGuards, true);
+    }
+
+    /** Whether a newly identified guard gets its name shown permanently above its head. */
+    public boolean showsNameTag() {
+        return isActive() && safeBoolean(McaMobCompatConfig.SERVER.guardShowNameTag, true);
     }
 }

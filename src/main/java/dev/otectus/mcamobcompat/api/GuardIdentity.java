@@ -1,5 +1,6 @@
 package dev.otectus.mcamobcompat.api;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -41,6 +42,17 @@ public interface GuardIdentity {
      */
     default String professionId() {
         return "mca:guard";
+    }
+
+    /**
+     * The UUID of the hidden MCA villager that carries this guard's MCA state, when it has one.
+     *
+     * <p>Exposed so a sibling addon that already knows how to talk to an MCA villager can resolve
+     * the real entity and use its own code path, rather than a bridged approximation of it. Empty
+     * while the guard's proxy has not been created yet, or while the feature is switched off.
+     */
+    default Optional<UUID> proxyUuid() {
+        return Optional.empty();
     }
 
     /** Game time, in ticks, at which the identity was first created. */

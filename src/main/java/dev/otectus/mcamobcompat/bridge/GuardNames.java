@@ -3,16 +3,17 @@ package dev.otectus.mcamobcompat.bridge;
 import dev.otectus.mcamobcompat.api.GuardGender;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
 /**
  * Rolls a guard's name, gender and personality from its UUID.
  *
- * <p><b>Why a bundled list and not MCA's own name files.</b> This mod may not name an MCA class or
- * read an MCA resource path; the path its name lists live at is not part of any contract and has
- * moved before. A local list costs a little variety and buys an identity that cannot break when MCA
- * reshuffles its resources.
+ * <p><b>Why a bundled list at all.</b> A bridged guard's real name now comes from the hidden MCA
+ * proxy villager, rolled by MCA itself. These lists are the seed and the fallback: they name a
+ * guard before its proxy exists and whenever MCA is unreachable, so an identity is never nameless
+ * and never depends on MCA's own resources being where we last saw them.
  *
  * <p>Everything here is derived from the UUID alone, so a guard whose identity was never stored --
  * one created before this feature existed, or after a data file was lost -- regenerates exactly the
@@ -46,10 +47,14 @@ final class GuardNames {
      * as canonical -- because the rolled value is persisted, so disagreeing here would leave guards
      * carrying a personality no dialogue pack has lines for. {@code unassigned} is excluded: it is
      * MCA's parse-failure sentinel, never rolled onto anybody.
+     *
+     * <p>Guards rolled before this roster was corrected keep whatever id they were given: the value
+     * is a free string in {@link GuardIdentityData} and nothing here migrates it. Display falls back
+     * for an unknown id rather than failing, so an old guard still reads correctly.
      */
     private static final List<String> PERSONALITIES = List.of(
-            "confident", "peppy", "friendly", "flirty", "playful", "gloomy", "sensitive", "greedy",
-            "odd", "crabby", "extroverted", "introverted", "relaxed", "anxious", "peaceful", "upbeat");
+            "athletic", "confident", "friendly", "flirty", "witty", "shy", "gloomy", "sensitive",
+            "greedy", "odd", "lazy", "grumpy", "peppy");
 
     private GuardNames() {
     }
@@ -68,6 +73,44 @@ final class GuardNames {
     /** A personality id for this UUID. */
     static String personality(UUID uuid) {
         return PERSONALITIES.get(rollFor(uuid, PERSONALITY_SALT).nextInt(PERSONALITIES.size()));
+    }
+
+    /**
+     * A name drawn from a weighted pool, deterministically for this UUID.
+     *
+     * <p>Exists for a caller holding a weighted name pool read from data. The walk is over
+     * cumulative weights, so a name weighted 3600 really is thirty-six times as likely as one
+     * weighted 100, and it is driven by the same UUID-seeded stream the bundled
+     * roll uses, so a guard's name is still a pure function of its UUID and the pool it was drawn
+     * from. Empty pool, mismatched lists or a total weight of zero all return empty rather than
+     * guessing; the caller falls back to the bundled list.
+     */
+    static Optional<String> weightedName(UUID uuid, List<String> names, List<Integer> weights) {
+        if (names == null || weights == null || names.isEmpty() || names.size() != weights.size()) {
+            return Optional.empty();
+        }
+        long total = 0L;
+        for (Integer weight : weights) {
+            if (weight != null && weight > 0) {
+                total += weight;
+            }
+        }
+        if (total <= 0L) {
+            return Optional.empty();
+        }
+
+        long roll = Math.floorMod(rollFor(uuid, NAME_SALT).nextLong(), total);
+        for (int i = 0; i < names.size(); i++) {
+            Integer weight = weights.get(i);
+            if (weight == null || weight <= 0) {
+                continue;
+            }
+            roll -= weight;
+            if (roll < 0L) {
+                return Optional.ofNullable(names.get(i));
+            }
+        }
+        return Optional.ofNullable(names.get(names.size() - 1));
     }
 
     /** The personality roster, for tests and command output. */

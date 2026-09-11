@@ -24,14 +24,15 @@ Machine-generated map of this mod. Read this first when picking the project up.
 dev.otectus.mcamobcompat                             2 files
 dev.otectus.mcamobcompat.api                         5 files
 dev.otectus.mcamobcompat.api.event                   3 files
-dev.otectus.mcamobcompat.bridge                      5 files
+dev.otectus.mcamobcompat.bridge                      8 files
 dev.otectus.mcamobcompat.classification              5 files
+dev.otectus.mcamobcompat.client                      1 file
 dev.otectus.mcamobcompat.command                     1 file
-dev.otectus.mcamobcompat.event                       6 files
+dev.otectus.mcamobcompat.event                       8 files
 dev.otectus.mcamobcompat.integration                 2 files
 dev.otectus.mcamobcompat.integration.dragnlivestock  1 file
 dev.otectus.mcamobcompat.integration.geneticanimals  1 file
-dev.otectus.mcamobcompat.integration.guardvillagers  1 file
+dev.otectus.mcamobcompat.integration.guardvillagers  3 files
 dev.otectus.mcamobcompat.integration.swem            1 file
 dev.otectus.mcamobcompat.mca                         2 files
 dev.otectus.mcamobcompat.util                        2 files
@@ -64,6 +65,8 @@ _No datagen providers detected — assets and data JSON are hand-written._
 Run `check_mod.py` for a full consistency check (missing models, lang keys, textures).
 
 <!-- MODMAP:AUTO:END — everything below is hand-maintained and preserved -->
+
+
 
 
 

@@ -3,10 +3,15 @@ package dev.otectus.mcamobcompat.mca;
 import dev.otectus.mcamobcompat.McaMobCompat;
 import net.minecraft.world.entity.Entity;
 
+import net.minecraft.world.entity.player.Player;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.UUID;
 import java.util.function.Function;
 
 /**
@@ -63,6 +68,27 @@ public final class McaBinding {
      */
     private static volatile Method abandonJob;
 
+    /**
+     * {@code VillagerBrain#getPersonality()} and {@code #setPersonality(Personality)}.
+     *
+     * <p>Read for the bridged guard's identity, written only to migrate a personality this mod
+     * rolled before the guard had a proxy. MCA rolls its own on {@code finalizeSpawn}, so an
+     * unbound setter costs a migrated guard its old personality and nothing else.
+     */
+    private static volatile Method getPersonality;
+    private static volatile Method setPersonality;
+
+    /** {@code VillagerBrain#getMemories()} -- a map keyed by player UUID -- and the per-player one. */
+    private static volatile Method getMemories;
+    private static volatile Method getMemoriesForPlayer;
+
+    /** {@code VillagerBrain#getMoveState()}, whose enum constants are MOVE, STAY and FOLLOW. */
+    private static volatile Method getMoveState;
+
+    /** {@code Memories#getHearts()} and {@code #modHearts(int)}, off the per-player memories type. */
+    private static volatile Method getHearts;
+    private static volatile Method modHearts;
+
     private McaBinding() {
     }
 
@@ -109,6 +135,53 @@ public final class McaBinding {
         } catch (ReflectiveOperationException | LinkageError t) {
             warnMissing("abandonJob", t);
         }
+
+        // These five are looked up by name and arity rather than by signature: their parameter and
+        // return types are MCA's own, and naming one here -- even as a Class literal -- would link
+        // this class against MCA and defeat the whole design.
+        getPersonality = findMethod(brainClass, "getPersonality", 0);
+        setPersonality = findMethod(brainClass, "setPersonality", 1);
+        getMemories = findMethod(brainClass, "getMemories", 0);
+        getMemoriesForPlayer = findMethod(brainClass, "getMemoriesForPlayer", 1);
+        getMoveState = findMethod(brainClass, "getMoveState", 0);
+
+        // Same trick as the brain class itself: the memories type is the return type of the
+        // accessor that hands one out, so there is one MCA name to keep in step instead of two.
+        Method perPlayer = getMemoriesForPlayer;
+        if (perPlayer != null) {
+            Class<?> memoriesClass = perPlayer.getReturnType();
+            getHearts = findMethod(memoriesClass, "getHearts", 0);
+            modHearts = findMethod(memoriesClass, "modHearts", 1);
+        }
+    }
+
+    /**
+     * The one public method of this name and arity, or null with a single warning.
+     *
+     * <p>By name and arity because every signature involved names an MCA type. MCA has no
+     * overloads among these members, so arity is enough to identify them; an ambiguous match is
+     * treated as unbound rather than guessed at.
+     */
+    private static Method findMethod(Class<?> owner, String name, int arity) {
+        Method found = null;
+        try {
+            for (Method candidate : owner.getMethods()) {
+                if (candidate.getName().equals(name) && candidate.getParameterCount() == arity) {
+                    if (found != null) {
+                        found = null;
+                        break;
+                    }
+                    found = candidate;
+                }
+            }
+        } catch (LinkageError t) {
+            warnMissing(name, t);
+            return null;
+        }
+        if (found == null) {
+            warnMissing(name, new NoSuchMethodException(name + "/" + arity));
+        }
+        return found;
     }
 
     /** True when the root and the brain accessor both bound. */
@@ -164,13 +237,155 @@ public final class McaBinding {
         }
     }
 
+    /**
+     * This villager's personality, by enum constant name ({@code CONFIDENT}, {@code SHY}, ...), or
+     * empty when it is not an MCA villager or the member is unbound.
+     */
+    public static Optional<String> personality(Entity entity) {
+        Method accessor = getPersonality;
+        Object brain = boundBrain(entity, accessor);
+        if (brain == null) {
+            return Optional.empty();
+        }
+        try {
+            Object value = accessor.invoke(brain);
+            return value instanceof Enum<?> ? Optional.of(((Enum<?>) value).name()) : Optional.empty();
+        } catch (Throwable t) {
+            getPersonality = null;
+            retire("getPersonality", t);
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Sets this villager's personality by constant name, case-insensitively. False when the name is
+     * not one MCA knows, or the member is unbound.
+     */
+    public static boolean setPersonality(Entity entity, String personality) {
+        Method setter = setPersonality;
+        Object brain = boundBrain(entity, setter);
+        if (brain == null || personality == null || personality.isBlank()) {
+            return false;
+        }
+        try {
+            Class<?> type = setter.getParameterTypes()[0];
+            if (!type.isEnum()) {
+                return false;
+            }
+            Object constant = null;
+            for (Object candidate : type.getEnumConstants()) {
+                if (((Enum<?>) candidate).name().equalsIgnoreCase(personality)) {
+                    constant = candidate;
+                    break;
+                }
+            }
+            if (constant == null) {
+                return false;
+            }
+            setter.invoke(brain, constant);
+            return true;
+        } catch (Throwable t) {
+            setPersonality = null;
+            retire("setPersonality", t);
+            return false;
+        }
+    }
+
+    /**
+     * This player's hearts with the villager, read from MCA's own memories.
+     *
+     * <p>Empty rather than zero when there is nothing to read: a player MCA has no memory of and a
+     * player on zero hearts are different facts, and the bridge falls back to its own store for the
+     * first one.
+     */
+    public static OptionalInt hearts(Entity entity, UUID player) {
+        Method accessor = getMemories;
+        Method reader = getHearts;
+        Object brain = boundBrain(entity, accessor);
+        if (brain == null || player == null || reader == null) {
+            return OptionalInt.empty();
+        }
+        try {
+            Object memories = accessor.invoke(brain);
+            if (!(memories instanceof Map<?, ?> map)) {
+                return OptionalInt.empty();
+            }
+            Object forPlayer = map.get(player);
+            if (forPlayer == null) {
+                return OptionalInt.empty();
+            }
+            Object value = reader.invoke(forPlayer);
+            return value instanceof Number number
+                    ? OptionalInt.of(number.intValue())
+                    : OptionalInt.empty();
+        } catch (Throwable t) {
+            getMemories = null;
+            retire("getMemories", t);
+            return OptionalInt.empty();
+        }
+    }
+
+    /** Moves this player's hearts with the villager. False if it could not be done, for any reason. */
+    public static boolean modHearts(Entity entity, Player player, int delta) {
+        Method accessor = getMemoriesForPlayer;
+        Method mutator = modHearts;
+        Object brain = boundBrain(entity, accessor);
+        if (brain == null || player == null || mutator == null) {
+            return false;
+        }
+        try {
+            Object memories = accessor.invoke(brain, player);
+            if (memories == null) {
+                return false;
+            }
+            mutator.invoke(memories, delta);
+            return true;
+        } catch (Throwable t) {
+            getMemoriesForPlayer = null;
+            retire("getMemoriesForPlayer", t);
+            return false;
+        }
+    }
+
+    /**
+     * The villager's movement intent, by enum constant name ({@code MOVE}, {@code STAY},
+     * {@code FOLLOW}), or empty when unbound. This is what the proxy mirrors onto its guard.
+     */
+    public static Optional<String> moveState(Entity entity) {
+        Method accessor = getMoveState;
+        Object brain = boundBrain(entity, accessor);
+        if (brain == null) {
+            return Optional.empty();
+        }
+        try {
+            Object value = accessor.invoke(brain);
+            return value instanceof Enum<?> ? Optional.of(((Enum<?>) value).name()) : Optional.empty();
+        } catch (Throwable t) {
+            getMoveState = null;
+            retire("getMoveState", t);
+            return Optional.empty();
+        }
+    }
+
+    /** The brain of a bound MCA villager, but only when {@code member} bound too. Null otherwise. */
+    private static Object boundBrain(Entity entity, Method member) {
+        return member == null || !isBoundVillager(entity) ? null : brainOf(entity);
+    }
+
     /** One line per member, ok or missing, for the diagnostic command and the setup log line. */
     public static List<String> describeBindings() {
-        List<String> lines = new ArrayList<>(4);
+        List<String> lines = new ArrayList<>(11);
         lines.add("VillagerEntityMCA: " + state(villagerClass != null));
         lines.add("getVillagerBrain: " + state(getVillagerBrain != null));
         lines.add("getCurrentJob: " + state(getCurrentJob != null));
         lines.add("abandonJob: " + state(abandonJob != null));
+        lines.add("getPersonality: " + state(getPersonality != null));
+        lines.add("setPersonality: " + state(setPersonality != null));
+        lines.add("getMemories: " + state(getMemories != null));
+        lines.add("getMemoriesForPlayer: " + state(getMemoriesForPlayer != null));
+        lines.add("getMoveState: " + state(getMoveState != null));
+        lines.add("getHearts: " + state(getHearts != null));
+        lines.add("modHearts: " + state(modHearts != null));
         return lines;
     }
 

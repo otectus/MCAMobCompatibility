@@ -90,7 +90,9 @@ public final class McaMobCompatConfig {
         public final ForgeConfigSpec.IntValue guardHelpRange;
         public final ForgeConfigSpec.IntValue maxGuardsAlerted;
         public final ForgeConfigSpec.BooleanValue treatGuardsAsMcaGuards;
-        public final ForgeConfigSpec.IntValue guardHeartsLostPerHit;
+        public final ForgeConfigSpec.BooleanValue guardMcaInteraction;
+        public final ForgeConfigSpec.BooleanValue recruitMcaVillagersAsGuards;
+        public final ForgeConfigSpec.BooleanValue guardShowNameTag;
 
         public final ForgeConfigSpec.BooleanValue protectOwnedAnimals;
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> protectedRoles;
@@ -153,10 +155,34 @@ public final class McaMobCompatConfig {
                             "Turning this off leaves existing identities on disk untouched; turning it",
                             "back on resumes them.")
                     .define("treatGuardsAsMcaGuards", true);
-            guardHeartsLostPerHit = builder
-                    .comment("Hearts added to a guard when a player hits it. Negative costs hearts;",
-                            "0 disables the hearts response entirely.")
-                    .defineInRange("guardHeartsLostPerHit", -5, -100, 100);
+            guardMcaInteraction = builder
+                    .comment("Give bridged guards MCA's own right-click behaviour.",
+                            "On: a plain right-click opens MCA's real interaction screen, with every",
+                            "MCA option working, through a hidden MCA villager that stands in for the",
+                            "guard and carries its name, personality, hearts and family; crouch-right-",
+                            "click still opens Guard Villagers' own inventory GUI.",
+                            "Off: both gestures behave exactly as Guard Villagers ships them, and no",
+                            "hidden villager is created at all.",
+                            "Needs 'treatGuardsAsMcaGuards' on, because the stand-in is seeded from the",
+                            "bridged identity.")
+                    .define("guardMcaInteraction", true);
+            recruitMcaVillagersAsGuards = builder
+                    .comment("Let crouch-and-right-click with a weapon RECRUIT an MCA villager as a guard",
+                            "instead of blocking the gesture.",
+                            "The villager keeps its name, family, genetics and personality and simply",
+                            "changes profession to 'mca:guard', taking the weapon from your hand -- so",
+                            "nothing is destroyed, which is the whole objection to the Guard Villagers",
+                            "conversion. Turning this off restores the plain block and its message.",
+                            "Needs 'blockGuardConversion' on: the recruit replaces the block, and with",
+                            "the block off the destructive conversion runs instead.")
+                    .define("recruitMcaVillagersAsGuards", true);
+            guardShowNameTag = builder
+                    .comment("Show a bridged guard's rolled name permanently above its head, the way",
+                            "MCA shows a villager's. A nameplate on every guard in the village is a loud",
+                            "change, so it is switchable; turning it off only stops NEW guards gaining",
+                            "one, because a nameplate already set is a player-visible fact we do not",
+                            "quietly take away.")
+                    .define("guardShowNameTag", true);
             builder.pop();
 
             builder.comment("Which animals an MCA villager's hunting chore must leave alone.",

@@ -3,8 +3,11 @@ package dev.otectus.mcamobcompat.mca;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -55,5 +58,32 @@ class McaBindingTest {
                 "A class loader that throws -- a half-installed or shaded MCA, say -- must degrade to "
                         + "'binding unavailable'. This runs inside FMLCommonSetupEvent, where a throw is "
                         + "a crash on startup.");
+    }
+
+    /**
+     * Every accessor added for the guard proxy, asked on a classpath with no MCA at all.
+     *
+     * <p>The binding is unresolved here, which is exactly the shape of a server running without
+     * MCA's classes where we expected them. All of these are called from a tick handler and from
+     * the identity view, so "empty, and no throw" is the contract; a throw would be a crash once a
+     * second for every guard in the village.
+     */
+    @Test
+    void everyAccessorDegradesToEmptyWithoutMca() {
+        assertTrue(McaBinding.personality(null).isEmpty());
+        assertFalse(McaBinding.setPersonality(null, "confident"));
+        assertFalse(McaBinding.setPersonality(null, null));
+        assertEquals(OptionalInt.empty(), McaBinding.hearts(null, UUID.randomUUID()));
+        assertEquals(OptionalInt.empty(), McaBinding.hearts(null, null));
+        assertFalse(McaBinding.modHearts(null, null, 5));
+        assertTrue(McaBinding.moveState(null).isEmpty());
+    }
+
+    @Test
+    void theBindingReportIsCompleteWhetherOrNotAnythingBound() {
+        assertEquals(11, McaBinding.describeBindings().size(),
+                "Every bound member gets a line, so the diagnostic command can say which one is "
+                        + "missing rather than only that something is.");
+        assertTrue(McaBinding.describeBindings().stream().allMatch(line -> line.contains(": ")));
     }
 }

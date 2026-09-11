@@ -11,6 +11,7 @@ import dev.otectus.mcamobcompat.api.MobRole;
 import dev.otectus.mcamobcompat.bridge.GuardBridge;
 import dev.otectus.mcamobcompat.bridge.GuardIdentityData;
 import dev.otectus.mcamobcompat.bridge.GuardIdentityStore;
+import dev.otectus.mcamobcompat.bridge.GuardProxy;
 import dev.otectus.mcamobcompat.classification.ClassificationCache;
 import dev.otectus.mcamobcompat.classification.ProviderRegistry;
 import dev.otectus.mcamobcompat.integration.IntegrationModule;
@@ -32,11 +33,14 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
@@ -47,6 +51,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 
 /**
  * Diagnostics for MCA: Mob Compatibility.
@@ -94,6 +99,10 @@ public final class McaMobCompatCommand {
                                 .then(Commands.argument("target", EntityArgument.entity())
                                         .executes(context -> inspect(context.getSource(),
                                                 EntityArgument.getEntity(context, "target")))))
+                        .then(Commands.literal("proxies")
+                                .executes(context -> proxies(context.getSource())))
+                        .then(Commands.literal("rebuild")
+                                .executes(context -> rebuild(context.getSource())))
                         .then(Commands.literal("purge")
                                 .then(Commands.argument("days", IntegerArgumentType.integer(0))
                                         .executes(context -> purge(context.getSource(),
@@ -223,13 +232,117 @@ public final class McaMobCompatCommand {
         boolean bridging = ModIntegrations.guardVillagers().bridgesGuards();
         line(source, bridging ? ChatFormatting.GREEN : ChatFormatting.YELLOW,
                 "  " + (bridging ? "active" : "disabled (Guard Villagers absent, or switched off in the config)"));
-        line(source, ChatFormatting.WHITE,
-                "  hearts per player hit: " + ModIntegrations.guardVillagers().guardHeartsLostPerHit());
+        boolean mcaInteraction = ModIntegrations.guardVillagers().opensMcaInteraction();
+        line(source, mcaInteraction ? ChatFormatting.GREEN : ChatFormatting.YELLOW,
+                "  MCA interaction: " + (mcaInteraction
+                        ? "on (plain click opens MCA's screen through a hidden proxy)"
+                        : "off (stock Guard Villagers gestures, no proxy created)"));
 
         GuardIdentityData data = GuardIdentityStore.get(source.getServer());
         line(source, ChatFormatting.WHITE, "  " + data.size() + " identity(ies) stored, "
                 + data.deceasedCount() + " deceased.");
+
+        ProxyCensus census = census(source);
+        line(source, ChatFormatting.WHITE, "  " + census.proxies + " proxy(ies) loaded, "
+                + census.orphans + " orphaned, " + census.guardsWithout + " guard(s) without one.");
         return data.size();
+    }
+
+    /**
+     * Walks every loaded entity in every level once and counts the three states worth knowing.
+     *
+     * <p>One walk rather than three: {@code getAllEntities()} is not cheap on a busy server, and
+     * this is a diagnostic somebody runs while something is already wrong.
+     */
+    private static ProxyCensus census(CommandSourceStack source) {
+        ProxyCensus census = new ProxyCensus();
+        for (ServerLevel level : source.getServer().getAllLevels()) {
+            for (Entity entity : level.getAllEntities()) {
+                if (GuardProxy.isProxy(entity)) {
+                    census.proxies++;
+                    if (GuardProxy.guardOf(entity) == null) {
+                        census.orphans++;
+                    }
+                } else if (GuardBridge.isBridgedGuard(entity)
+                        && GuardProxy.proxyOf((Mob) entity) == null) {
+                    census.guardsWithout++;
+                }
+            }
+        }
+        return census;
+    }
+
+    /** Three counts from one walk of the loaded entities. */
+    private static final class ProxyCensus {
+        private int proxies;
+        private int orphans;
+        private int guardsWithout;
+    }
+
+    /**
+     * Every loaded proxy, its guard, and every bridged guard still waiting for one.
+     *
+     * <p>The orphan list is the one that matters: a proxy whose guard is gone holds MCA state for an
+     * NPC nobody can reach, and it is what {@code guards rebuild} exists to clear up.
+     */
+    private static int proxies(CommandSourceStack source) {
+        line(source, ChatFormatting.GOLD, "MCA proxies");
+        int found = 0;
+        for (ServerLevel level : source.getServer().getAllLevels()) {
+            for (Entity entity : level.getAllEntities()) {
+                if (GuardProxy.isProxy(entity)) {
+                    found++;
+                    Mob guard = GuardProxy.guardOf(entity);
+                    line(source, guard == null ? ChatFormatting.RED : ChatFormatting.GREEN,
+                            "  " + entity.getName().getString() + " (" + entity.getUUID() + ") in "
+                                    + level.dimension().location() + " -> "
+                                    + (guard == null ? "ORPHAN, no guard found" : guard.getUUID()));
+                } else if (GuardBridge.isBridgedGuard(entity)
+                        && GuardProxy.proxyOf((Mob) entity) == null) {
+                    found++;
+                    line(source, ChatFormatting.YELLOW, "  guard " + entity.getUUID() + " in "
+                            + level.dimension().location() + " has no proxy");
+                }
+            }
+        }
+        if (found == 0) {
+            line(source, ChatFormatting.GRAY, "  Nothing loaded to report.");
+        }
+        return found;
+    }
+
+    /**
+     * Discards and recreates the proxy of every loaded bridged guard.
+     *
+     * <p>The repair tool, and a destructive one: a rebuilt proxy is a new villager to MCA, so the
+     * family-tree node and the memories on the old one are gone. It is for a world where the links
+     * have already been broken -- by a crash mid-save, or by removing and re-adding MCA -- and the
+     * alternative is guards nobody can talk to.
+     */
+    private static int rebuild(CommandSourceStack source) {
+        int rebuilt = 0;
+        for (ServerLevel level : source.getServer().getAllLevels()) {
+            List<Entity> guards = new ArrayList<>();
+            for (Entity entity : level.getAllEntities()) {
+                if (GuardBridge.isBridgedGuard(entity)) {
+                    guards.add(entity);
+                }
+            }
+            // Collected first: creating a proxy adds an entity, and the live view would then be
+            // iterated while it changes.
+            for (Entity entity : guards) {
+                Mob guard = (Mob) entity;
+                Villager existing = GuardProxy.proxyOf(guard);
+                if (existing != null) {
+                    GuardProxy.discard(existing);
+                }
+                if (GuardProxy.create(level, guard) != null) {
+                    rebuilt++;
+                }
+            }
+        }
+        line(source, ChatFormatting.WHITE, "Rebuilt " + rebuilt + " guard proxy(ies).");
+        return rebuilt;
     }
 
     private static int inspectLookedAt(CommandSourceStack source) throws CommandSyntaxException {
@@ -261,6 +374,24 @@ public final class McaMobCompatCommand {
         line(source, ChatFormatting.WHITE, "  " + summarise(identity));
         line(source, ChatFormatting.WHITE, "  profession: " + identity.professionId());
         line(source, ChatFormatting.WHITE, "  created at game time " + identity.created());
+
+        Villager proxy = GuardProxy.proxyOf((Mob) target);
+        UUID proxyUuid = identity.proxyUuid().orElse(null);
+        if (proxyUuid == null && proxy == null) {
+            line(source, ChatFormatting.YELLOW, "  proxy: none -- every value above is the stored "
+                    + "roll, not MCA's own");
+        } else {
+            line(source, proxy == null ? ChatFormatting.YELLOW : ChatFormatting.GREEN,
+                    "  proxy: " + (proxyUuid == null ? proxy.getUUID() : proxyUuid)
+                            + (proxy == null ? " (not loaded)" : " (loaded in "
+                            + proxy.level().dimension().location() + ")"));
+        }
+        if (proxy != null) {
+            line(source, ChatFormatting.WHITE, "  live MCA name: "
+                    + (proxy.hasCustomName() ? proxy.getCustomName().getString() : "unnamed"));
+            line(source, ChatFormatting.WHITE, "  live profession: " + ForgeRegistries
+                    .VILLAGER_PROFESSIONS.getKey(proxy.getVillagerData().getProfession()));
+        }
         if (source.getEntity() instanceof ServerPlayer player) {
             line(source, ChatFormatting.WHITE,
                     "  your hearts: " + identity.hearts(player.getUUID()));

@@ -34,13 +34,16 @@ description='''${mod_description}'''
 # its own dependency on it. A redundant mandatory=true edge here would refuse to load on any future
 # MCA that stops needing Architectury -- which MCA 7.7 already does.
 
-# Every entry below is OPTIONAL, and every version range is deliberately left empty (= any version).
+# Every entry below is OPTIONAL, and every version range is deliberately "[0,)" (= any version).
 #
-# Empty rather than a tested floor because Forge enforces an optional dependency's versionRange when
-# the mod IS present: a range would refuse to launch for someone running an older build, for a mod we
+# "[0,)" rather than a tested floor because Forge enforces an optional dependency's versionRange when
+# the mod IS present: a floor would refuse to launch for someone running an older build, for a mod we
 # only ever touch through registry ids and datapack tags. There is nothing to be incompatible with --
 # no class of theirs is referenced anywhere in this jar -- so the correct range is "any", and any
 # genuine incompatibility is handled in Java by simply not classifying an entity.
+#
+# It must NOT be an empty string: Maven parses "" into a range with no restrictions, which contains
+# no version at all, so Forge reports "only supports <mod>" the moment that mod is installed.
 #
 # ordering="AFTER" so their entity types and tags are registered before our setup runs.
 
@@ -49,7 +52,7 @@ description='''${mod_description}'''
 [[dependencies.${mod_id}]]
     modId="guardvillagers"
     mandatory=false
-    versionRange=""
+    versionRange="[0,)"
     ordering="AFTER"
     side="BOTH"
 
@@ -57,7 +60,7 @@ description='''${mod_description}'''
 [[dependencies.${mod_id}]]
     modId="swem"
     mandatory=false
-    versionRange=""
+    versionRange="[0,)"
     ordering="AFTER"
     side="BOTH"
 
@@ -67,7 +70,7 @@ description='''${mod_description}'''
 [[dependencies.${mod_id}]]
     modId="eanimod"
     mandatory=false
-    versionRange=""
+    versionRange="[0,)"
     ordering="AFTER"
     side="BOTH"
 
@@ -77,6 +80,6 @@ description='''${mod_description}'''
 [[dependencies.${mod_id}]]
     modId="dragnlivestock"
     mandatory=false
-    versionRange=""
+    versionRange="[0,)"
     ordering="AFTER"
     side="BOTH"

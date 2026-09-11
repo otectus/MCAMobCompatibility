@@ -8,12 +8,15 @@ import net.minecraft.world.level.saveddata.SavedData;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -35,8 +38,16 @@ public class GuardIdentityData extends SavedData {
     /** The data file name, under the world's {@code data/} folder. */
     public static final String STORAGE_KEY = "mcamobcompat_guard_identities";
 
-    /** Bumped only when the on-disk shape changes; an absent version reads as 1. */
-    public static final int SCHEMA_VERSION = 1;
+    /**
+     * Bumped only when the on-disk shape changes; an absent version reads as 1.
+     *
+     * <p>Version 2 added the hidden MCA proxy villager: the proxy's UUID, whether the stored name
+     * and personality have been seeded onto it, which players' stored hearts have already been
+     * migrated into MCA's own memories, and hearts banked while the proxy was not loaded. Every one
+     * of those keys reads as absent-means-default, so a version 1 file loads unchanged and nothing
+     * a player earned before the proxy existed is dropped.
+     */
+    public static final int SCHEMA_VERSION = 2;
 
     private static final String KEY_VERSION = "Version";
     private static final String KEY_GUARDS = "Guards";
@@ -49,6 +60,10 @@ public class GuardIdentityData extends SavedData {
     private static final String KEY_DECEASED_AT = "DeceasedAt";
     private static final String KEY_HEARTS = "Hearts";
     private static final String KEY_PLAYER = "Player";
+    private static final String KEY_PROXY = "Proxy";
+    private static final String KEY_SEEDED = "Seeded";
+    private static final String KEY_HEARTS_MIGRATED = "HeartsMigrated";
+    private static final String KEY_PENDING_HEARTS = "PendingHearts";
 
     private final Map<UUID, Entry> entries = new LinkedHashMap<>();
 
@@ -143,6 +158,53 @@ public class GuardIdentityData extends SavedData {
         setDirty();
     }
 
+    /** Points an entry at its proxy villager, or at nothing when {@code proxy} is null. */
+    void linkProxy(Entry entry, UUID proxy) {
+        entry.proxyUuid = proxy;
+        setDirty();
+    }
+
+    /** Records that the stored name and personality have been pushed onto the proxy once. */
+    void markSeeded(Entry entry) {
+        entry.seeded = true;
+        setDirty();
+    }
+
+    /** Records that this player's stored hearts have been handed to MCA's own memories. */
+    void markHeartsMigrated(Entry entry, UUID player) {
+        if (player != null && entry.heartsMigrated.add(player)) {
+            setDirty();
+        }
+    }
+
+    /** Banks a heart change for a player while the proxy is not loaded. Returns the new total. */
+    int addPendingHearts(Entry entry, UUID player, int delta) {
+        int updated = entry.pendingHearts(player) + delta;
+        entry.pendingHearts.put(player, updated);
+        setDirty();
+        return updated;
+    }
+
+    /** Clears one player's banked hearts, once they have been applied to the proxy. */
+    void clearPendingHearts(Entry entry, UUID player) {
+        if (player != null && entry.pendingHearts.remove(player) != null) {
+            setDirty();
+        }
+    }
+
+    /** The entry whose proxy this is, or null. The proxy link is one-to-one by construction. */
+    public Entry findByProxy(UUID proxy) {
+        if (proxy == null) {
+            return null;
+        }
+        for (Entry entry : entries.values()) {
+            if (proxy.equals(entry.proxyUuid())) {
+                return entry;
+            }
+        }
+        return null;
+    }
+
     @Override
     public CompoundTag save(CompoundTag tag) {
         tag.putInt(KEY_VERSION, SCHEMA_VERSION);
@@ -169,9 +231,14 @@ public class GuardIdentityData extends SavedData {
         private final long created;
         private final Map<UUID, Integer> hearts = new HashMap<>();
 
+        private final Set<UUID> heartsMigrated = new HashSet<>();
+        private final Map<UUID, Integer> pendingHearts = new HashMap<>();
+
         private String name;
         private boolean deceased;
         private long deceasedAt;
+        private UUID proxyUuid;
+        private boolean seeded;
 
         Entry(UUID uuid, String name, GuardGender gender, String personality, long created) {
             this.uuid = uuid;
@@ -195,14 +262,31 @@ public class GuardIdentityData extends SavedData {
                     tag.getString(KEY_PERSONALITY), tag.getLong(KEY_CREATED));
             entry.deceased = tag.getBoolean(KEY_DECEASED);
             entry.deceasedAt = tag.getLong(KEY_DECEASED_AT);
-            ListTag stored = tag.getList(KEY_HEARTS, Tag.TAG_COMPOUND);
-            for (int i = 0; i < stored.size(); i++) {
-                CompoundTag record = stored.getCompound(i);
+            readHearts(tag.getList(KEY_HEARTS, Tag.TAG_COMPOUND), entry.hearts);
+            readHearts(tag.getList(KEY_PENDING_HEARTS, Tag.TAG_COMPOUND), entry.pendingHearts);
+            // Absent in a version 1 file, and absent-means-default is the whole migration: an old
+            // guard has no proxy yet, has never been seeded, and has migrated nobody's hearts.
+            if (tag.hasUUID(KEY_PROXY)) {
+                entry.proxyUuid = tag.getUUID(KEY_PROXY);
+            }
+            entry.seeded = tag.getBoolean(KEY_SEEDED);
+            ListTag migrated = tag.getList(KEY_HEARTS_MIGRATED, Tag.TAG_COMPOUND);
+            for (int i = 0; i < migrated.size(); i++) {
+                CompoundTag record = migrated.getCompound(i);
                 if (record.hasUUID(KEY_PLAYER)) {
-                    entry.hearts.put(record.getUUID(KEY_PLAYER), record.getInt(KEY_HEARTS));
+                    entry.heartsMigrated.add(record.getUUID(KEY_PLAYER));
                 }
             }
             return entry;
+        }
+
+        private static void readHearts(ListTag stored, Map<UUID, Integer> into) {
+            for (int i = 0; i < stored.size(); i++) {
+                CompoundTag record = stored.getCompound(i);
+                if (record.hasUUID(KEY_PLAYER)) {
+                    into.put(record.getUUID(KEY_PLAYER), record.getInt(KEY_HEARTS));
+                }
+            }
         }
 
         CompoundTag save() {
@@ -214,15 +298,31 @@ public class GuardIdentityData extends SavedData {
             tag.putLong(KEY_CREATED, created);
             tag.putBoolean(KEY_DECEASED, deceased);
             tag.putLong(KEY_DECEASED_AT, deceasedAt);
+            tag.put(KEY_HEARTS, writeHearts(hearts));
+            tag.put(KEY_PENDING_HEARTS, writeHearts(pendingHearts));
+            if (proxyUuid != null) {
+                tag.putUUID(KEY_PROXY, proxyUuid);
+            }
+            tag.putBoolean(KEY_SEEDED, seeded);
+            ListTag migrated = new ListTag();
+            for (UUID player : heartsMigrated) {
+                CompoundTag record = new CompoundTag();
+                record.putUUID(KEY_PLAYER, player);
+                migrated.add(record);
+            }
+            tag.put(KEY_HEARTS_MIGRATED, migrated);
+            return tag;
+        }
+
+        private static ListTag writeHearts(Map<UUID, Integer> source) {
             ListTag stored = new ListTag();
-            for (Map.Entry<UUID, Integer> heart : hearts.entrySet()) {
+            for (Map.Entry<UUID, Integer> heart : source.entrySet()) {
                 CompoundTag record = new CompoundTag();
                 record.putUUID(KEY_PLAYER, heart.getKey());
                 record.putInt(KEY_HEARTS, heart.getValue());
                 stored.add(record);
             }
-            tag.put(KEY_HEARTS, stored);
-            return tag;
+            return stored;
         }
 
         public UUID uuid() {
@@ -262,6 +362,32 @@ public class GuardIdentityData extends SavedData {
         /** Every player this guard has hearts with. */
         public Collection<UUID> knownPlayers() {
             return new ArrayList<>(hearts.keySet());
+        }
+
+        /** The hidden MCA proxy villager's UUID, or null while the guard has none. */
+        public UUID proxyUuid() {
+            return proxyUuid;
+        }
+
+        /** Whether the stored name and personality have been pushed onto a proxy already. */
+        public boolean seeded() {
+            return seeded;
+        }
+
+        /** Whether this player's stored hearts have already been handed to MCA. */
+        public boolean heartsMigrated(UUID player) {
+            return player != null && heartsMigrated.contains(player);
+        }
+
+        /** Hearts banked for a player while the proxy was not loaded. Zero when there are none. */
+        public int pendingHearts(UUID player) {
+            Integer value = player == null ? null : pendingHearts.get(player);
+            return value == null ? 0 : value;
+        }
+
+        /** Every player with banked hearts waiting for the proxy. */
+        public Set<UUID> pendingHeartPlayers() {
+            return Collections.unmodifiableSet(new HashSet<>(pendingHearts.keySet()));
         }
 
         int addHearts(UUID player, int delta) {

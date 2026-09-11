@@ -88,3 +88,28 @@ right one.
 
 One exception worth knowing: turning off the `guardVillagers` module also turns off the block on the
 villager-to-guard conversion, which permanently destroys MCA villager data. See the README.
+
+## Guard names
+
+A bridged guard's name and personality are rolled from its own UUID (a small bundled list; see
+`bridge/GuardNames`) the moment it is first seen. That roll is only ever the *seed*: once
+`guardMcaInteraction` gives the guard its hidden MCA proxy villager, MCA's own spawn initialisation
+names the proxy itself and this mod's roll is pushed onto it exactly once. From then on the guard's
+displayed name and personality are whatever MCA (or an addon, or a player) sets on the proxy — the
+bundled list is the fallback used only before a proxy exists or while MCA is unreachable.
+
+## Operator note: hidden proxies
+
+While `guardMcaInteraction` is on, every bridged guard is paired with a real, invisible MCA villager
+(the "proxy") that carries its MCA state. Every proxy carries the scoreboard tag
+`mcamobcompat_proxy`, so a stuck or duplicated one can be removed by hand:
+
+```
+/kill @e[tag=mcamobcompat_proxy]
+/mcamobcompat guards rebuild
+```
+
+`guards rebuild` discards and recreates the proxy of every loaded bridged guard, whether or not it
+already had one. It is destructive — a rebuilt proxy is a new villager to MCA, so an intact proxy's
+family-tree node and memories are thrown away along with an orphan's — so use it only after
+confirming with `/mcamobcompat guards proxies` that something is actually broken.

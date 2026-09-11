@@ -1,3 +1,4 @@
 {
-  "message.mcamobcompat.conversion_blocked": "Converting an MCA villager into a guard would destroy their family and genetics. Blocked."
+  "message.mcamobcompat.conversion_blocked": "Converting an MCA villager into a guard would destroy their family and genetics. Blocked.",
+  "message.mcamobcompat.recruited": "%s is now a guard."
 }

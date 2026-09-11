@@ -6,7 +6,9 @@
 
 > **Status — 0.1.0 shipped.** Every **[RRV]** item in this document has since been resolved by inspecting the actual mod jars, and three load-bearing findings turned out to be wrong. Corrections are marked **[CORRECTED]** inline; `CHANGELOG.md` summarises them. The mod id is **`mcamobcompat`** (no underscore, matching the rest of the MCA addon suite), the package root is `dev.otectus.mcamobcompat`, and the licence is GPL-3.0-only.
 >
-> **0.2.0 shipped: Guard Villagers bridge.** Treating Guard Villagers' `guardvillagers:guard` entities as if they were MCA guards for all four addons (MCAQuests, MCACrime, MCAReputation, MCAConversations), without converting their model, skin or AI. Behind a SERVER config option `treatGuardsAsMcaGuards` (default true). The bridge cannot reach MCA's own interaction screen, marriage/children/family tree, genetics, armory equipment, or village residency/population/guard quota — those require a real `VillagerEntityMCA`, which a guard is not. They remain out of reach (§10A).
+> **0.2.0 shipped: Guard Villagers bridge.** Treating Guard Villagers' `guardvillagers:guard` entities as if they were MCA guards for all four addons (MCAQuests, MCACrime, MCAReputation, MCAConversations), without converting their model, skin or AI. Behind a SERVER config option `treatGuardsAsMcaGuards` (default true).
+>
+> **0.2.x reworked: hidden MCA proxy.** The identity-store-only bridge below could not reach MCA's own interaction screen, marriage/family/genetics or village residency, because all four addons and MCA's own screen resolve a real `VillagerEntityMCA` (by class or by UUID) and `VillagerLike` is a closed interface no mixin-free guard can implement. Every bridged guard now gets a real, hidden `mca:*_villager` (profession `mca:guard`) that carries all of that state and receives every MCA interaction; the guard forwards its plain click to it and relays damage and death onto it. See §10A.
 >
 > **0.3.0 implemented: Chore safety and MCA reflection layer.** MCA's hunting chore is now restrained from animals you care about (five new SERVER config options under `[chores]`). Brings the first reflective MCA binding layer: `mca/McaBinding` resolves MCA's package root at runtime and reads `VillagerBrain` to check and abandon the hunting chore when a protected target blocks it.
 
@@ -16,7 +18,7 @@
 - **This is a Forge 1.20.1 addon (`mcamobcompat`) that hard-depends only on MCA Reborn (mod id `mca`) and treats SWEM, Genetic Animals, DragN's Livestock Overhaul, and Guard Villagers as optional integrations** driven by datapack `TagKey<EntityType<?>>` tags plus a small classification API — recognition and delegation, never reimplementation.
 - **[CORRECTED] Classloading isolation turned out to need no machinery at all.** Every 0.1.0 behaviour is reachable through vanilla APIs and registry ids, so the shipped jar references **no type from MCA or from any optional mod** — no reflective binding layer, no Mixin, no access transformer, and not one `compileOnly` optional dependency. `NoOptionalModStaticLinkTest` fails the build if that ever stops being true. 0.2.0 implements an identity bridge to treat Guard Villagers guards as MCA guards for the addon suite, still with no direct class references (§10A).
 - **0.1.0 ships the framework, semantic classification, shipped default tags, a read-only public API, a `/mcamobcompat` diagnostic command, and the Guard Villagers safety work:** classifying guards, *blocking* the MCA→Guard conversion that destroys `FamilyTree`/marriage/genetics data, alerting guards when an MCA villager is attacked, and stopping guards attacking MCA villagers.
-- **0.2.0 implemented: Guard Villagers as MCA guards (bridge).** Identity store + predicate + Forge events, with the four addons patched to accept the bridge predicate. See §10A for scope, design, and the features that remain unreachable.
+- **0.2.0 implemented: Guard Villagers as MCA guards (bridge).** Identity store + predicate + Forge events, with the four addons patched to accept the bridge predicate. **0.2.x reworked this into a hidden MCA proxy** (a real, invisible `mca:*_villager` per bridged guard) so MCA's own screen, marriage, family tree, genetics and village residency are reachable after all. See §10A for scope and design.
 - **[CORRECTED] Every [RRV] is now resolved**, three of them against the spec's own expectations: MCA villagers *are* vanilla `Villager`s (§5), Guard Villagers reads *no* entity-type tags so targeting cannot be tag-steered (§10), and Genetic Animals' mod id is **`eanimod`** (§12).
 
 ---
@@ -36,8 +38,8 @@ The mod hard-requires `mca` (and its transitive `architectury`) and treats `swem
 - No new mobs, breeding systems, or genetics.
 - No replacement of SWEM/Genetic Animals/DLO internal AI, breeding, or needs logic.
 - No conversion of MCA villagers into Guard Villagers (explicitly blocked — §10).
-- No proxy or shadow villager, and no conversion of Guard Villagers guards into MCA villagers; the bridge operates through identity store and event predicates, never entity replacement (§10A).
-- No MCA family, marriage or genetics for guards (those require a real `VillagerEntityMCA`; out of reach for the bridge — §10A).
+- No conversion of Guard Villagers guards into MCA villagers, and no mixin on Guard Villagers' `Guard` class. **[REVERSED in 0.2.x]** a hidden, invisible real MCA villager *is* now paired with every bridged guard — see §10A for why the identity-store-only design could not reach MCA's own screen, marriage or genetics, and could not be made to without one.
+- No MCA family, marriage or genetics *for the guard entity itself* — those live on its hidden proxy, which is a real `VillagerEntityMCA` (§10A).
 - No autonomous equestrian AI. MCA villagers already ride rideable entities, and MCA never initiated autonomous mounts. Equestrian mounts are player-commanded and remain so; they need no independent AI (§11).
 - No redistribution of any external mod's assets (SWEM, Genetic Animals, and DLO assets are All Rights Reserved — §27). **[C]**
 
@@ -206,7 +208,9 @@ reference to a Guard Villagers class anywhere.
   event. The block is deliberately a **superset** of the conversion: its final gate is a check
   against its own config, which cannot be read without naming one of its classes, so we block on
   MCA villager + crouching + convertible item and accept that crouch-right-clicking an MCA villager
-  *while holding a sword or crossbow* also does not open MCA's own screen.
+  *while holding a sword or crossbow* also does not open MCA's own screen. **With
+  `recruitMcaVillagersAsGuards` on (default), that gesture recruits the villager as a guard in
+  place instead of doing nothing at all — see §10A "Recruit gesture".**
 
 - **Protect MCA villagers — [RESOLVED, approach replaced].** The spec proposed doing this by
   including MCA villagers in "the guard-relevant tag set". **That is impossible: Guard Villagers
@@ -251,38 +255,61 @@ reference to a Guard Villagers class anywhere.
   `timesHealedGolem` and `timesRepairedGuard` NBT onto every `Villager`, MCA's included. It is
   purely additive and does not disturb MCA's data.
 
-## 10A. Guard Villagers as MCA Guards — 0.2.0 Bridge
+## 10A. Guard Villagers as MCA Guards — Hidden Proxy Bridge
 
-**Objective:** Treat `guardvillagers:guard` entities as MCA guards for MCAQuests, MCACrime, MCAReputation, and MCAConversations, without converting their model, skin or AI, behind a SERVER config option `treatGuardsAsMcaGuards` (default true).
+**Objective:** Treat `guardvillagers:guard` entities as MCA guards for MCAQuests, MCACrime, MCAReputation, and MCAConversations, without converting their model, skin or AI, behind a SERVER config option `treatGuardsAsMcaGuards` (default true) — and, when `guardMcaInteraction` is also on, give the guard MCA's own interaction screen and every MCA option that goes with it.
 
-**Approach:** Identity store (guard name, gender, personality, hearts per player) + predicate + Forge events. No proxy villager, no entity replacement. The bridge cannot reach MCA's own interaction screen, marriage/children/family tree, genetics, armory equipment, or village residency/population/guard quota — those require a real `VillagerEntityMCA`, which a guard is not. **§10A summarizes the design; implementation is tracked in the four addon repos.**
+**Approach — reworked from the original identity-store-only bridge.** All four addons identify a villager by reflectively checking for MCA's real `VillagerEntityMCA` class or by resolving a live entity by UUID, and MCA's own `InteractScreen` opens for an entity MCA itself owns; an identity store with no matching entity is invisible to all of that. MCA's `VillagerLike` is also a closed interface, so a Guard Villagers guard (a plain `PathfinderMob`) cannot be made MCA-like in place without a mixin, which this project bans. So the design pairs every bridged guard with a real, hidden `mca:*_villager` — the **proxy** — that carries all of the guard's MCA state and receives every MCA interaction, while the guard itself keeps its own model, combat AI and Guard Villagers inventory GUI. **§10A summarizes the design; implementation is `bridge/GuardProxy`, `bridge/GuardProxySync`, and the handlers below.**
 
 ### Scope
 
-An entity qualifies as a **bridged guard** if and only if: the option `treatGuardsAsMcaGuards` is on, the module is not suppressed (see §16), the entity carries `MobRole.GUARD` (tag `mcamobcompat:guard`, shipped with `guardvillagers:guard`), **and** `McaEntities.isMcaVillager(entity)` returns false.
+An entity qualifies as a **bridged guard** if and only if: the option `treatGuardsAsMcaGuards` is on, the module is not suppressed (see §16), the entity carries `MobRole.GUARD` (tag `mcamobcompat:guard`, shipped with `guardvillagers:guard`), **and** `McaEntities.isMcaVillager(entity)` returns false (`bridge/GuardBridge.isBridgedGuard`). A bridged guard additionally gets a proxy only while `guardMcaInteraction` is also on (`GuardVillagersModule.opensMcaInteraction`).
 
-### Implementation notes
+### The proxy: creation, hiding, linking
 
-Two deliberate departures from naive design:
+`bridge/GuardProxy.create(ServerLevel, Mob guard)` resolves the guard's stored identity, picks `mca:male_villager` or `mca:female_villager` by its rolled gender, spawns it through `EntityType#create` and MCA's own `finalizeSpawn` (so it gets a name, genetics, an age state and a family-tree node the way any newly summoned MCA villager does), sets its profession to `mca:guard` and its villager type from the guard's Guard Villagers appearance variant (`GuardVariants`, via `GuardReflection.variant`), then applies five flags — `setNoAi`, `setInvisible`, `setSilent`, `setNoGravity`, and vanilla `noPhysics = true` — that keep it out of the world. The pair is linked in both directions through persistent data, `mcamobcompat:proxy` on the guard and `mcamobcompat:guard` on the proxy, plus a scoreboard tag `mcamobcompat_proxy` on every proxy so an operator can find or remove them by selector (`/kill @e[tag=mcamobcompat_proxy]`). The stored name and personality are pushed onto the proxy exactly once (`GuardIdentityData.Entry.seeded`); after that MCA owns them.
 
-- **Names, gender and personality are generated from a bundled list, not read from MCA's resources.** This mod never imports a class from MCA or any optional mod, by architecture (§3, §9). Rather than load a resource file from MCA's jar (which would require opening it to find the right path and entail a version-specific binding), names and gender are rolled once from the guard's UUID using a small bundled list and then persisted, so the same guard always gets the same identity across restarts and across changes to the generation lists. The personality vocabulary is drawn from MCA's canonical roster (`confident`, `peppy`, `friendly`, `flirty`, `playful`, `gloomy`, `sensitive`, `greedy`, `odd`, `crabby`, `extroverted`, `introverted`, `relaxed`, `anxious`, `peaceful`, `upbeat`), the same strings MCAConversations uses.
-- **`GuardHeartsChangedEvent` carries a nullable guard entity.** The `GuardIdentity.modHearts(UUID, int)` call is keyed on player UUID and has no entity reference. The hearts can be changed while the guard is not loaded (in an unloaded chunk or a dimension nobody is in), in which case there is no mob to hand over. Listeners must handle null guard gracefully; the hearts change is already stored and the event is already fired.
+Proxies are created only from `event/GuardProxyHandler`'s `LivingTickEvent` handler, never from `EntityJoinLevelEvent`, and only after a 40-tick grace period: a guard and its existing proxy are added to a loading chunk in list order, and creating one from the join event would race that order and produce a duplicate on every reload. A proxy whose guard cannot be found for 200 ticks discards itself. A guard that changes level takes its proxy with it via `teleportTo`, never by recreating it, because a new proxy is a new villager to MCA and would lose the family-tree node and every heart earned so far.
+
+### Hiding it from the client
+
+`setInvisible(true)` alone is not enough: MCA draws clothing, hair, face and skin as separate render layers that ignore invisibility, so an invisible MCA villager would be a suit of floating clothes with a face. `client/ProxyRenderHandler` — the mod's only `Dist.CLIENT` subscriber — cancels the whole `RenderLivingEvent.Pre` for anything `GuardProxy.looksLikeProxy` accepts: an MCA villager type with `isInvisible()`, `isNoAi()`, `isSilent()` and `isNoGravity()` all true, which is the only client-safe test since persistent data does not sync. The shadow is already skipped by vanilla for an invisible entity. The one exception is inside a screen: MCAConversations' dialogue frame and MCAQuests' quest menu draw the proxy through vanilla's `InventoryScreen.renderEntityInInventory` helpers, so `ProxyRenderHandler` tracks `ScreenEvent.Render.Pre`/`Post` and, while a screen is rendering, draws the guard found by `GuardProxy.nearbyGuardOf` (the bridged guard whose bounding box overlaps the proxy's) in the proxy's place instead, copying the proxy's rotation fields onto the guard for that one call so its portrait shows the guard rather than an empty box.
+
+### Keeping the pair one NPC
+
+`bridge/GuardProxySync.tick` runs every tick from `GuardProxyHandler`: it pins the proxy's position, rotation and head/body rotation to the guard's, re-asserts the five hiding flags, and mirrors `proxy.setTarget(guard.getTarget())` so MCACrime's self-defence check (which reads `getTarget()`) sees the same enemy the guard does. Once a second it re-asserts the `mca:guard` profession (in case MCA's own profession-change option moved it), reconciles names (a guard-side name that differs from the proxy's came from a player's name tag and wins; otherwise the proxy's MCA-rolled name is copied down), and translates MCA's movement intent into Guard Villagers' own state through `integration/guardvillagers/GuardReflection` — MOVE/STAY/FOLLOW mirrored onto `setFollowing`/`setPatrolling`/`setPatrolPos`/`setOwnerId`, called only by method name since Guard Villagers has no API and its class cannot be named. Any path MCA lays for the proxy (for example MCACrime's `moveVillagerTo`) is replayed onto the guard's own navigation and then cancelled on the proxy, because the proxy is brainless and cannot walk anywhere itself.
+
+### Interaction routing
+
+`event/GuardBridgeHandler.onEntityInteract` (main hand only, `HIGH` priority) decides the gesture: with `guardMcaInteraction` off it falls back to the pre-proxy behaviour of offering `GuardInteractEvent` and otherwise leaving the click alone; with it on, a crouching or shift-down click is replayed into Guard Villagers via `bridge/GuardInteractions.delegateToGuardVillagers` (which clears the shift flag and pose for the length of one call so Guard Villagers' own gesture check passes); a plain click resolves or creates the proxy, posts `GuardInteractEvent` for the addon suite, and — if nothing cancelled it — forwards the click by firing `ForgeHooks.onInteractEntityAt` and `onInteractEntity` on the proxy by hand (so an addon listening for those events on an MCA villager, which is how MCAQuests notices a conversation, still sees the click) and finally calling `proxy.interactAt` then `player.interactOn(proxy, ...)`. The client cancels the click blind, because it cannot open MCA's screen itself; the screen arrives from the server. `event/GuardProxyHandler`'s `EntityInteract` handler additionally re-routes a crouch click that happened to land on the proxy (they share a hitbox) back onto the guard's own crouch gesture, at `HIGHEST` so `ConversionGuardHandler` never mistakes the proxy for a crouch-clicked MCA villager.
+
+### Damage and death relay
+
+`event/GuardDamageRelayHandler` replays every hit the guard takes onto the proxy with the same damage source (`LivingHurtEvent` at `LOWEST`, so the relayed amount is post-mitigation), topping the proxy's health back up either side so it cannot die from an accumulation of relayed hits. On `LivingDeathEvent` the guard's death is relayed through `proxy.hurt(source, Float.MAX_VALUE)` rather than `kill()` — `kill()` hides the killer, and MCACrime/MCAReputation need it — and the link is dropped immediately afterwards so MCA's own death handling (family tree, grave, village announcement) finishes on the now-unlinked proxy rather than being interrupted by a discard. A `LivingAttackEvent` on the proxy is cancelled at `HIGHEST` unless the relay itself is in progress, so nothing — fall damage, fire, a stray mob — can kill the proxy independently of its guard.
+
+`event/GuardProxyHandler` also redirects everything else that could otherwise land on the proxy instead of the guard, because the two share a hitbox and `isPickable` cannot be overridden without a mixin: a melee swing (`AttackEntityEvent`, server side only), a mob's target choice (`LivingChangeTargetEvent`), and a projectile (`ProjectileImpactEvent`, skipped onto the entity behind it) are all re-aimed at the guard.
+
+### Recruit gesture
+
+With `recruitMcaVillagersAsGuards` on (the default), crouch-and-right-click with a convertible weapon on an MCA villager no longer only blocks Guard Villagers' destructive conversion — it recruits the villager as a guard in place: `event/ConversionGuardHandler.recruit` sets its profession to `mca:guard` via `setVillagerData` (MCA's own profession-change entry point) and moves one item from the player's hand into the villager's main-hand slot, leaving name, family tree, genetics, personality and inventory untouched. With the option off, the plain block and its message run instead.
 
 ### Configuration — Server-side
 
-`mcamobcompat-server.toml`, section `[guard_villagers]`:
-- **`treatGuardsAsMcaGuards`** = `true` (boolean). When false, the bridge is disabled: no events fire, no identities are assigned, but the store is not deleted — turning it back on resumes from where it left off.
-- **`guardHeartsLostPerHit`** = `-5` (integer). Analogous to MCA guard heart penalties: a player hitting a bridged guard loses this many hearts with it (default `-5`, negative numbers hurt reputation).
+`mcamobcompat-server.toml`, section `[guard_villagers]` (current bridge-related options; see `McaMobCompatConfig.Server`):
+- **`treatGuardsAsMcaGuards`** = `true` (boolean). Whether a bridged guard gets an MCA-style identity at all.
+- **`guardMcaInteraction`** = `true` (boolean, renamed from `guardInteractionScreen`). On: a plain right-click opens MCA's own screen through the hidden proxy; crouch-right-click opens Guard Villagers' own inventory GUI. Off: stock Guard Villagers gestures, no proxy is ever created.
+- **`recruitMcaVillagersAsGuards`** = `true` (boolean). Whether the crouch-and-weapon gesture recruits an MCA villager as a guard in place instead of only blocking the conversion.
+- **`guardShowNameTag`** = `true` (boolean). Whether a newly identified guard's rolled name shows permanently above its head.
 
 ### Identity Store — Runtime
 
-**Package:** `dev.otectus.mcamobcompat.bridge`. **Class:** `GuardIdentityData extends SavedData`, one per world (stored in overworld `DataStorage`), keyed by guard UUID.
+**Package:** `dev.otectus.mcamobcompat.bridge`. **Class:** `GuardIdentityData extends SavedData`, schema version 2, one per world (stored in overworld `DataStorage`), keyed by guard UUID.
 
-**Fields:** `name` (String), `gender` (enum `MALE`/`FEMALE`, 50/50 at creation), `personality` (String from MCA's name lists, persisted as data so addons can interpret it), `hearts` (Map<UUID, Integer> of player UUID to heart value), `created` (long game time), `deceased` (boolean flag + game time).
+**Fields (version 2):** `name`, `gender`, `personality`, `hearts` (per-player map) and `created`/`deceased`/`deceasedAt` as in version 1, plus `proxyUuid` (nullable), `seeded` (whether the stored name/personality have been pushed onto a proxy), `heartsMigrated` (the set of players whose pre-proxy stored hearts have already been folded into MCA's own memories), and `pendingHearts` (a heart change banked for a player while the proxy was not loaded). Every version-2 field is absent-means-default, so a version-1 save file loads unchanged and migrates automatically the first time each guard gets a proxy.
 
 **Creation & Updates:**
-- Created lazily on `EntityJoinLevelEvent` (server) for any bridged guard without an entry.
-- **Name:** if the guard has a custom name, adopt it; otherwise generate from a bundled list (`GuardNames`) using a `Random` seeded by the guard's UUID. The generated name is immediately set as the guard's custom name, so it is visible in-game. Because name and gender are rolled from the UUID and persisted, the same guard always gets the same identity across restarts and across changes to the generation lists.
+- Created lazily, on the guard's own `EntityJoinLevelEvent` and on first interaction, never deleted when the option is turned off.
+- **Name/gender/personality** are still rolled from the guard's UUID (`bridge/GuardNames`) and persisted as the seed for its first proxy; once a proxy exists, `GuardIdentityView` reads the live name, personality and hearts from MCA's own villager brain (`mca/McaBinding`) and falls back to the stored roll only when the proxy is unloaded or MCA is unreachable. `GuardNames` is the fallback and the seed only — it is not consulted once MCA owns the values.
 - **Death:** marked on `LivingDeathEvent` at priority `LOWEST`; kept, never auto-deleted. `/mcamobcompat guards purge <days>` (admin only) removes deceased entries older than N days.
 
 ### Public API — Read-Mostly
@@ -299,6 +326,7 @@ interface GuardIdentity {
   GuardGender gender();              // enum MALE/FEMALE
   String personality();
   String professionId();             // always "mca:guard"
+  Optional<UUID> proxyUuid();        // the hidden MCA villager's UUID, once one exists
   int hearts(UUID player);
   void modHearts(UUID player, int delta);  // the one write; fires GuardHeartsChangedEvent
   boolean deceased();
@@ -307,7 +335,7 @@ interface GuardIdentity {
 
 **Events:** Forge bus, package `dev.otectus.mcamobcompat.api.event`. Cancelable:
 
-- **`GuardInteractEvent(Player, Mob guard, InteractionHand)`** — fired on plain (non-sneak) right-click of a bridged guard, from a `PlayerInteractEvent.EntityInteract` handler at priority `HIGH`. If any listener cancels it, the underlying interact is cancelled. Sneak right-click is never intercepted **[RRV: Guard.mobInteract behavior when player is sneaking]**; Guard Villagers' GUI opens as before.
+- **`GuardInteractEvent(Player, Mob guard, InteractionHand)`** — posted on a plain (non-sneak), main-hand right-click on a bridged guard, before the click is forwarded to the guard's hidden MCA proxy. If a listener cancels it, its cancellation result is honoured and the click is never forwarded — the addon has taken MCA's place for that click. The crouch gesture belongs to Guard Villagers and never posts this event.
 
 Non-cancelable:
 
@@ -318,42 +346,43 @@ Non-cancelable:
 
 | MCA behaviour on an MCA guard | For a bridged guard |
 |---|---|
-| Name, gender, personality | Stored in `GuardIdentity`, name shown as custom name on the entity. `GuardIdentityCreatedEvent` seeded at creation. |
-| Hearts per player | Stored in identity; `-guardHeartsLostPerHit` applied on `LivingHurtEvent` by a player. Fired as `GuardHeartsChangedEvent`. |
-| Guard defends villagers / no friendly fire | Already 0.1.0 behaviour (§10; applies to any `GUARD`-tagged mob). |
+| Name, gender, personality | Rolled and stored for the seed; once a proxy exists, read live from MCA's own brain (`GuardIdentityView`, `mca/McaBinding.personality`). `GuardIdentityCreatedEvent` fires at creation. |
+| Hearts per player | MCA's own memories, on the proxy, read and written through `McaBinding.hearts`/`modHearts`; a change while the proxy is unreachable is banked as `pendingHearts` and folded in later. `GuardHeartsChangedEvent` still fires. The old flat `-guardHeartsLostPerHit` penalty is gone — MCA applies its own hurt reaction to the proxy instead. |
+| Guard defends villagers / no friendly fire | Unchanged from 0.1.0 (§10; applies to any `GUARD`-tagged mob). |
 | Guard is defended when attacked | Guard Villagers native (`mobsGuardsProtectHurt` includes `guardvillagers:guard`). No work. |
-| Interaction screen (quest offer, dialogue, reputation gain/loss) | **Not reachable; requires `VillagerEntityMCA`.** Replaced by `GuardInteractEvent`, consumed by addons. See per-addon notes below. |
-| Village residency, population cap, guard quota | **Not reachable; `Residency` and `Village` are hard-typed to `VillagerEntityMCA`.** Addons compute "home village" via `VillageManager.findNearestVillage(Entity)` (accepts any `Entity`). |
-| Marriage, children, family tree, genetics, armory equipment | **Out of reach; stated as non-goals (§3).** These require a real `VillagerEntityMCA`. |
-| MCA guards targeting (incl. `GuardEnemiesSensor`) | Unchanged. MCA guards ignore `guardvillagers:guard` by default (§4.1 sensor priority logic). No interaction. |
+| Interaction screen (quest offer, dialogue, reputation gain/loss) | **Reachable.** A plain right-click opens MCA's real `InteractScreen` for the hidden proxy, with every MCA option working except profession changes (re-asserted back to `mca:guard` within a second by `GuardProxySync.reassertProfession`) and the mount/pick-up ones (neutralised because the sync dismounts the proxy every tick), because the proxy is a genuine `VillagerEntityMCA`. Crouch-right-click still opens Guard Villagers' own inventory GUI on the guard. See "Interaction routing" above. MCAConversations' dialogue frame and MCAQuests' quest menu portray the guard itself, not the proxy: `client/ProxyRenderHandler` substitutes the guard for its proxy while either screen is rendering (see "Hiding it from the client"). |
+| Village residency, population cap, guard quota | **Reachable.** The proxy is a real resident with profession `mca:guard`, so it is counted by MCA's own `Village`/`Residency`/guard-quota logic the same as any MCA guard — a genuine side effect of being a real villager, not something this mod computes. |
+| Marriage, children, family tree, genetics, armory equipment | **Reachable, on the proxy.** These are MCA's own systems operating on a real `VillagerEntityMCA`; this mod neither reads nor writes any of them directly. |
+| MCA guards targeting (incl. `GuardEnemiesSensor`) | Unchanged. MCA guards ignore `guardvillagers:guard` by default (§4.1 sensor priority logic); the proxy is invisible and `NoAI` and is not itself a target MCA's sensors would normally acquire. |
 
-### Per-Addon Changes — Summary (implementation tracked in each repo)
+### Per-Addon Compatibility
 
-All four addons gate every villager feature on `isMcaVillager` (reflective `instanceof VillagerEntityMCA`). The bridge requires each to accept an additional predicate: `isMcaVillager(e) || MobCompatibilityAPI.isBridgedGuard(e)` (with soft dependency on `mcamobcompat` via `ModList.isLoaded`). Fields bridged from `GuardIdentity` replace hard MCA class reads on bridged guards:
+All four addons identify a villager by reflectively checking for `VillagerEntityMCA` or by resolving a live entity by UUID; none of them need to change, because the proxy answers both checks as a real MCA villager. Grounded in the handlers above rather than in the addon source (not part of this repository):
 
-- **MCAQuests** (§6 in 02-addons.md): `McaVillagerRef` snapshot from identity; `ProfessionMatcher` treats `mca:guard` profession id from a bridged guard; quest offer/turn-in fired from `GuardInteractEvent`; village Projects use nearest village. Hard casts to vanilla `Villager` in `DeliverToVillagerObjective`/`DeliveryDestination` stay (deliveries to guards unsupported, documented).
-- **MCACrime** (§6): default `responderEntities` / `protectedEntities` config gain `#mcamobcompat:guard`; `McaCompat.isGuard` true for bridged; `WitnessChecker` accepts them (witness weight 1.0 in `ObserverRole`); `GuardEnforcement.moveVillagerTo`, `makeVillagerFlee`, `EscortService` drive a bridged guard via vanilla `Mob.setTarget` + `getNavigation().moveTo`; `GuardPopulationService` counts bridged guards toward the guard quota; `CrimeDialogueService` / `GuardChallengeService` accept bridged guards as dialogue speaker.
-- **MCAReputation** (§6): predicate only; assault on a bridged guard is an incident against a villager; community from nearest village.
-- **MCAConversations** (§6): predicate; identity seeded on `GuardIdentityCreatedEvent`; chat opened from `GuardInteractEvent` (cancels it); profession profile `mca:guard` → `WorkArchetype.DEFENSE`; mood/memories read from identity hearts + neutral mood.
+| Addon | How it sees a bridged guard |
+|---|---|
+| MCAQuests | Resolves the proxy by UUID; `onTalkToVillager` fires from the forwarded `PlayerInteractEvent.EntityInteract` the same as for any MCA villager. Its quest-menu portrait shows the guard, substituted client-side for the proxy (see "Hiding it from the client"). |
+| MCACrime | Keys off `LivingHurtEvent`/`LivingDamageEvent`/`LivingDeathEvent` with the proxy as victim (relayed by `GuardDamageRelayHandler`), reads the proxy's `getTarget()` (mirrored every tick by `GuardProxySync`) for self-defence, and drives the proxy's own `getNavigation()` to move it — which `GuardProxySync.relayNavigation` replays onto the guard, since the proxy itself is `NoAI` and cannot walk. |
+| MCAReputation | Keyed by the proxy's UUID on `LivingHurtEvent`/`LivingDeathEvent`, both relayed from the guard. |
+| MCAConversations | Resolves the proxy by UUID; its dialogue is what a plain click on the guard forwards to via `interactAt`/`interactOn`. Its dialogue-frame portrait shows the guard, substituted client-side for the proxy (see "Hiding it from the client"). |
 
 ### Diagnostics
 
 Command `/mcamobcompat guards` (subcommand, admin):
-- **`status`** — count of bridged guards in the world, store size.
-- **`inspect`** — looked-at guard's `GuardIdentity` (UUID, name, gender, personality, hearts per online player).
+- **`status`** — bridge state, whether `guardMcaInteraction` is on, identity-store size and deceased count, and a proxy census (loaded, orphaned, guards without one).
+- **`inspect`** — looked-at or targeted guard's `GuardIdentity`, plus its proxy's UUID, loaded state, live MCA name, live profession, and the caller's own hearts with it.
+- **`proxies`** — every loaded proxy across every level with its guard (or `ORPHAN`), and every bridged guard still waiting for one.
+- **`rebuild`** — discards and recreates the proxy of every loaded bridged guard; destructive (a rebuilt proxy is a new villager to MCA), for a world where the link has already broken.
 - **`purge <days>`** — remove deceased entries older than N days.
 
 `/mcamobcompat classify` output gains a "bridged MCA guard" line when applicable.
 
-### Evidence Markers — 0.2.0
+### Evidence Markers
 
-New **[RRV]** items (each with a concrete test to be performed before release):
+The **[RRV]** items opened for the earlier, identity-store-only interaction screen (MCA's own name-file format, which gesture opens Guard Villagers' inventory, handler priority and cancellation) are superseded: that screen no longer exists, and MCA's own screen is now what opens, resolved by MCA itself. The remaining open items:
 
-1. **MCA name-file path/format.** Not applicable: implementation uses a bundled list (`GuardNames`), see §10A Implementation notes.
-2. **Guard.mobInteract sneak behaviour.** Confirm whether `Guard.mobInteract` opens the GUI when the player is sneaking, or whether sneak suppresses the interaction entirely.
-3. **Handler priority ordering.** Confirm that cancelling `PlayerInteractEvent.EntityInteract` (when a `GuardInteractEvent` listener cancelled it) prevents the vanilla `Entity.interact` → `Guard.mobInteract` call, so the Guard Villagers GUI does not open; and that when nothing cancels, the GUI opens as before. Keep the `HIGH` priority mention for consistency with `ConversionGuardHandler`, not as pre-empting a Guard Villagers subscriber.
-4. **`VillageManager.findNearestVillage(Entity)` compatibility.** Confirm the four addons' bindings accept a `PathfinderMob` (or plain `Entity`) without casting to `Villager` or `LivingEntity`.
-5. **MCA villager brain overrides.** Confirm MCA villagers' `makeBrain` overrides prevent Guard Villagers' `VillagerGoalPackagesMixin` from injecting its brain tasks (including `ShareGossipWithGuard`), so MCA villagers ignore that task.
+1. **`VillageManager.findNearestVillage(Entity)` compatibility.** Confirm the four addons' bindings accept a `PathfinderMob` (or plain `Entity`) without casting to `Villager` or `LivingEntity` — relevant only where an addon still resolves a guard rather than its proxy.
+2. **MCA villager brain overrides.** Confirm MCA villagers' `makeBrain` overrides prevent Guard Villagers' `VillagerGoalPackagesMixin` from injecting its brain tasks (including `ShareGossipWithGuard`), so MCA villagers ignore that task.
 
 ## 11. SWEM Integration
 Entity `swem:swem_horse` (confirmed first-party from `EntitySetup`; the mod also registers
@@ -515,8 +544,9 @@ Two specs, not three. **[CORRECTED: no client config]** — nothing in 0.1.0 run
 - **`mcamobcompat-server.toml`** (world-scoped, server-authoritative) —
   `[guard_villagers]` (0.1.0): `blockGuardConversion`, `protectMcaVillagers`, `preventGuardFriendlyFire`,
   `retaliateAgainstPlayers`, `guardHelpRange`, `maxGuardsAlerted`.
-  (0.2.0): `treatGuardsAsMcaGuards` (boolean, default true), `guardHeartsLostPerHit` (int, default -5).
+  (0.2.0): `treatGuardsAsMcaGuards` (boolean, default true).
   (0.3.0): `[chores]` section with `protectOwnedAnimals` (boolean, default true), `protectedRoles` (list of `MobRole` names, default `["mount", "pet"]`), `protectNamedAnimals` (boolean, default true), `protectLeashedAnimals` (boolean, default true), `abandonHuntOnProtectedTarget` (boolean, default true).
+  (hidden MCA proxy, 0.2.x): three more `[guard_villagers]` options, replacing the earlier interaction-screen ones — `guardMcaInteraction` (boolean, default true, renamed from `guardInteractionScreen`; a plain click opens MCA's own screen through a hidden proxy villager, crouch opens Guard Villagers' inventory), `recruitMcaVillagersAsGuards` (boolean, default true, crouch-and-weapon recruits an MCA villager as a guard in place instead of only blocking the conversion), and `guardShowNameTag` (boolean, default true, a permanent nameplate on newly identified guards). `guardInteractionCooldownSeconds`, `guardSocialHearts`, `guardGiftHearts`, `guardGiftHeartsLoved` and `guardHeartsLostPerHit` are gone: MCA's own memories on the proxy replace all five, and `data/mcamobcompat/tags/items/guard_gift_*` no longer exist. `ForgeConfigSpec` has no migration path, so an existing config file has the renamed and removed keys rewritten to defaults on first load with the new spec.
   `[swem] recognizeAsMounts`; `[genetic_animals] recognizeLivestock`;
   `[dragn_livestock] recognizeLivestock`.
 
@@ -666,6 +696,16 @@ verified jar into a real instance so nobody has to race `reobfJar` by hand.
 - Diagnostics: `/mcamobcompat guards status | inspect | purge`.
 - Per-addon implementation in each repo: `isMcaVillager` predicate extended to accept `isBridgedGuard`, identity-driven reads.
 
+### 0.2.x Feature Scope (Hidden Proxy Rework)
+- Every bridged guard with `guardMcaInteraction` on is paired with a real, hidden `mca:*_villager` (`bridge/GuardProxy`), synced onto the guard every tick (`bridge/GuardProxySync`) and hidden from rendering client-side (`client/ProxyRenderHandler`).
+- MCA's own interaction screen, hearts/memories, movement intent, marriage, family tree, genetics and village residency are all reachable through the proxy — see §10A "MCA-Like Behaviour Implemented".
+- Guard Villagers' follow/patrol state is driven only by reflection on the guard's runtime class, by member name (`integration/guardvillagers/GuardReflection`), never by naming its class.
+- Damage and death on the guard are relayed onto the proxy (`event/GuardDamageRelayHandler`) so MCA, MCACrime and MCAReputation react to it as a villager.
+- Crouch-and-weapon on an MCA villager can now recruit it as a guard in place (`recruitMcaVillagersAsGuards`) instead of only being blocked.
+- `GuardIdentityData` bumped to schema version 2 (proxy link, seeded flag, hearts migration bookkeeping), migrating a version-1 save automatically.
+- Configuration renamed/removed: `guardInteractionScreen` → `guardMcaInteraction`; `guardInteractionCooldownSeconds`, `guardSocialHearts`, `guardGiftHearts`, `guardGiftHeartsLoved`, `guardHeartsLostPerHit` removed; `recruitMcaVillagersAsGuards` added. The item-gift tags and the earlier emulated screen (`client/GuardInteractionScreen`, the `network` package, `bridge/GuardAction`/`GuardResponses`/`McaNameSource`) are deleted.
+- Diagnostics gain `/mcamobcompat guards proxies` and `/mcamobcompat guards rebuild`.
+
 ### 0.3.0 Feature Scope (Implemented)
 - Chore safety: `ChoreSafetyHandler` and `ChoreProtectionPolicy` prevent MCA villagers' hunting chore from killing protected animals.
 - Five new SERVER config options under `[chores]`: `protectOwnedAnimals`, `protectedRoles`, `protectNamedAnimals`, `protectLeashedAnimals`, `abandonHuntOnProtectedTarget`.
@@ -710,6 +750,18 @@ All complete; kept as the record of what was built and how each piece was valida
 8. **Unit tests:** `GuardIdentityDataTest` round-trip; predicate never true for MCA villagers; store persistence across toggle-off/on. *Test:* each in isolation.
 9. **Per-addon adoption.** (Tracked in each addon repo.) Extend `isMcaVillager` to accept `isBridgedGuard`; route `GuardIdentity` reads on bridged guards. *Test per addon:* quest acceptance from bridged guard; crime witnessing; reputation incidents; conversations.
 
+### 0.2.x Tasks (Hidden Proxy Rework)
+1. **Store schema v2 and migration.** `GuardIdentityData` bumped to version 2 with `proxyUuid`/`seeded`/`heartsMigrated`/`pendingHearts`; a version-1 file loads unchanged. *Test:* `bridge/GuardIdentityDataMigrationTest`.
+2. **`bridge/GuardProxy` and `bridge/GuardProxySync`.** Create, hide, link and tick the proxy; mirror MCA's movement intent onto the guard. *Test:* manual `runClient` checklist below.
+3. **`integration/guardvillagers/GuardReflection` and `GuardVariants`.** By-name method handles on the guard's runtime class; variant-to-villager-type mapping. *Test:* `integration/guardvillagers/GuardVariantsTest`.
+4. **`event/GuardProxyHandler`.** Proxy lifecycle (creation, orphan discard, level-follow), and redirecting interact/attack/target/projectile from the proxy to the guard.
+5. **`event/GuardBridgeHandler` rewrite.** Routes the plain click to the proxy through `ForgeHooks` and `interactAt`/`interactOn`; the crouch click to Guard Villagers.
+6. **`event/GuardDamageRelayHandler`.** Relays hurt and death onto the proxy; blocks independent damage to it.
+7. **Recruit gesture.** `recruitMcaVillagersAsGuards` in `ConversionGuardHandler`.
+8. **Config rename/removal.** `guardInteractionScreen` → `guardMcaInteraction`; five options removed. *Note:* `ForgeConfigSpec` has no migration, so an existing config is rewritten on first load.
+9. **Deletion of the emulated screen.** `client/GuardInteractionScreen`, `client/ClientGuardInteractions`, the `network` package, `bridge/GuardAction`, `bridge/GuardResponses`, `bridge/McaNameSource`, and the item-gift tags.
+10. **Diagnostics.** `/mcamobcompat guards proxies` and `/mcamobcompat guards rebuild`.
+
 ## 23. Testing Matrix
 **0.1.0 baseline:** MCA only · MCA+SWEM · MCA+Genetic Animals · MCA+DLO · MCA+Guard Villagers · MCA+all. Run each on **dedicated server** AND **integrated singleplayer**.
 
@@ -722,7 +774,9 @@ All complete; kept as the record of what was built and how each piece was valida
 - **Sneak-click opens Guard Villagers GUI:** sneak + right-click a bridged guard, confirm the Guard Villagers inventory/status screen opens (not cancelled).
 - **Plain click fires `GuardInteractEvent`:** with MCAConversations installed, right-click a bridged guard and confirm the chat window opens (event consumed).
 - **Guard death marks deceased:** kill a bridged guard with `/kill @e[type=guardvillagers:guard]`, inspect store entry with `/mcamobcompat guards inspect`, confirm `deceased=true`.
-- **Hearts lost on player attack:** have a player attack a bridged guard with fists; check hearts change by `-guardHeartsLostPerHit`.
+- **Hearts lost on player attack:** have a player attack a bridged guard with fists; check MCA's own hearts on the proxy fall (`guardHeartsLostPerHit` no longer exists — MCA's own hurt reaction on the proxy replaces it).
+
+**Per-config tests (0.2.x, hidden proxy):** the manual `runClient` checklist in the guard-bridge implementation plan — plain click opens MCA's own screen; chat/gift change MCA hearts and `guards inspect` agrees; Follow/Stay/Move actually move or pin the guard; sneak click still opens Guard Villagers' inventory; hitting or killing the guard drives MCA/MCACrime/MCAReputation reactions on the proxy with no orphaned proxy left behind; no floating clothes/hair/face/shadow when circling the guard; portal travel keeps the same proxy; save/reload creates no duplicate; `recruitMcaVillagersAsGuards` recruits in place; `guardMcaInteraction=false` creates no proxy at all.
 
 **Per-config tests (0.3.0):** above, plus:
 - **Chore safety with all protection modes:** each of the five `[chores]` options on and off; for each mode, verify that the correct animal types are protected and unprotected from hunting.
@@ -843,11 +897,19 @@ Met. The design let implementation begin without rediscovering the architecture.
 - **Events:** `GuardInteractEvent` fires on right-click; sneak-click passes through to Guard Villagers (§22.0.2 task 4, [RRV] item 2); cancellation prevents Guard Villagers GUI (§22.0.2 task 4).
 - **Hearts system:** hearts lost on player attack, persisted in store, modified via `GuardIdentity.modHearts` (§22.0.2 task 6).
 - **Name generation:** from guard's custom name or MCA name lists, visible in-game (§22.0.2 task 5, [RRV] item 1).
-- **Unreachable features documented:** interaction screen, village residency, marriage/children/family tree, genetics, armory (§10A MCA-like behaviour table, §3 Non-Goals).
+- **Unreachable features documented (superseded in 0.2.x, see below):** interaction screen, village residency, marriage/children/family tree, genetics, armory (§10A MCA-like behaviour table, §3 Non-Goals).
 - **Per-addon adoption:** tracked in each repo; `isMcaVillager` extended; identity reads working (§22.0.2 task 9).
 - **Every [RRV] from §10A resolved before release** (§22.0.2 tasks, §10A Evidence Markers).
 
 **Release criteria met:** testing matrix passed (§23); [RRV] items verified; per-addon adoption merged.
+
+### 0.2.x (Hidden Proxy Rework)
+- **Every previously "unreachable" feature is now reachable**, on the hidden proxy: MCA's own interaction screen, hearts/memories, movement intent, marriage, family tree, genetics and village residency (§10A MCA-like behaviour table).
+- **Proxy lifecycle:** created from the guard's own tick with a grace period, never on join; linked by persistent data on both sides; discarded only when its guard is really gone (`bridge/GuardProxy`, `event/GuardProxyHandler`).
+- **Interaction routing:** a plain click forwards to the proxy through `ForgeHooks` and `interactAt`/`interactOn`; a crouch click still reaches Guard Villagers; the proxy's own click is redirected back to the guard for the crouch gesture and for a melee swing.
+- **Damage/death relay:** hits and death on the guard replay onto the proxy with the original damage source; nothing else can damage the proxy independently (`event/GuardDamageRelayHandler`).
+- **Store migrated to schema 2** with no data loss from version 1.
+- **Emulated screen removed:** the `network` package, `client/GuardInteractionScreen`, `client/ClientGuardInteractions`, `bridge/GuardAction`, `bridge/GuardResponses`, `bridge/McaNameSource` and the item-gift tags no longer exist.
 
 ### 0.3.0 (Implemented)
 - **Chore safety:** `ChoreSafetyHandler` blocks hunts on protected animals; `ChoreProtectionPolicy` decides protection; configurable via five new SERVER options under `[chores]` (§16).
