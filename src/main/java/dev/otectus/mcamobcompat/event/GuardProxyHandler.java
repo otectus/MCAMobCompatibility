@@ -16,16 +16,16 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.EntityHitResult;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
-import net.minecraftforge.event.entity.ProjectileImpactEvent;
-import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.event.entity.player.AttackEntityEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
+import net.neoforged.neoforge.event.entity.ProjectileImpactEvent;
+import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import java.util.List;
 import java.util.Set;
@@ -45,7 +45,7 @@ import java.util.Set;
  * crouch click, a melee swing, a mob's target choice and an arrow all land on the guard. What is
  * left -- the plain click -- is exactly the one gesture the proxy exists to receive.
  */
-@Mod.EventBusSubscriber(modid = McaMobCompat.MOD_ID)
+@EventBusSubscriber(modid = McaMobCompat.MOD_ID)
 public final class GuardProxyHandler {
 
     /**
@@ -75,7 +75,7 @@ public final class GuardProxyHandler {
      * <p>Gated hard and cheaply at the top, because this runs for every living entity in the world.
      */
     @SubscribeEvent
-    public static void onLivingTick(LivingEvent.LivingTickEvent event) {
+    public static void onLivingTick(EntityTickEvent.Post event) {
         if (!(event.getEntity() instanceof Mob mob) || !(mob.level() instanceof ServerLevel level)) {
             return;
         }
@@ -83,61 +83,23 @@ public final class GuardProxyHandler {
             tickProxy(mob);
             return;
         }
-        if (!GuardBridge.isBridgedGuard(mob)
-                || !ModIntegrations.guardVillagers().opensMcaInteraction()) {
-            return;
-        }
-
         Villager proxy = GuardProxy.proxyOf(mob);
         if (proxy != null) {
-            GuardProxySync.tick(level, mob, proxy);
-            return;
-        }
-        if (mob.tickCount <= CREATE_GRACE_TICKS) {
-            return;
-        }
-
-        Villager existing = findOwnProxy(level, mob);
-        if (existing != null) {
-            GuardProxy.link(mob, existing);
-            return;
-        }
-        GuardProxy.create(level, mob);
-    }
-
-    /**
-     * A proxy whose guard has gone counts down and then discards itself.
-     *
-     * <p>Not immediately: "the guard is not loaded" and "the guard no longer exists" look identical
-     * from here, and a proxy that vanished every time its guard's chunk unloaded first would lose
-     * the family-tree node and the memories MCA keeps on it.
-     */
-    private static void tickProxy(Mob proxy) {
-        if (proxy.tickCount <= CREATE_GRACE_TICKS) {
-            return;
-        }
-        CompoundTag persistent = proxy.getPersistentData();
-        if (GuardProxy.guardOf(proxy) != null) {
-            if (persistent.contains(KEY_ORPHANED)) {
-                persistent.remove(KEY_ORPHANED);
+            if (proxy.level() != level && proxy.isAlive()) {
+                proxy.teleportTo(level, mob.getX(), mob.getY(), mob.getZ(), Set.of(), mob.getYRot(), mob.getXRot());
+                proxy = GuardProxy.proxyOf(mob); // Dimension changes may replace the Java instance.
             }
+            if (proxy != null && proxy.level() == level && proxy.isAlive() && mob.isAlive()) GuardProxySync.tick(level, mob, proxy);
             return;
         }
-        int orphaned = persistent.getInt(KEY_ORPHANED) + 1;
-        if (orphaned >= ORPHAN_LIMIT_TICKS) {
-            McaMobCompat.debug("Discarding orphaned MCA proxy {}", proxy.getUUID());
-            GuardProxy.discard(proxy);
-            return;
-        }
-        persistent.putInt(KEY_ORPHANED, orphaned);
+        if (mob.tickCount % 20 == 0 && GuardBridge.isBridgedGuard(mob)
+                && ModIntegrations.guardVillagers().opensMcaInteraction()) GuardProxy.create(level, mob);
     }
 
-    /** A proxy inside the guard's own bounding box that already names this guard. */
-    private static Villager findOwnProxy(ServerLevel level, Mob guard) {
-        List<Villager> nearby = level.getEntitiesOfClass(Villager.class,
-                guard.getBoundingBox().inflate(ADOPT_RANGE),
-                candidate -> guard.getUUID().equals(GuardProxy.linkedGuardUuid(candidate)));
-        return nearby.isEmpty() ? null : nearby.get(0);
+    private static void tickProxy(Mob proxy) {
+        if (proxy instanceof Villager villager && proxy.isAlive()) GuardProxy.hide(villager);
+        // An absent owner may simply be unloaded, even across dimensions. Keep the identity.
+        proxy.getPersistentData().remove(KEY_ORPHANED);
     }
 
     /**
@@ -151,7 +113,7 @@ public final class GuardProxyHandler {
         if (!(event.getLevel() instanceof ServerLevel level)) {
             return;
         }
-        if (!(event.getEntity() instanceof Mob guard) || !GuardBridge.isBridgedGuard(guard)) {
+        if (!(event.getEntity() instanceof Mob guard) || GuardProxy.isProxy(guard)) {
             return;
         }
         Villager proxy = GuardProxy.proxyOf(guard);
@@ -176,7 +138,7 @@ public final class GuardProxyHandler {
         if (!(event.getLevel() instanceof ServerLevel)) {
             return;
         }
-        if (!(event.getEntity() instanceof Mob guard) || !GuardBridge.isBridgedGuard(guard)) {
+        if (!(event.getEntity() instanceof Mob guard) || GuardProxy.isProxy(guard)) {
             return;
         }
         Entity.RemovalReason reason = guard.getRemovalReason();
@@ -184,42 +146,9 @@ public final class GuardProxyHandler {
             return;
         }
         Villager proxy = GuardProxy.proxyOf(guard);
-        if (proxy != null) {
-            GuardProxy.discard(proxy);
-        }
+        if (proxy != null && reason == Entity.RemovalReason.DISCARDED) GuardProxy.discard(proxy);
+        if (reason == Entity.RemovalReason.KILLED) GuardDamageRelayHandler.confirmRemoval(guard);
         GuardProxySync.forget(guard);
-    }
-
-    /**
-     * The crouch gesture, when the click landed on the proxy rather than on the guard.
-     *
-     * <p>They share a hitbox, so which of the two a ray hits is arbitrary. {@code HIGHEST} because
-     * {@link ConversionGuardHandler} runs at {@code HIGH} and would otherwise see a crouch-clicked
-     * MCA villager and block the gesture that is meant to open the guard's inventory.
-     *
-     * <p>The client asks the heuristic question: persistent data is not synced, so
-     * {@code isProxy} is only answerable on the server.
-     */
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onProxyInteract(PlayerInteractEvent.EntityInteract event) {
-        Entity target = event.getTarget();
-        boolean proxy = event.getLevel().isClientSide
-                ? GuardProxy.looksLikeProxy(target)
-                : GuardProxy.isProxy(target);
-        if (!proxy) {
-            return;
-        }
-        Player player = event.getEntity();
-        if (!player.isCrouching() && !player.isShiftKeyDown()) {
-            // Everything else on a proxy is MCA's own business. Leave it alone.
-            return;
-        }
-
-        Mob guard = event.getLevel().isClientSide ? null : GuardProxy.guardOf(target);
-        event.setCanceled(true);
-        event.setCancellationResult(guard != null && player instanceof ServerPlayer serverPlayer
-                ? GuardInteractions.delegateToGuardVillagers(serverPlayer, guard, event.getHand())
-                : InteractionResult.SUCCESS);
     }
 
     /**
@@ -244,23 +173,12 @@ public final class GuardProxyHandler {
     /** A mob that picked the proxy picks the guard instead -- the guard is the one that fights. */
     @SubscribeEvent
     public static void onChangeTarget(LivingChangeTargetEvent event) {
-        LivingEntity target = event.getNewTarget();
+        LivingEntity target = event.getNewAboutToBeSetTarget();
         if (target == null || target.level().isClientSide || !GuardProxy.isProxy(target)) {
             return;
         }
         // Null is a fine answer: no guard means nothing worth attacking stood there.
-        event.setNewTarget(GuardProxy.guardOf(target));
+        event.setNewAboutToBeSetTarget(GuardProxy.guardOf(target));
     }
 
-    /**
-     * An arrow that would hit the proxy passes through it and carries on to the guard behind, which
-     * occupies the same space.
-     */
-    @SubscribeEvent
-    public static void onProjectileImpact(ProjectileImpactEvent event) {
-        if (event.getRayTraceResult() instanceof EntityHitResult hit
-                && GuardProxy.isProxy(hit.getEntity())) {
-            event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
-        }
-    }
 }

@@ -74,6 +74,9 @@ class NoOptionalModStaticLinkTest {
             "com/dragn0007/dragnlivestock",  // DragN's Livestock Overhaul
             // Architectury is a runtime dependency of MCA's Forge build, never ours.
             "dev/architectury",
+            // Optional names have no reflection exemption, even inside the MCA binding.
+            "tallestegg.guardvillagers", "com.alaharranhonor.swem", "mokiyoki.enhancedanimals",
+            "com.dragn0007", "dev.architectury",
     };
 
     /**
@@ -164,7 +167,7 @@ class NoOptionalModStaticLinkTest {
     }
 
     private static Path classesDir() {
-        Path classesDir = Paths.get("build", "classes", "java", "main");
+        Path classesDir = Paths.get(System.getProperty("mcamobcompat.projectDir", "."), "build", "classes", "java", "main");
         assertTrue(Files.isDirectory(classesDir),
                 "build/classes/java/main does not exist; run `gradlew compileJava` (or `test`, which "
                         + "depends on it) before running this test directly.");

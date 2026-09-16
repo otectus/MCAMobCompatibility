@@ -6,6 +6,9 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import net.minecraft.resources.ResourceLocation;
+import java.util.Locale;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +91,14 @@ public final class McaBinding {
     /** {@code Memories#getHearts()} and {@code #modHearts(int)}, off the per-player memories type. */
     private static volatile Method getHearts;
     private static volatile Method modHearts;
+    private static volatile Method setHearts;
+    private static volatile Method familyGet;
+    private static volatile Method familyLookup;
+    private static volatile Method familyRemove;
+
+    private static volatile Method personalityId;
+    private static volatile Method personalityLookup;
+    private static final java.util.concurrent.ConcurrentMap<String, String> FAILURES = new java.util.concurrent.ConcurrentHashMap<>();
 
     private McaBinding() {
     }
@@ -111,6 +122,13 @@ public final class McaBinding {
         if (villagerClass == null) {
             return;
         }
+
+        try {
+            Class<?> family = Class.forName(packageRoot + ".server.world.data.FamilyTree", false, McaBinding.class.getClassLoader());
+            familyGet = family.getMethod("get", net.minecraft.server.level.ServerLevel.class);
+            familyLookup = family.getMethod("getOrEmpty", UUID.class);
+            familyRemove = family.getMethod("remove", UUID.class);
+        } catch (ReflectiveOperationException | LinkageError e) { warnMissing("spawn rollback", e); }
 
         // One catch per member, so one MCA rename disables one feature rather than all of them.
         try {
@@ -136,22 +154,37 @@ public final class McaBinding {
             warnMissing("abandonJob", t);
         }
 
-        // These five are looked up by name and arity rather than by signature: their parameter and
-        // return types are MCA's own, and naming one here -- even as a Class literal -- would link
-        // this class against MCA and defeat the whole design.
-        getPersonality = findMethod(brainClass, "getPersonality", 0);
-        setPersonality = findMethod(brainClass, "setPersonality", 1);
-        getMemories = findMethod(brainClass, "getMemories", 0);
-        getMemoriesForPlayer = findMethod(brainClass, "getMemoriesForPlayer", 1);
-        getMoveState = findMethod(brainClass, "getMoveState", 0);
+        getPersonality = method(brainClass, "getPersonality", null);
+        if (getPersonality != null) {
+            Class<?> type = getPersonality.getReturnType();
+            setPersonality = method(brainClass, "setPersonality", void.class, type);
+            if (!type.isEnum()) {
+                personalityId = method(type, "getId", ResourceLocation.class);
+                personalityLookup = method(type, "get", Optional.class, ResourceLocation.class);
+                if (personalityLookup != null && !Modifier.isStatic(personalityLookup.getModifiers())) personalityLookup = null;
+            }
+        }
+        getMemories = method(brainClass, "getMemories", Map.class);
+        getMemoriesForPlayer = method(brainClass, "getMemoriesForPlayer", null, Player.class);
+        getMoveState = method(brainClass, "getMoveState", null);
+        if (getMoveState != null && !getMoveState.getReturnType().isEnum()) getMoveState = null;
+        if (getMemoriesForPlayer != null) {
+            Class<?> memoriesClass = getMemoriesForPlayer.getReturnType();
+            getHearts = method(memoriesClass, "getHearts", int.class);
+            modHearts = method(memoriesClass, "modHearts", void.class, int.class);
+            setHearts = method(memoriesClass, "setHearts", void.class, int.class);
+        }
+    }
 
-        // Same trick as the brain class itself: the memories type is the return type of the
-        // accessor that hands one out, so there is one MCA name to keep in step instead of two.
-        Method perPlayer = getMemoriesForPlayer;
-        if (perPlayer != null) {
-            Class<?> memoriesClass = perPlayer.getReturnType();
-            getHearts = findMethod(memoriesClass, "getHearts", 0);
-            modHearts = findMethod(memoriesClass, "modHearts", 1);
+    private static Method method(Class<?> owner, String name, Class<?> result, Class<?>... args) {
+        try {
+            Method method = owner.getMethod(name, args);
+            if (result != null && !result.isAssignableFrom(method.getReturnType()))
+                throw new NoSuchMethodException(name + " has unexpected return type " + method.getReturnType());
+            return method;
+        } catch (ReflectiveOperationException | LinkageError e) {
+            warnMissing(name, e);
+            return null;
         }
     }
 
@@ -211,7 +244,6 @@ public final class McaBinding {
             Object current = job.invoke(brain);
             return current instanceof Enum<?> ? Optional.of(((Enum<?>) current).name()) : Optional.empty();
         } catch (Throwable t) {
-            getCurrentJob = null;
             retire("getCurrentJob", t);
             return Optional.empty();
         }
@@ -231,7 +263,6 @@ public final class McaBinding {
             abandon.invoke(brain);
             return true;
         } catch (Throwable t) {
-            abandonJob = null;
             retire("abandonJob", t);
             return false;
         }
@@ -242,53 +273,82 @@ public final class McaBinding {
      * empty when it is not an MCA villager or the member is unbound.
      */
     public static Optional<String> personality(Entity entity) {
-        Method accessor = getPersonality;
-        Object brain = boundBrain(entity, accessor);
-        if (brain == null) {
-            return Optional.empty();
-        }
-        try {
-            Object value = accessor.invoke(brain);
-            return value instanceof Enum<?> ? Optional.of(((Enum<?>) value).name()) : Optional.empty();
-        } catch (Throwable t) {
-            getPersonality = null;
-            retire("getPersonality", t);
-            return Optional.empty();
-        }
+        Object brain = boundBrain(entity, getPersonality);
+        if (brain == null) return Optional.empty();
+        try { return personalityName(getPersonality.invoke(brain)); }
+        catch (ReflectiveOperationException | RuntimeException e) { retire("getPersonality", e); return Optional.empty(); }
     }
 
-    /**
-     * Sets this villager's personality by constant name, case-insensitively. False when the name is
-     * not one MCA knows, or the member is unbound.
-     */
-    public static boolean setPersonality(Entity entity, String personality) {
-        Method setter = setPersonality;
-        Object brain = boundBrain(entity, setter);
-        if (brain == null || personality == null || personality.isBlank()) {
-            return false;
+    static Optional<String> personalityName(Object value) throws ReflectiveOperationException {
+        if (value instanceof Enum<?> constant) return Optional.of(constant.name().toLowerCase(Locale.ROOT));
+        if (value == null) return Optional.empty();
+        Method reader = value.getClass().getMethod("getId");
+        if (reader.getReturnType() != ResourceLocation.class) return Optional.empty();
+        Object id = reader.invoke(value);
+        return id instanceof ResourceLocation location ? Optional.of(location.toString()) : Optional.empty();
+    }
+
+    static Object resolvePersonality(Class<?> type, String name) throws ReflectiveOperationException {
+        if (name == null || name.isBlank()) return null;
+        if (type.isEnum()) {
+            for (Object candidate : type.getEnumConstants())
+                if (((Enum<?>) candidate).name().equalsIgnoreCase(name)) return candidate;
+            return null;
         }
+        ResourceLocation id = ResourceLocation.tryParse(name.contains(":") ? name : "mca:" + name.toLowerCase(Locale.ROOT));
+        if (id == null) return null;
+        Method lookup = type.getMethod("get", ResourceLocation.class);
+        if (!Modifier.isStatic(lookup.getModifiers()) || lookup.getReturnType() != Optional.class) return null;
+        Object value = lookup.invoke(null, id);
+        Object resolved = value instanceof Optional<?> option ? option.orElse(null) : null;
+        return type.isInstance(resolved) ? resolved : null;
+    }
+
+    /** Unknown historic/custom identifiers leave MCA's existing value unchanged. */
+    public static boolean setPersonality(Entity entity, String personality) {
+        Object brain = boundBrain(entity, setPersonality);
+        if (brain == null) return false;
         try {
-            Class<?> type = setter.getParameterTypes()[0];
-            if (!type.isEnum()) {
-                return false;
-            }
-            Object constant = null;
-            for (Object candidate : type.getEnumConstants()) {
-                if (((Enum<?>) candidate).name().equalsIgnoreCase(personality)) {
-                    constant = candidate;
-                    break;
+            Object value = resolvePersonality(setPersonality.getParameterTypes()[0], personality);
+            if (value == null) return false;
+            setPersonality.invoke(brain, value);
+            return true;
+        } catch (ReflectiveOperationException | RuntimeException e) { retire("setPersonality", e); return false; }
+    }
+
+    public static boolean canRollbackSpawn() { return familyGet != null && familyLookup != null && familyRemove != null; }
+
+    public static void rollbackSpawn(Entity proxy) {
+        if (!canRollbackSpawn() || !(proxy.level() instanceof net.minecraft.server.level.ServerLevel level)) return;
+        try {
+            Object tree = familyGet.invoke(null, level);
+            Object node = ((Optional<?>) familyLookup.invoke(tree, proxy.getUUID())).orElse(null);
+            if (node == null) return;
+            for (String parent : List.of("father", "mother")) {
+                Object id = node.getClass().getMethod(parent).invoke(node);
+                Object relative = ((Optional<?>) familyLookup.invoke(tree, id)).orElse(null);
+                if (relative != null && Boolean.TRUE.equals(relative.getClass().getMethod("probablyGenerated").invoke(relative))) {
+                    Object children = relative.getClass().getMethod("children").invoke(relative);
+                    if (children instanceof java.util.Set<?> set && set.size() == 1 && set.contains(proxy.getUUID())) familyRemove.invoke(tree, id);
                 }
             }
-            if (constant == null) {
-                return false;
+            familyRemove.invoke(tree, proxy.getUUID());
+        } catch (ReflectiveOperationException | RuntimeException e) { retire("spawn rollback", e); }
+    }
+
+    public static Map<UUID, Integer> heartSnapshot(Entity entity) {
+        Object brain = boundBrain(entity, getMemories);
+        if (brain == null || getHearts == null) return Map.of();
+        try {
+            Map<UUID, Integer> result = new java.util.HashMap<>();
+            if (getMemories.invoke(brain) instanceof Map<?, ?> map) {
+                for (var entry : map.entrySet()) {
+                    if (entry.getKey() instanceof UUID id && entry.getValue() != null)
+                        result.put(id, ((Number) getHearts.invoke(entry.getValue())).intValue());
+                }
             }
-            setter.invoke(brain, constant);
-            return true;
-        } catch (Throwable t) {
-            setPersonality = null;
-            retire("setPersonality", t);
-            return false;
-        }
+            return Map.copyOf(result);
+        } catch (ReflectiveOperationException | RuntimeException e) { retire("heartSnapshot", e); return Map.of(); }
     }
 
     /**
@@ -319,7 +379,6 @@ public final class McaBinding {
                     ? OptionalInt.of(number.intValue())
                     : OptionalInt.empty();
         } catch (Throwable t) {
-            getMemories = null;
             retire("getMemories", t);
             return OptionalInt.empty();
         }
@@ -327,6 +386,10 @@ public final class McaBinding {
 
     /** Moves this player's hearts with the villager. False if it could not be done, for any reason. */
     public static boolean modHearts(Entity entity, Player player, int delta) {
+        return modHearts(entity, player, (long) delta);
+    }
+
+    public static boolean modHearts(Entity entity, Player player, long delta) {
         Method accessor = getMemoriesForPlayer;
         Method mutator = modHearts;
         Object brain = boundBrain(entity, accessor);
@@ -338,10 +401,12 @@ public final class McaBinding {
             if (memories == null) {
                 return false;
             }
-            mutator.invoke(memories, delta);
+            int previous = ((Number) getHearts.invoke(memories)).intValue();
+            int next = dev.otectus.mcamobcompat.bridge.GuardIdentityData.bounded((long) previous + delta);
+            if (setHearts == null) return false;
+            setHearts.invoke(memories, next);
             return true;
         } catch (Throwable t) {
-            getMemoriesForPlayer = null;
             retire("getMemoriesForPlayer", t);
             return false;
         }
@@ -351,6 +416,15 @@ public final class McaBinding {
      * The villager's movement intent, by enum constant name ({@code MOVE}, {@code STAY},
      * {@code FOLLOW}), or empty when unbound. This is what the proxy mirrors onto its guard.
      */
+    /** The player MCA actually authorized to follow, read through its registered vanilla memory. */
+    public static Optional<UUID> followTarget(Entity entity) {
+        if (!(entity instanceof net.minecraft.world.entity.Mob mob) || !McaEntities.isMcaVillager(entity)) return Optional.empty();
+        var memory = net.minecraft.core.registries.BuiltInRegistries.MEMORY_MODULE_TYPE
+                .getOptional(ResourceLocation.fromNamespaceAndPath("mca", "player_following_memory")).orElse(null);
+        if (memory == null) return Optional.empty();
+        return mob.getBrain().getMemory(memory).filter(Player.class::isInstance).map(value -> ((Player) value).getUUID());
+    }
+
     public static Optional<String> moveState(Entity entity) {
         Method accessor = getMoveState;
         Object brain = boundBrain(entity, accessor);
@@ -361,7 +435,6 @@ public final class McaBinding {
             Object value = accessor.invoke(brain);
             return value instanceof Enum<?> ? Optional.of(((Enum<?>) value).name()) : Optional.empty();
         } catch (Throwable t) {
-            getMoveState = null;
             retire("getMoveState", t);
             return Optional.empty();
         }
@@ -375,6 +448,10 @@ public final class McaBinding {
     /** One line per member, ok or missing, for the diagnostic command and the setup log line. */
     public static List<String> describeBindings() {
         List<String> lines = new ArrayList<>(11);
+        lines.add("personality API: " + (getPersonality == null ? "missing" : getPersonality.getReturnType().isEnum()
+                ? "enum" : personalityId != null && personalityLookup != null ? "namespaced registry" : "unsupported"));
+        lines.add("class: " + (villagerClass == null ? "missing" : villagerClass.getName()));
+        lines.addAll(FAILURES.entrySet().stream().map(e -> e.getKey() + ": " + e.getValue()).toList());
         lines.add("VillagerEntityMCA: " + state(villagerClass != null));
         lines.add("getVillagerBrain: " + state(getVillagerBrain != null));
         lines.add("getCurrentJob: " + state(getCurrentJob != null));
@@ -432,21 +509,21 @@ public final class McaBinding {
         try {
             return accessor.invoke(entity);
         } catch (Throwable t) {
-            getVillagerBrain = null;
             retire("getVillagerBrain", t);
             return null;
         }
     }
 
     private static void warnMissing(String member, Throwable t) {
+        FAILURES.putIfAbsent(member, t.toString());
         McaMobCompat.LOGGER.warn("MCA binding: '{}' not found under {} ({}). The feature that needs "
                 + "it is disabled; everything else keeps working.", member, packageRoot, t.toString());
     }
 
     /** One warning, then the member is gone for the session, so a broken call cannot spam the log. */
     private static void retire(String member, Throwable t) {
-        McaMobCompat.LOGGER.warn("MCA binding: '{}' threw and has been disabled for this session.",
-                member, t);
+        if (FAILURES.putIfAbsent(member, t.toString()) == null)
+            McaMobCompat.LOGGER.warn("MCA binding: {} failed for an entity; later calls may retry.", member, t);
     }
 
     private static String state(boolean ok) {

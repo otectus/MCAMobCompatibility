@@ -90,16 +90,11 @@ public final class GuardReflection {
                 warnOnce("getGuardVariant", t);
             }
         }
-        try {
-            String saved = guard.saveWithoutId(new CompoundTag()).getString(VARIANT_TAG);
-            return saved.isBlank() ? Optional.empty() : Optional.of(saved);
-        } catch (Throwable t) {
-            return Optional.empty();
-        }
+        return Optional.empty();
     }
 
     private static void invoke(Mob guard, Method method, String name, Object argument) {
-        if (guard == null || method == null || argument == null) {
+        if (guard == null || method == null) {
             return;
         }
         try {
@@ -110,7 +105,7 @@ public final class GuardReflection {
     }
 
     private static Handles handles(Mob guard) {
-        return guard == null ? null : CACHE.computeIfAbsent(guard.getClass(), Handles::resolve);
+        return guard == null || !net.minecraft.world.entity.EntityType.getKey(guard.getType()).getNamespace().equals("guardvillagers") ? null : CACHE.computeIfAbsent(guard.getClass(), Handles::resolve);
     }
 
     private static void warnOnce(String member, Throwable t) {
@@ -130,11 +125,11 @@ public final class GuardReflection {
         private final Method getGuardVariant;
 
         private Handles(Class<?> owner) {
-            setFollowing = find(owner, "setFollowing", 1);
-            setPatrolling = find(owner, "setPatrolling", 1);
-            setPatrolPos = find(owner, "setPatrolPos", 1);
-            setOwnerId = find(owner, "setOwnerId", 1);
-            getGuardVariant = find(owner, "getGuardVariant", 0);
+            setFollowing = find(owner, "setFollowing", void.class, boolean.class);
+            setPatrolling = find(owner, "setPatrolling", void.class, boolean.class);
+            setPatrolPos = find(owner, "setPatrolPos", void.class, BlockPos.class);
+            setOwnerId = find(owner, "setOwnerId", void.class, UUID.class);
+            getGuardVariant = find(owner, "getVariant", String.class);
         }
 
         static Handles resolve(Class<?> owner) {
@@ -142,18 +137,11 @@ public final class GuardReflection {
         }
 
         /** By name and arity: the parameter types are vanilla, but the owner class is not nameable. */
-        private static Method find(Class<?> owner, String name, int arity) {
+        private static Method find(Class<?> owner, String name, Class<?> result, Class<?>... arguments) {
             try {
-                for (Method candidate : owner.getMethods()) {
-                    if (candidate.getName().equals(name) && candidate.getParameterCount() == arity) {
-                        return candidate;
-                    }
-                }
-            } catch (LinkageError t) {
-                warnOnce(name, t);
-                return null;
-            }
-            warnOnce(name, new NoSuchMethodException(name + "/" + arity));
+                Method method = owner.getMethod(name, arguments);
+                if (method.getReturnType() == result) return method;
+            } catch (ReflectiveOperationException | LinkageError e) { warnOnce(owner.getName() + "." + name, e); }
             return null;
         }
     }

@@ -39,11 +39,11 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
+
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -62,7 +62,7 @@ import java.util.UUID;
  * {@code eanimod:enhanced_cow} and not {@code geneticanimals:cow}, and it is how the next pack
  * author will onboard a mod nobody here has seen.
  */
-@Mod.EventBusSubscriber(modid = McaMobCompat.MOD_ID)
+@EventBusSubscriber(modid = McaMobCompat.MOD_ID)
 public final class McaMobCompatCommand {
 
     /** Chat cannot usefully hold a full vanilla registry dump; the log always gets all of it. */
@@ -240,7 +240,8 @@ public final class McaMobCompatCommand {
 
         GuardIdentityData data = GuardIdentityStore.get(source.getServer());
         line(source, ChatFormatting.WHITE, "  " + data.size() + " identity(ies) stored, "
-                + data.deceasedCount() + " deceased.");
+                + data.deceasedCount() + " deceased, " + data.quarantinedCount() + " conflicting (quarantined)."
+                + (data.isReadOnly() ? " Unsupported schema: read-only." : ""));
 
         ProxyCensus census = census(source);
         line(source, ChatFormatting.WHITE, "  " + census.proxies + " proxy(ies) loaded, "
@@ -296,12 +297,14 @@ public final class McaMobCompatCommand {
                     line(source, guard == null ? ChatFormatting.RED : ChatFormatting.GREEN,
                             "  " + entity.getName().getString() + " (" + entity.getUUID() + ") in "
                                     + level.dimension().location() + " -> "
-                                    + (guard == null ? "ORPHAN, no guard found" : guard.getUUID()));
+                                    + (guard == null ? "UNRESOLVED: guard may be unloaded" : guard.getUUID()));
                 } else if (GuardBridge.isBridgedGuard(entity)
                         && GuardProxy.proxyOf((Mob) entity) == null) {
                     found++;
                     line(source, ChatFormatting.YELLOW, "  guard " + entity.getUUID() + " in "
-                            + level.dimension().location() + " has no proxy");
+                            + level.dimension().location() + (entity.getPersistentData().hasUUID(GuardProxy.KEY_PROXY)
+                            || GuardIdentityStore.proxyUuid(source.getServer(), entity.getUUID()).isPresent()
+                            ? " has an unresolved proxy UUID (unloaded or conflicting)" : " is awaiting proxy creation"));
                 }
             }
         }
@@ -320,6 +323,9 @@ public final class McaMobCompatCommand {
      * alternative is guards nobody can talk to.
      */
     private static int rebuild(CommandSourceStack source) {
+        if (GuardIdentityStore.get(source.getServer()).isReadOnly()) {
+            line(source, ChatFormatting.RED, "Identity schema is read-only; rebuild refused."); return 0;
+        }
         int rebuilt = 0;
         for (ServerLevel level : source.getServer().getAllLevels()) {
             List<Entity> guards = new ArrayList<>();
@@ -389,8 +395,7 @@ public final class McaMobCompatCommand {
         if (proxy != null) {
             line(source, ChatFormatting.WHITE, "  live MCA name: "
                     + (proxy.hasCustomName() ? proxy.getCustomName().getString() : "unnamed"));
-            line(source, ChatFormatting.WHITE, "  live profession: " + ForgeRegistries
-                    .VILLAGER_PROFESSIONS.getKey(proxy.getVillagerData().getProfession()));
+            line(source, ChatFormatting.WHITE, "  live profession: " + BuiltInRegistries.VILLAGER_PROFESSION.getKey(proxy.getVillagerData().getProfession()));
         }
         if (source.getEntity() instanceof ServerPlayer player) {
             line(source, ChatFormatting.WHITE,
@@ -401,6 +406,7 @@ public final class McaMobCompatCommand {
 
     private static int purge(CommandSourceStack source, int days) {
         GuardIdentityData data = GuardIdentityStore.get(source.getServer());
+        if (data.isReadOnly()) { line(source, ChatFormatting.RED, "Identity schema is read-only; purge refused."); return 0; }
         long now = source.getLevel().getGameTime();
         int removed = data.purgeDeceased(now, days * TICKS_PER_DAY);
         line(source, ChatFormatting.WHITE, "Purged " + removed + " deceased guard identity(ies) older than "

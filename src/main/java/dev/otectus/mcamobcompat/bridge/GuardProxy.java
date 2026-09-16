@@ -23,7 +23,7 @@ import net.minecraft.world.entity.npc.VillagerData;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerType;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.registries.ForgeRegistries;
+
 
 import java.util.UUID;
 
@@ -60,7 +60,7 @@ public final class GuardProxy {
     public static final String TAG_PROXY = McaMobCompat.MOD_ID + "_proxy";
 
     /** MCA's guard profession, by id: the profession is what makes addons treat the proxy as one. */
-    public static final ResourceLocation GUARD_PROFESSION = new ResourceLocation(ModIds.MCA, "guard");
+    public static final ResourceLocation GUARD_PROFESSION = ResourceLocation.fromNamespaceAndPath(ModIds.MCA, "guard");
 
     private static volatile boolean warnedMissingType;
     private static volatile boolean warnedNotAVillager;
@@ -72,56 +72,28 @@ public final class GuardProxy {
     /**
      * Whether this entity is a proxy: an MCA villager that names a guard in its persistent data.
      *
-     * <p>Server-side truth. Persistent data is not synced, so this is always false on the client --
-     * {@link #looksLikeProxy} is the client's question.
+     * <p>Server-side truth. Clients use the server's UUID pairing payload; persistent data itself is not synced.
      */
     public static boolean isProxy(Entity entity) {
-        return McaEntities.isMcaVillager(entity) && entity.getPersistentData().hasUUID(KEY_GUARD);
+        if (!McaEntities.isMcaVillager(entity)) return false;
+        if (entity.level().isClientSide) return dev.otectus.mcamobcompat.network.ProxyPairs.isProxy(entity);
+        if (entity.getPersistentData().hasUUID(KEY_GUARD)) return true;
+        UUID owner = GuardIdentityStore.findByProxy(entity.getServer(), entity.getUUID()).orElse(null);
+        if (owner == null) return false;
+        entity.getPersistentData().putUUID(KEY_GUARD, owner);
+        entity.addTag(TAG_PROXY);
+        return true;
     }
 
-    /**
-     * The client-side heuristic: an MCA villager wearing all four hiding flags.
-     *
-     * <p>Every flag read here is synced entity data, which is the whole point -- persistent data is
-     * not, so the client cannot ask the real question. The accepted false positive is a genuine
-     * villager somebody has deliberately made invisible, silent, weightless <em>and</em> brainless
-     * by command; that villager stops rendering. Nothing else in vanilla or MCA produces all four.
-     *
-     * <p>Uses only common types, so the class stays loadable on a dedicated server.
-     */
+    /** Exact association on either side; clients receive explicit UUID pairs from the server. */
     public static boolean looksLikeProxy(Entity entity) {
-        return entity instanceof Mob mob
-                && McaEntities.isMcaVillager(mob)
-                && mob.isInvisible()
-                && mob.isNoAi()
-                && mob.isSilent()
-                && mob.isNoGravity();
+        return isProxy(entity);
     }
 
-    /**
-     * The bridged guard standing where this proxy stands, or null: the client's answer to
-     * {@link #guardOf}.
-     *
-     * <p>The link between the two lives in server-side persistent data, which the client never
-     * sees. What the client does see is that a proxy is pinned inside its guard's hitbox every
-     * tick, so the bridged guard whose bounding box overlaps the proxy's is the one it stands in
-     * for. Works on either side and on any level; uses only common types.
-     */
+    /** Exact UUID association received from the server; never chooses an overlapping neighbour. */
     public static Mob nearbyGuardOf(Entity proxy) {
-        if (proxy == null) {
-            return null;
-        }
-        AABB box = proxy.getBoundingBox().inflate(0.5D);
-        Mob best = null;
-        double bestDistance = Double.MAX_VALUE;
-        for (Mob candidate : proxy.level().getEntitiesOfClass(Mob.class, box, GuardBridge::isBridgedGuard)) {
-            double distance = candidate.distanceToSqr(proxy);
-            if (distance < bestDistance) {
-                best = candidate;
-                bestDistance = distance;
-            }
-        }
-        return best;
+        return proxy != null && proxy.level().isClientSide
+                ? dev.otectus.mcamobcompat.network.ProxyPairs.guardOf(proxy) : guardOf(proxy);
     }
 
     /** This guard's proxy, wherever it is loaded, or null. Never creates. */
@@ -130,12 +102,18 @@ public final class GuardProxy {
             return null;
         }
         MinecraftServer server = guard.level().getServer();
+        if (server != null && GuardIdentityStore.get(server).isQuarantined(guard.getUUID())) return null;
         UUID proxy = readUuid(guard, KEY_PROXY);
         if (proxy == null) {
             proxy = GuardIdentityStore.proxyUuid(server, guard.getUUID()).orElse(null);
         }
         Entity found = resolve(server, guard, proxy);
-        return found instanceof Villager villager ? villager : null;
+        if (!(found instanceof Villager villager) || !McaEntities.isMcaVillager(villager)) return null;
+        UUID owner = readUuid(villager, KEY_GUARD);
+        if (owner != null && !guard.getUUID().equals(owner)) return null;
+        if (owner == null) villager.getPersistentData().putUUID(KEY_GUARD, guard.getUUID());
+        guard.getPersistentData().putUUID(KEY_PROXY, villager.getUUID());
+        return villager;
     }
 
     /** The guard this proxy stands in for, wherever it is loaded, or null. */
@@ -148,8 +126,11 @@ public final class GuardProxy {
         if (guard == null) {
             guard = GuardIdentityStore.findByProxy(server, proxy.getUUID()).orElse(null);
         }
+        if (server != null && GuardIdentityStore.get(server).isQuarantined(guard)) return null;
         Entity found = resolve(server, proxy, guard);
-        return found instanceof Mob mob ? mob : null;
+        if (!(found instanceof Mob mob) || McaEntities.isMcaVillager(mob)) return null;
+        UUID link = readUuid(mob, KEY_PROXY);
+        return link == null || proxy.getUUID().equals(link) ? mob : null;
     }
 
     /**
@@ -167,6 +148,17 @@ public final class GuardProxy {
         if (level == null || guard == null) {
             return null;
         }
+        if (guard.level() != level || GuardIdentityStore.get(level.getServer()).isQuarantined(guard.getUUID())
+                || GuardIdentityStore.get(level.getServer()).isReadOnly()) return null;
+        Villager existing = proxyOf(guard);
+        if (existing != null) return existing;
+        // A recorded UUID can be unloaded. Never manufacture a replacement for an unresolved link.
+        if (readUuid(guard, KEY_PROXY) != null || GuardIdentityStore.proxyUuid(level.getServer(), guard.getUUID()).isPresent()
+                || guard.tickCount < 40 || !guard.isAlive()) return null;
+        var candidates = level.getEntitiesOfClass(Villager.class, guard.getBoundingBox().inflate(3),
+                candidate -> McaEntities.isMcaVillager(candidate) && guard.getUUID().equals(linkedGuardUuid(candidate)));
+        if (candidates.size() > 1) return null;
+        if (candidates.size() == 1) { link(guard, candidates.getFirst()); return candidates.getFirst(); }
         GuardIdentityStore.getOrCreate(guard);
         GuardIdentityData data = GuardIdentityStore.get(level.getServer());
         GuardIdentityData.Entry entry = data.find(guard.getUUID());
@@ -178,7 +170,7 @@ public final class GuardProxy {
         ResourceLocation typeId = entry.gender() == GuardGender.FEMALE
                 ? McaEntities.FEMALE_VILLAGER
                 : McaEntities.MALE_VILLAGER;
-        EntityType<?> type = ForgeRegistries.ENTITY_TYPES.getValue(typeId);
+        EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.getOptional(typeId).orElse(null);
         if (type == null) {
             if (!warnedMissingType) {
                 warnedMissingType = true;
@@ -201,9 +193,19 @@ public final class GuardProxy {
             return null;
         }
 
+        if (!McaBinding.canRollbackSpawn()) return null;
         proxy.moveTo(guard.getX(), guard.getY(), guard.getZ(), guard.getYRot(), guard.getXRot());
-        proxy.finalizeSpawn(level, level.getCurrentDifficultyAt(guard.blockPosition()),
-                MobSpawnType.MOB_SUMMONED, null, null);
+        try {
+            if (!dev.otectus.mcamobcompat.event.ProxySpawnHandler.initialize(proxy, level)) {
+                McaBinding.rollbackSpawn(proxy);
+                proxy.discard();
+                return null;
+            }
+        } catch (RuntimeException exception) {
+            McaBinding.rollbackSpawn(proxy);
+            proxy.discard();
+            throw exception;
+        }
         applyVillagerData(proxy, guard);
         hide(proxy);
         proxy.setPersistenceRequired();
@@ -217,13 +219,19 @@ public final class GuardProxy {
                 proxy.setCustomName(Component.literal(entry.name()));
             }
             McaBinding.setPersonality(proxy, entry.personality());
-            data.markSeeded(entry);
+
         }
 
-        level.addFreshEntity(proxy);
+        if (!level.addFreshEntity(proxy)) {
+            McaBinding.rollbackSpawn(proxy);
+            proxy.discard();
+            return null;
+        }
+        if (!entry.seeded()) data.markSeeded(entry);
         guard.getPersistentData().putUUID(KEY_PROXY, proxy.getUUID());
         data.linkProxy(entry, proxy.getUUID());
         copyNameToGuard(guard, proxy);
+        dev.otectus.mcamobcompat.network.ProxyPairs.broadcast(guard, proxy);
 
         McaMobCompat.debug("Created MCA proxy {} for bridged guard {}", proxy.getUUID(), guard.getUUID());
         return proxy;
@@ -234,7 +242,7 @@ public final class GuardProxy {
      * and a biome type that matches the guard's own variant.
      */
     static void applyVillagerData(Villager proxy, Mob guard) {
-        VillagerProfession profession = ForgeRegistries.VILLAGER_PROFESSIONS.getValue(GUARD_PROFESSION);
+        VillagerProfession profession = BuiltInRegistries.VILLAGER_PROFESSION.getOptional(GUARD_PROFESSION).orElse(null);
         if (profession == null) {
             if (!warnedMissingProfession) {
                 warnedMissingProfession = true;
@@ -254,12 +262,15 @@ public final class GuardProxy {
     }
 
     /** The five flags that keep the proxy out of the world. Re-asserted every tick by the sync. */
-    static void hide(Villager proxy) {
+    public static void hide(Villager proxy) {
         proxy.setNoAi(true);
         proxy.setInvisible(true);
         proxy.setSilent(true);
         proxy.setNoGravity(true);
         proxy.noPhysics = true;
+        proxy.setGlowingTag(false);
+        proxy.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
+
     }
 
     /**
@@ -293,9 +304,13 @@ public final class GuardProxy {
         if (guard == null || proxy == null) {
             return;
         }
+        UUID previous = GuardIdentityStore.proxyUuid(guard.getServer(), guard.getUUID()).orElse(null);
+        UUID owner = linkedGuardUuid(proxy);
+        if ((previous != null && !previous.equals(proxy.getUUID())) || (owner != null && !owner.equals(guard.getUUID()))) return;
         guard.getPersistentData().putUUID(KEY_PROXY, proxy.getUUID());
         proxy.getPersistentData().putUUID(KEY_GUARD, guard.getUUID());
         GuardIdentityStore.link(guard.level().getServer(), guard.getUUID(), proxy.getUUID());
+        dev.otectus.mcamobcompat.network.ProxyPairs.broadcast(guard, proxy);
     }
 
     /** Removes a proxy from the world and forgets it, on both sides of the link. */

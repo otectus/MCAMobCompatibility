@@ -1,0 +1,7 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="GPL-3.0-only"
+[[mods]]
+modId="mcamobcompat_probe"
+version="1"
+displayName="MCA Mob Compatibility isolated runtime validation"

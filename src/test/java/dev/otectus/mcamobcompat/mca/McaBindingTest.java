@@ -81,9 +81,10 @@ class McaBindingTest {
 
     @Test
     void theBindingReportIsCompleteWhetherOrNotAnythingBound() {
-        assertEquals(11, McaBinding.describeBindings().size(),
-                "Every bound member gets a line, so the diagnostic command can say which one is "
-                        + "missing rather than only that something is.");
+        for (String member : java.util.List.of("VillagerEntityMCA", "getVillagerBrain", "getCurrentJob", "abandonJob",
+                "getPersonality", "setPersonality", "getMemories", "getMemoriesForPlayer", "getMoveState", "getHearts", "modHearts")) {
+            assertTrue(McaBinding.describeBindings().stream().anyMatch(line -> line.startsWith(member + ": ")), member);
+        }
         assertTrue(McaBinding.describeBindings().stream().allMatch(line -> line.contains(": ")));
     }
 }

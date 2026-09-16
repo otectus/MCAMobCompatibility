@@ -1,6 +1,6 @@
 package dev.otectus.mcamobcompat;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
@@ -21,16 +21,16 @@ import java.util.List;
 public final class McaMobCompatConfig {
 
     public static final Common COMMON;
-    public static final ForgeConfigSpec COMMON_SPEC;
+    public static final ModConfigSpec COMMON_SPEC;
     public static final Server SERVER;
-    public static final ForgeConfigSpec SERVER_SPEC;
+    public static final ModConfigSpec SERVER_SPEC;
 
     static {
-        final Pair<Common, ForgeConfigSpec> common = new ForgeConfigSpec.Builder().configure(Common::new);
+        final Pair<Common, ModConfigSpec> common = new ModConfigSpec.Builder().configure(Common::new);
         COMMON = common.getLeft();
         COMMON_SPEC = common.getRight();
 
-        final Pair<Server, ForgeConfigSpec> server = new ForgeConfigSpec.Builder().configure(Server::new);
+        final Pair<Server, ModConfigSpec> server = new ModConfigSpec.Builder().configure(Server::new);
         SERVER = server.getLeft();
         SERVER_SPEC = server.getRight();
     }
@@ -41,14 +41,14 @@ public final class McaMobCompatConfig {
     /** Startup-scoped settings: which modules exist, and how loudly. */
     public static final class Common {
 
-        public final ForgeConfigSpec.BooleanValue debugLogging;
+        public final ModConfigSpec.BooleanValue debugLogging;
 
-        public final ForgeConfigSpec.BooleanValue guardVillagersModule;
-        public final ForgeConfigSpec.BooleanValue swemModule;
-        public final ForgeConfigSpec.BooleanValue geneticAnimalsModule;
-        public final ForgeConfigSpec.BooleanValue dragnLivestockModule;
+        public final ModConfigSpec.BooleanValue guardVillagersModule;
+        public final ModConfigSpec.BooleanValue swemModule;
+        public final ModConfigSpec.BooleanValue geneticAnimalsModule;
+        public final ModConfigSpec.BooleanValue dragnLivestockModule;
 
-        Common(ForgeConfigSpec.Builder builder) {
+        Common(ModConfigSpec.Builder builder) {
             builder.comment("General settings.").push("general");
             debugLogging = builder
                     .comment("Log every classification decision and integration detail.",
@@ -83,28 +83,28 @@ public final class McaMobCompatConfig {
     /** World-scoped gameplay settings. */
     public static final class Server {
 
-        public final ForgeConfigSpec.BooleanValue blockGuardConversion;
-        public final ForgeConfigSpec.BooleanValue protectMcaVillagers;
-        public final ForgeConfigSpec.BooleanValue preventGuardFriendlyFire;
-        public final ForgeConfigSpec.BooleanValue retaliateAgainstPlayers;
-        public final ForgeConfigSpec.IntValue guardHelpRange;
-        public final ForgeConfigSpec.IntValue maxGuardsAlerted;
-        public final ForgeConfigSpec.BooleanValue treatGuardsAsMcaGuards;
-        public final ForgeConfigSpec.BooleanValue guardMcaInteraction;
-        public final ForgeConfigSpec.BooleanValue recruitMcaVillagersAsGuards;
-        public final ForgeConfigSpec.BooleanValue guardShowNameTag;
+        public final ModConfigSpec.BooleanValue blockGuardConversion;
+        public final ModConfigSpec.BooleanValue protectMcaVillagers;
+        public final ModConfigSpec.BooleanValue preventGuardFriendlyFire;
+        public final ModConfigSpec.BooleanValue retaliateAgainstPlayers;
+        public final ModConfigSpec.IntValue guardHelpRange;
+        public final ModConfigSpec.IntValue maxGuardsAlerted;
+        public final ModConfigSpec.BooleanValue treatGuardsAsMcaGuards;
+        public final ModConfigSpec.BooleanValue guardMcaInteraction;
+        public final ModConfigSpec.BooleanValue recruitMcaVillagersAsGuards;
+        public final ModConfigSpec.BooleanValue guardShowNameTag;
 
-        public final ForgeConfigSpec.BooleanValue protectOwnedAnimals;
-        public final ForgeConfigSpec.ConfigValue<List<? extends String>> protectedRoles;
-        public final ForgeConfigSpec.BooleanValue protectNamedAnimals;
-        public final ForgeConfigSpec.BooleanValue protectLeashedAnimals;
-        public final ForgeConfigSpec.BooleanValue abandonHuntOnProtectedTarget;
+        public final ModConfigSpec.BooleanValue protectOwnedAnimals;
+        public final ModConfigSpec.ConfigValue<List<? extends String>> protectedRoles;
+        public final ModConfigSpec.BooleanValue protectNamedAnimals;
+        public final ModConfigSpec.BooleanValue protectLeashedAnimals;
+        public final ModConfigSpec.BooleanValue abandonHuntOnProtectedTarget;
 
-        public final ForgeConfigSpec.BooleanValue swemRecognizeAsMounts;
-        public final ForgeConfigSpec.BooleanValue geneticAnimalsRecognizeLivestock;
-        public final ForgeConfigSpec.BooleanValue dragnLivestockRecognizeLivestock;
+        public final ModConfigSpec.BooleanValue swemRecognizeAsMounts;
+        public final ModConfigSpec.BooleanValue geneticAnimalsRecognizeLivestock;
+        public final ModConfigSpec.BooleanValue dragnLivestockRecognizeLivestock;
 
-        Server(ForgeConfigSpec.Builder builder) {
+        Server(ModConfigSpec.Builder builder) {
             builder.comment("Guard Villagers interaction.").push("guard_villagers");
             blockGuardConversion = builder
                     .comment("Block the crouch-and-right-click conversion of an MCA villager into a guard.",
@@ -200,7 +200,7 @@ public final class McaMobCompatConfig {
                     .define("protectOwnedAnimals", true);
             protectedRoles = builder
                     .comment("Roles that are never a valid hunting target, by MobRole name; the same names",
-                            "as the tag files under data/mcamobcompat/tags/entity_types/. Matched",
+                            "as the tag files under data/mcamobcompat/tags/entity_type/. Matched",
                             "case-insensitively; a name that is not a role is logged once at startup and",
                             "ignored.",
                             "",

@@ -10,10 +10,10 @@ import dev.otectus.mcamobcompat.util.ConfigAccess;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import java.util.List;
 import java.util.Set;
@@ -27,24 +27,24 @@ import java.util.Set;
  * {@code Animal} without being a {@code TamableAnimal}. A tamed, player-owned modded horse is
  * therefore already a legal hunting target, and this handler is what takes it back off the menu.
  *
- * <p><b>{@link LivingAttackEvent} is the primary hook, and it must stay that way.</b> The obvious
+ * <p><b>{@link LivingIncomingDamageEvent} is the primary hook, and it must stay that way.</b> The obvious
  * choice, {@link LivingChangeTargetEvent}, does not cover the case: MCA's hunting task holds its
  * quarry in a {@code private Animal target} field and drives {@code MemoryModuleType.ATTACK_TARGET}
  * itself. It never calls {@code Mob.setTarget}, which is the one thing Forge fires
  * {@code LivingChangeTargetEvent} from -- so a target-change handler alone would never see an MCA
- * hunt at all. Cancelling {@code LivingAttackEvent} returns from {@code hurt()} before damage,
+ * hunt at all. Cancelling {@code LivingIncomingDamageEvent} returns from {@code hurt()} before damage,
  * knockback, sound and hurt animation. The target-change handler below is kept as belt and braces
  * for other mods and for a future MCA that does use {@code setTarget}; it is not the mechanism.
  *
  * <p>{@code LivingHurtEvent} is deliberately not handled: it is strictly later on the same call
  * path, so it would add cost and no coverage.
  *
- * <p>Gate order is a performance contract. {@code LivingAttackEvent} fires for every server-side
+ * <p>Gate order is a performance contract. {@code LivingIncomingDamageEvent} fires for every server-side
  * {@code hurt()} in the world, so the cheap checks come first -- server side, then one registry-id
  * lookup for "is the attacker an MCA villager" -- and roles, ownership and config are only touched
  * once that has passed.
  */
-@Mod.EventBusSubscriber(modid = McaMobCompat.MOD_ID)
+@EventBusSubscriber(modid = McaMobCompat.MOD_ID)
 public final class ChoreSafetyHandler {
 
     /**
@@ -57,11 +57,13 @@ public final class ChoreSafetyHandler {
     private static volatile Set<MobRole> cachedRoles;
     private static volatile List<? extends String> cachedNames;
 
+    public static void invalidateConfig() { cachedRoles = null; cachedNames = null; }
+
     private ChoreSafetyHandler() {
     }
 
     @SubscribeEvent
-    public static void onAttack(LivingAttackEvent event) {
+    public static void onAttack(LivingIncomingDamageEvent event) {
         LivingEntity victim = event.getEntity();
         if (victim.level().isClientSide) {
             return;
@@ -91,7 +93,7 @@ public final class ChoreSafetyHandler {
         if (villager.level().isClientSide || !McaEntities.isMcaVillager(villager)) {
             return;
         }
-        LivingEntity newTarget = event.getNewTarget();
+        LivingEntity newTarget = event.getNewAboutToBeSetTarget();
         if (newTarget == null || !isProtectedFrom(newTarget, villager)) {
             return;
         }
@@ -163,7 +165,7 @@ public final class ChoreSafetyHandler {
         }
         Set<MobRole> parsed = ChoreProtectionPolicy.parseRoles(names, unknown ->
                 McaMobCompat.LOGGER.warn("Ignoring '{}' in chores.protectedRoles: it is not a role. "
-                        + "Valid names are the tag paths under data/mcamobcompat/tags/entity_types/.", unknown));
+                        + "Valid names are the tag paths under data/mcamobcompat/tags/entity_type/.", unknown));
         cachedRoles = parsed;
         cachedNames = List.copyOf(names);
         return parsed;

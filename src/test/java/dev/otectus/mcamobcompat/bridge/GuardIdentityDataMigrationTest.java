@@ -90,8 +90,8 @@ class GuardIdentityDataMigrationTest {
 
         CompoundTag saved = data.save(new CompoundTag());
         assertEquals(GuardIdentityData.SCHEMA_VERSION, saved.getInt("Version"));
-        assertEquals(2, GuardIdentityData.SCHEMA_VERSION,
-                "The proxy fields are what version 2 means; bumping it again needs its own test.");
+        assertEquals(3, GuardIdentityData.SCHEMA_VERSION,
+                "Schema 3 separates snapshot balances from queued changes.");
 
         GuardIdentityData.Entry reloaded = GuardIdentityData.load(saved).find(GUARD);
         assertNotNull(reloaded);

@@ -1,4 +1,5 @@
 {
   "message.mcamobcompat.conversion_blocked": "Converting an MCA villager into a guard would destroy their family and genetics. Blocked.",
-  "message.mcamobcompat.recruited": "%s is now a guard."
+  "message.mcamobcompat.recruited": "%s is now a guard.",
+  "message.mcamobcompat.proxy_pending": "This guard’s MCA identity is waiting to load. Try again shortly."
 }

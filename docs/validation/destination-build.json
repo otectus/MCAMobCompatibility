@@ -1,0 +1,11 @@
+{
+  "date": "2026-09-14",
+  "command": "./gradlew build",
+  "directory": "/home/otectus/Projects/1.21.1 Ports/MCAMobCompatibility_1.21.1",
+  "result": "BUILD SUCCESSFUL; 53 tests, zero failures/errors/skips; both artifact gates passed",
+  "runtime_tested_jar_sha256": "fcec034a100ef339b5fe4514d27a4bb8d27c53f1eb9ae4c7a9cd11f666ab47fe",
+  "fresh_destination_build_sha256": "f93c846d84987aaf9861f97004452c2c5eebc023cf07d60fb85f7758b075bc5b",
+  "zip_entry_count": 99,
+  "zip_entry_names_and_uncompressed_bytes_identical": true,
+  "delivery": "The exact runtime-tested JAR is retained. The fresh build differs only in ZIP container metadata."
+}

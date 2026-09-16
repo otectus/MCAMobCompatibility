@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.otectus.mcamobcompat.integration.guardvillagers.GuardVariantsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-14T14:31:46" hostname="OsPC" time="0.003">
+  <properties/>
+  <testcase name="theNameIsNormalisedBeforeItIsMatched()" classname="dev.otectus.mcamobcompat.integration.guardvillagers.GuardVariantsTest" time="0.001"/>
+  <testcase name="theSevenVanillaNamesPassStraightThrough()" classname="dev.otectus.mcamobcompat.integration.guardvillagers.GuardVariantsTest" time="0.0"/>
+  <testcase name="everythingElseBecomesPlains()" classname="dev.otectus.mcamobcompat.integration.guardvillagers.GuardVariantsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

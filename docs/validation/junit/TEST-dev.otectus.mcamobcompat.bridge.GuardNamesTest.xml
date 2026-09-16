@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.otectus.mcamobcompat.bridge.GuardNamesTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-09-14T14:31:46" hostname="OsPC" time="0.008">
+  <properties/>
+  <testcase name="personalitiesAreLowercaseAndFromMcaRoster()" classname="dev.otectus.mcamobcompat.bridge.GuardNamesTest" time="0.001"/>
+  <testcase name="everyRollIsStableForTheSameUuid()" classname="dev.otectus.mcamobcompat.bridge.GuardNamesTest" time="0.0"/>
+  <testcase name="heavyWeightsDominateTheDraw()" classname="dev.otectus.mcamobcompat.bridge.GuardNamesTest" time="0.001"/>
+  <testcase name="theWeightedPickIsStableForTheSameUuid()" classname="dev.otectus.mcamobcompat.bridge.GuardNamesTest" time="0.001"/>
+  <testcase name="weightZeroIsNeverDrawnAndASingleEntryAlwaysIs()" classname="dev.otectus.mcamobcompat.bridge.GuardNamesTest" time="0.001"/>
+  <testcase name="bothGendersAndAVarietyOfNamesAppearAcrossUuids()" classname="dev.otectus.mcamobcompat.bridge.GuardNamesTest" time="0.001"/>
+  <testcase name="anUnusablePoolFallsBackRatherThanGuessing()" classname="dev.otectus.mcamobcompat.bridge.GuardNamesTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

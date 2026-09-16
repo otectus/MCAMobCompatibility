@@ -1,4 +1,4 @@
-# Gradle / ForgeGradle
+# Gradle / ModDevGradle
 .gradle/
 build/
 run/
@@ -34,3 +34,10 @@ libs/
 
 # Session summaries (local notes, not part of the published mod)
 docs/summaries/
+
+run-client/
+run-server/
+run-gametest/
+
+# Checked-in validation evidence; runtime worlds/JARs remain excluded.
+!docs/validation/*.log

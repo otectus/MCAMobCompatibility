@@ -1,6 +1,15 @@
 # Changelog
 
-## Unreleased
+## 2.0+1.21.1 — NeoForge port
+
+- Ported the complete production source, public events, configuration and data paths to NeoForge 1.21.1/Java 21/ModDevGradle. Added required versioned pairing payloads and production JAR gates.
+- Rebound the actual MCA namespaced personality API and Guard Villagers variant/movement methods. Unknown historical personalities preserve live state.
+- Unified proxy creation with a loading grace period, durable UUID resolution, canceled-spawn/family rollback and conflict quarantine. Removed automatic orphan timeout deletion; maintained hiding/lifetime across module toggles and dimension transfers.
+- Added schema 3 migration, separate snapshots and pending hearts, bounded arithmetic with long pending deltas, automatic flush, future-schema preservation and bidirectional names.
+- Reworked interactions, safe recruitment, final-damage/death ordering and native projectile transparency. Added exact client identity/portrait association and scoped render-state cleanup.
+- Expanded unit, GameTest and packaged client/server validation; documented exact dependencies and external companion API limitations. See `docs/VALIDATION.md` for evidence and unexecuted cases.
+
+## Forge 1.20.1 development baseline (historical)
 
 ### Added
 

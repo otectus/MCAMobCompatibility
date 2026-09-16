@@ -28,7 +28,7 @@ public final class GuardVariants {
             Set.of("desert", "savanna", "swamp", "jungle", "taiga", "snow", "plains");
 
     /** What everything else becomes. */
-    public static final ResourceLocation DEFAULT_TYPE = new ResourceLocation("minecraft", "plains");
+    public static final ResourceLocation DEFAULT_TYPE = ResourceLocation.fromNamespaceAndPath("minecraft", "plains");
 
     private GuardVariants() {
     }
@@ -40,7 +40,7 @@ public final class GuardVariants {
         }
         String normalised = variant.trim().toLowerCase(Locale.ROOT);
         return VANILLA_TYPES.contains(normalised)
-                ? new ResourceLocation("minecraft", normalised)
+                ? ResourceLocation.fromNamespaceAndPath("minecraft", normalised)
                 : DEFAULT_TYPE;
     }
 }

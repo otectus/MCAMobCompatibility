@@ -1,0 +1,325 @@
+[10:37:05.764] [main/INFO] [Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgeserver, --fml.neoForgeVersion, 21.1.249, --fml.fmlVersion, 4.0.44, --fml.mcVersion, 1.21.1, --fml.neoFormVersion, 20240808.144430, nogui] 
+[10:37:05.767] [main/INFO] [Launcher/MODLAUNCHER]: JVM identified as Eclipse Adoptium OpenJDK 64-Bit Server VM 21.0.12.1+1-LTS 
+[10:37:05.769] [main/INFO] [Launcher/MODLAUNCHER]: ModLauncher 11.0.5+main.901c6ea8 starting: java version 21.0.12.1 by Eclipse Adoptium; OS Linux arch amd64 version 7.2.4-3-cachyos 
+[10:37:05.956] [main/INFO] [loading.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgeserver 
+[10:37:06.041] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.7 Source=union:/home/otectus/Projects/MCAMobCompatibility/.port-work/production-server/libraries/net/fabricmc/sponge-mixin/0.15.2+mixin.0.8.7/sponge-mixin-0.15.2+mixin.0.8.7.jar%2373!/ Service=ModLauncher Env=SERVER 
+[10:37:06.554] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "server-1.21.1-20240808.144430-srg.jar" [locator: production server provider +net.neoforged:neoforge:21.1.249:server] 
+[10:37:06.593] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "neoforge-21.1.249-universal.jar" [locator: PathBasedLocator[name=neoforge, paths=[libraries/net/neoforged/neoforge/21.1.249/neoforge-21.1.249-universal.jar]], reader: mod manifest] 
+[10:37:06.606] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "geckolib-neoforge-1.21.1-4.7.5.1.jar" [locator: {mods folder locator at /home/otectus/Projects/MCAMobCompatibility/.port-work/production-server/mods}, reader: mod manifest] 
+[10:37:06.615] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "guard-villagers-JyXugpy2.jar" [locator: {mods folder locator at /home/otectus/Projects/MCAMobCompatibility/.port-work/production-server/mods}, reader: mod manifest] 
+[10:37:06.625] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "mca-neoforge-7.7.36-beta.3+1.21.1.jar" [locator: {mods folder locator at /home/otectus/Projects/MCAMobCompatibility/.port-work/production-server/mods}, reader: mod manifest] 
+[10:37:06.640] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "mcaconversations-neoforge-1.6.3+1.21.1.jar" [locator: {mods folder locator at /home/otectus/Projects/MCAMobCompatibility/.port-work/production-server/mods}, reader: mod manifest] 
+[10:37:06.647] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "mcacrime-0.7.2.jar" [locator: {mods folder locator at /home/otectus/Projects/MCAMobCompatibility/.port-work/production-server/mods}, reader: mod manifest] 
+[10:37:06.651] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "mcamobcompat-neoforge-0.3.0+1.21.1-runtime-probe.jar" [locator: {mods folder locator at /home/otectus/Projects/MCAMobCompatibility/.port-work/production-server/mods}, reader: mod manifest] 
+[10:37:06.660] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "mcamobcompat-neoforge-0.3.0+1.21.1.jar" [locator: {mods folder locator at /home/otectus/Projects/MCAMobCompatibility/.port-work/production-server/mods}, reader: mod manifest] 
+[10:37:06.671] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "mcaquests-1.6.4.jar" [locator: {mods folder locator at /home/otectus/Projects/MCAMobCompatibility/.port-work/production-server/mods}, reader: mod manifest] 
+[10:37:06.678] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "mcareputation-0.5.0.jar" [locator: {mods folder locator at /home/otectus/Projects/MCAMobCompatibility/.port-work/production-server/mods}, reader: mod manifest] 
+[10:37:06.681] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "player-animator-658587-7389814.jar" [locator: {mods folder locator at /home/otectus/Projects/MCAMobCompatibility/.port-work/production-server/mods}, reader: mod manifest] 
+[10:37:06.693] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "swem-582697-8557159.jar" [locator: {mods folder locator at /home/otectus/Projects/MCAMobCompatibility/.port-work/production-server/mods}, reader: mod manifest] 
+[10:37:06.909] [main/INFO] [loading.moddiscovery.locators.JarInJarDependencyLocator/]: Found 2 dependencies adding them to mods collection 
+[10:37:06.909] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found gamelibrary file "mixinextras-neoforge-0.5.4.jar" [parent: mca-neoforge-7.7.36-beta.3+1.21.1.jar, locator: jarinjar, reader: mod manifest] 
+[10:37:06.909] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found library file "net.neoforged.neoforge-coremods-21.1.249.jar" [parent: neoforge-21.1.249-universal.jar, locator: jarinjar, reader: mod manifest] 
+[10:37:06.911] [main/INFO] [loading.moddiscovery.ModDiscoverer/]: 
+     Mod List:
+		Name Version (Mod Id)
+
+		GeckoLib 4 4.7.5.1 (geckolib)
+		Guard Villagers 2.4.12 (guardvillagers)
+		MCA Mob Compatibility isolated runtime validation 1 (mcamobcompat_probe)
+		MCA: Conversations 1.6.3+1.21.1 (mcaconversations)
+		MCA: Crime 0.7.2 (mcacrime)
+		MCA: Mob Compatibility 0.3.0+1.21.1 (mcamobcompat)
+		MCA: Quests 1.6.4 (mcaquests)
+		MCA: Reputation 0.5.0 (mcareputation)
+		Minecraft 1.21.1 (minecraft)
+		Minecraft Comes Alive 7.7.36-beta.3+1.21.1 (mca)
+		NeoForge 21.1.249 (neoforge)
+		Player Animator 2.0.4+1.21.1 (playeranimator)
+		Star Worm Equestrian Mod 1.6.12 (swem) 
+[10:37:07.770] [main/INFO] [mixin/]: Compatibility level set to JAVA_21 
+[10:37:07.834] [main/INFO] [LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgeserver' with arguments [nogui] 
+[10:37:07.933] [main/WARN] [mixin/]: Reference map 'guardvillagers.refmap.json' for guardvillagers.mixins.json could not be read. If this is a development environment you can ignore this message 
+[10:37:07.934] [main/WARN] [mixin/]: Reference map 'mca.refmap.json' for mca.mixins.json could not be read. If this is a development environment you can ignore this message 
+[10:37:07.934] [main/WARN] [mixin/]: Reference map 'geckolib.refmap.json' for geckolib.mixins.json could not be read. If this is a development environment you can ignore this message 
+[10:37:09] [main/INFO] [MixinExtras|Service/]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.4).
+[10:37:18] [main/WARN] [mixin/]: Mixin swem.mixins.json:LeashFenceKnotEntityMixin from mod swem has multiple constructors, <init>(Lnet/minecraft/world/entity/EntityType;Lnet/minecraft/world/level/Level;)V was selected
+
+[10:37:22] [modloading-worker-0/INFO] [ne.ne.ne.co.NeoForgeMod/NEOFORGE-MOD]: NeoForge mod loading, version 21.1.249, for MC 1.21.1
+[10:37:22] [modloading-worker-0/INFO] [de.ot.mc.McaQuests/]: MCA: Quests initialising (mod id 'mcaquests')
+[10:37:22] [modloading-worker-0/INFO] [de.ot.mc.McaCrime/]: MCA: Crime initialising (mod id 'mcacrime')
+[10:37:22] [modloading-worker-0/INFO] [de.ot.mc.McaConversations/]: MCA: Conversations initialising (mod id 'mcaconversations')
+[10:37:22] [modloading-worker-0/INFO] [co.al.sw.ModRef/]: No community packs found.
+[10:37:23] [modloading-worker-0/INFO] [de.ot.mc.McaMobCompat/]: MCA: Mob Compatibility initialising (mod id 'mcamobcompat')
+[10:37:25] [modloading-worker-0/INFO] [de.ot.mc.McaReputation/]: [MCA: Reputation] mcareputation ready (API v2)
+[10:37:25] [NeoForge Version Check/INFO] [ne.ne.fm.VersionChecker/]: [guardvillagers] Starting version check at https://api.modrinth.com/updates/H1sntfo8/forge_updates.json
+[10:37:25] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: Detected Guard Villagers 2.4.12; integration enabled.
+[10:37:25] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: Detected SWEM 1.6.12; integration enabled.
+[10:37:25] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: Genetic Animals not installed; integration skipped.
+[10:37:25] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: DragN's Livestock Overhaul not installed; integration skipped.
+[10:37:25] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: MCA binding: root net.conczin.mca, MCA 7.7.36-beta.3+1.21.1, members [personality API: namespaced registry, class: net.conczin.mca.entity.VillagerEntityMCA, VillagerEntityMCA: ok, getVillagerBrain: ok, getCurrentJob: ok, abandonJob: ok, getPersonality: ok, setPersonality: ok, getMemories: ok, getMemoriesForPlayer: ok, getMoveState: ok, getHearts: ok, modHearts: ok].
+[10:37:25] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: MCA: Mob Compatibility ready. MCA villagers recognised as [mca:female_villager, mca:male_villager].
+[10:37:25] [modloading-sync-worker/INFO] [de.ot.mc.McaReputation/]: [MCA: Reputation] MCA integration active: mca 7.7.36-beta.3+1.21.1 (package root net.conczin.mca)
+[10:37:25] [modloading-sync-worker/INFO] [de.ot.mc.McaCrime/]: [MCA: Crime] Bound to Minecraft Comes Alive at 'net.conczin.mca.' (28 members).
+[10:37:25] [modloading-sync-worker/WARN] [de.ot.mc.McaCrime/]: MCA: Crime config has 1 problem(s) — run /crime validate:
+[10:37:25] [modloading-sync-worker/WARN] [de.ot.mc.McaCrime/]:   - guardThiefResponseRadius (24.0) is larger than guardAggroRadius (16.0), so a guard notices muggings it is immediately told to stop chasing.
+[10:37:25] [modloading-sync-worker/ERROR] [de.ot.mc.McaCrime/]: MCA: Crime — MCA: Reputation reports API version 2 but this build needs v1. The integration is disabled and MCA: Crime will use its own store. Update whichever of the two mods is older.
+[10:37:25] [modloading-sync-worker/INFO] [de.ot.mc.McaCrime/]: MCA: Crime - MCA: Quests detected; open bounties will be offered as contracts. The principal reward is still paid by MCA: Crime, once.
+[10:37:25] [modloading-sync-worker/ERROR] [de.ot.mc.McaQuests/]: [MCA: Quests] MCA: Reputation reports API v2 but this build was written against v1.
+[10:37:25] [modloading-sync-worker/ERROR] [de.ot.mc.McaQuests/]: [MCA: Quests] MCA: Reputation is present but reported an incompatible API version (this build needs v1); the integration is disabled and Quests will use its own store.
+[10:37:25] [modloading-sync-worker/INFO] [de.ot.mc.McaQuests/]: [MCA: Quests] Bound to Minecraft Comes Alive at 'net.conczin.mca.' (68 members).
+[10:37:25] [modloading-sync-worker/INFO] [de.ot.mc.McaQuests/]: [MCA: Quests] Optional MCA members absent in this version (expected on newer builds; a fallback is used): [server.world.data.Village#hasResident/1]
+[10:37:25] [modloading-sync-worker/INFO] [de.ot.mc.McaConversations/]: [MCA: Conversations] Bound to Minecraft Comes Alive at 'net.conczin.mca.' (88 members).
+[10:37:25] [modloading-sync-worker/INFO] [de.ot.mc.McaConversations/]: [MCA: Conversations] Optional MCA members absent in this version (expected on newer builds; a fallback is used): [entity.ai.Traits$Trait#id/0]
+[10:37:25] [modloading-sync-worker/INFO] [de.ot.mc.McaConversations/]: Registered dialogue conditions conversations_enabled/conversations_disabled/conversations_gossip/conversations_weather/conversations_season/conversations_holiday/conversations_personality/conversations_disposition/conversations_check/conversations_progress/conversations_quest_* and actions conversations_record/conversations_say/conversations_gossip_say/conversations_disposition_apply/conversations_session/conversations_affection_apply/conversations_progress_apply/conversations_quest_open; reputation conditions conversations_reputation/conversations_reputation_incident and action conversations_reputation_signal
+[10:37:25] [modloading-sync-worker/INFO] [de.ot.mc.McaConversations/]: MCA: Conversations dialogue conditions/actions registered with MCA.
+[10:37:25] [modloading-sync-worker/INFO] [de.ot.mc.McaConversations/]: MCA: Quests integration: registered talk_about objective, unlock_topic reward, voice resolver, and quest-event subscriber.
+[10:37:25] [modloading-sync-worker/INFO] [de.ot.mc.McaConversations/]: MCA: Quests detected; Conversations quest integration registered.
+[10:37:25] [modloading-sync-worker/INFO] [de.ot.mc.McaConversations/]: [MCA: Conversations] MCA: Reputation detected; villagers now take public standing into account and can tell stories about your deeds.
+[10:37:25] [modloading-sync-worker/INFO] [de.ot.mc.McaConversations/]: Serene Seasons not present; Conversations uses calendar seasons.
+[10:37:26] [NeoForge Version Check/INFO] [ne.ne.fm.VersionChecker/]: [guardvillagers] Found status: BETA Current: 2.4.12 Target: null
+[10:37:26] [main/INFO] [mojang/YggdrasilAuthenticationService]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[10:37:26] [main/WARN] [minecraft/VanillaPackResourcesBuilder]: Assets URL 'union:/home/otectus/Projects/MCAMobCompatibility/.port-work/production-server/libraries/net/minecraft/server/1.21.1-20240808.144430/server-1.21.1-20240808.144430-srg.jar%23128!/assets/.mcassetsroot' uses unexpected schema
+[10:37:26] [main/WARN] [minecraft/VanillaPackResourcesBuilder]: Assets URL 'union:/home/otectus/Projects/MCAMobCompatibility/.port-work/production-server/libraries/net/minecraft/server/1.21.1-20240808.144430/server-1.21.1-20240808.144430-srg.jar%23128!/data/.mcassetsroot' uses unexpected schema
+[10:37:28] [main/INFO] [minecraft/RecipeManager]: Loaded 2483 recipes
+[10:37:29] [main/INFO] [minecraft/AdvancementTree]: Loaded 2477 advancements
+[10:37:29] [main/INFO] [de.ot.mc.McaReputation/]: [MCA: Reputation] loaded 27 incident type(s), 2 tier ladder(s), and 9 title(s)
+[10:37:29] [main/INFO] [de.ot.mc.McaCrime/]: Loaded 37 dialogue event(s) with 0 error(s).
+[10:37:29] [main/INFO] [de.ot.mc.McaQuests/]: Loaded 4 dialogue pool(s) with 0 note(s).
+[10:37:29] [main/INFO] [de.ot.mc.McaQuests/]: Loaded 25 MCA situation(s) with 0 error(s), 0 warning(s).
+[10:37:30] [main/WARN] [de.ot.mc.McaQuests/]: [MCA: Quests] Quest 'mcaquests:courting_3_meet_the_family': objective[0] targets 'any' relative. That is allowed, but the candidate order is spouse, then parents, then children, then siblings, so it will usually bind the spouse; name the relation you mean if it matters.
+[10:37:30] [main/WARN] [de.ot.mc.McaQuests/]: [MCA: Quests] Quest 'mcaquests:relations_widow_memorial': objective[0] targets 'any' relative. That is allowed, but the candidate order is spouse, then parents, then children, then siblings, so it will usually bind the spouse; name the relation you mean if it matters.
+[10:37:30] [main/WARN] [de.ot.mc.McaQuests/]: [MCA: Quests] Quest 'mcaquests:townstead_names_in_the_family_book': objective[0] targets 'any' relative. That is allowed, but the candidate order is spouse, then parents, then children, then siblings, so it will usually bind the spouse; name the relation you mean if it matters.
+[10:37:30] [main/WARN] [de.ot.mc.McaQuests/]: [MCA: Quests] Quest 'mcaquests:relations_family_reunion_feast': objective[0] targets 'any' relative. That is allowed, but the candidate order is spouse, then parents, then children, then siblings, so it will usually bind the spouse; name the relation you mean if it matters.
+[10:37:30] [main/WARN] [de.ot.mc.McaQuests/]: [MCA: Quests] Quest 'mcaquests:relations_cure_infected_kin': objective[0] targets 'any' relative. That is allowed, but the candidate order is spouse, then parents, then children, then siblings, so it will usually bind the spouse; name the relation you mean if it matters.
+[10:37:30] [main/WARN] [de.ot.mc.McaQuests/]: [MCA: Quests] Quest 'mcaquests:farmer_family_4_feast': objective[0] targets 'any' relative. That is allowed, but the candidate order is spouse, then parents, then children, then siblings, so it will usually bind the spouse; name the relation you mean if it matters.
+[10:37:30] [main/INFO] [de.ot.mc.McaQuests/]: Loaded 263 MCA quest(s) with 0 error(s), 6 warning(s).
+[10:37:30] [main/INFO] [de.ot.mc.McaQuests/]: Loaded 9 title definition(s) with 0 note(s).
+[10:37:30] [main/INFO] [de.ot.mc.McaQuests/]: Loaded 1 reputation tier ladder(s) with 0 note(s).
+[10:37:30] [main/INFO] [de.ot.mc.McaCrime/]: Loaded 14 crime type(s) with 0 error(s).
+[10:37:30] [main/INFO] [de.ot.mc.McaQuests/]: Loaded 21 MCA project(s) with 0 validation note(s).
+[10:37:30] [main/INFO] [de.ot.mc.McaCrime/]: Loaded 12 fence price(s) with 0 error(s).
+[10:37:30] [main/INFO] [de.ot.mc.McaConversations/]: Loaded 2317 chat intents from 27 file(s).
+[10:37:30] [main/INFO] [de.ot.mc.McaConversations/]: Loaded 39 conversation topics from 1 catalog file(s).
+[10:37:30] [main/INFO] [de.ot.mc.McaConversations/]: Loaded 3563 conversation beat(s) and 3267 reply contract(s) from 111 file(s).
+[10:37:30] [main/INFO] [de.ot.mc.McaConversations/]: Loaded 37 profession profile(s) from 7 file(s).
+[10:37:30] [main/INFO] [de.ot.mc.McaConversations/]: Loaded 17 interiority profiles from 1 file(s).
+[10:37:30] [main/INFO] [de.ot.mc.McaConversations/]: Loaded 63 identity token(s) from 1 file(s).
+[10:37:30] [main/INFO] [de.ot.mc.McaConversations/]: Loaded 373 conversation scene(s) from 1 file(s).
+[10:37:31] [main/INFO] [de.ot.mc.McaConversations/]: Loaded 112 episode, 0 thread and 0 commitment template(s).
+[10:37:31] [main/INFO] [de.ot.mc.McaConversations/]: Loaded 112 episode, 112 thread and 0 commitment template(s).
+[10:37:31] [main/INFO] [de.ot.mc.McaConversations/]: Loaded 112 episode, 112 thread and 35 commitment template(s).
+[10:37:31] [main/INFO] [de.ot.mc.McaConversations/]: Conversation content generation 2 published.
+[10:37:32] [Server thread/INFO] [minecraft/DedicatedServer]: Starting minecraft server version 1.21.1
+[10:37:32] [Server thread/INFO] [minecraft/DedicatedServer]: Loading properties
+[10:37:32] [Server thread/INFO] [minecraft/DedicatedServer]: Default game type: SURVIVAL
+[10:37:32] [Server thread/INFO] [minecraft/MinecraftServer]: Generating keypair
+> 
+  
+[10:37:32] [Server thread/INFO] [minecraft/DedicatedServer]: Starting Minecraft server on 127.0.0.1:25576
+> 
+  
+[10:37:32] [Server thread/INFO] [minecraft/ServerConnectionListener]: Using epoll channel type
+> 
+  
+[10:37:32] [Server thread/WARN] [minecraft/DedicatedServer]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+> 
+  
+[10:37:32] [Server thread/WARN] [minecraft/DedicatedServer]: The server will make no attempt to authenticate usernames. Beware.
+> 
+  
+[10:37:32] [Server thread/WARN] [minecraft/DedicatedServer]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+> 
+  
+[10:37:32] [Server thread/WARN] [minecraft/DedicatedServer]: To change this, set "online-mode" to "true" in the server.properties file.
+> 
+  
+[10:37:32] [Server thread/INFO] [HorseDataManager/]: Loading horse data...
+> 
+  
+[10:37:32] [Server thread/INFO] [HorseDataManager/]: Loaded 0 horse data.
+> 
+  
+[10:37:32] [Server thread/INFO] [minecraft/DedicatedServer]: Preparing level "world"
+> 
+  
+[10:37:32] [Server thread/INFO] [HorseDataManager/]: Loading horse data...
+> 
+  
+[10:37:32] [Server thread/INFO] [HorseDataManager/]: Loaded 0 horse data.
+> 
+  
+[10:37:32] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing start region for dimension minecraft:overworld
+> 
+  
+[10:37:32] [Worker-Main-20/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 0%
+> 
+  
+[10:37:33] [Worker-Main-23/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 51%
+> 
+  
+[10:37:33] [Server thread/INFO] [minecraft/LoggerChunkProgressListener]: Time elapsed: 865 ms
+> 
+  
+[10:37:33] [Server thread/INFO] [minecraft/DedicatedServer]: Done (1.104s)! For help, type "help"
+> 
+  
+[10:37:34] [Server thread/INFO] [ne.ne.ne.se.pe.PermissionAPI/]: Successfully initialized permission handler neoforge:default_handler
+> 
+  
+[10:37:34] [Server thread/INFO] [de.ot.mc.McaConversations/]: Chat mode is ON: players are opted IN by default; villager replies are public (nearby players see them); radius-local player chat is disabled (vanilla chat untouched). Knobs: enableChatMode, chatModeDefaultOn, chatModePublicReplies, chatModeLocalChat.
+> 
+  
+[10:37:39] [Server thread/INFO] [minecraft/ServerConfigurationPacketListenerImpl]: com.mojang.authlib.GameProfile@5fca2887[id=6d9c63f9-bd72-34b1-aecf-ae2205f640c7,name=PortMissing,properties={}] lost connection: Incompatible client! Please use NeoForge 21.1.249
+> 
+  
+[10:37:39] [Server thread/WARN] [minecraft/Connection]: handleDisconnection() called twice
+> 
+  
+[10:39:50] [Server thread/INFO] [minecraft/PlayerList]: PortTwo[/127.0.0.1:55520] logged in with entity id 16 at (8.5, 100.0, 3.0)
+> 
+  
+[10:39:50] [Server thread/INFO] [minecraft/MinecraftServer]: PortTwo joined the game
+> 
+  
+[10:39:50] [Server thread/INFO] [minecraft/PlayerList]: PortOne[/127.0.0.1:55532] logged in with entity id 17 at (0.5, 100.0, 3.0)
+> 
+  
+[10:39:50] [Server thread/INFO] [minecraft/MinecraftServer]: PortOne joined the game
+> 
+  
+[10:39:51] [Server thread/INFO] [de.ot.mc.McaMobCompat/]: RUNTIME_PROBE RESTART_PRESERVED player=PortTwo guard=0b09e1f5-b845-402b-9585-a4d9227c0d59 proxy=58910799-9ca2-4240-981c-080d5775c55b hearts=21
+> 
+  
+[10:39:51] [Server thread/INFO] [de.ot.mc.McaMobCompat/]: RUNTIME_PROBE MOVEMENT_VERIFIED player=PortTwo
+> 
+  
+[10:39:51] [Server thread/INFO] [de.ot.mc.McaMobCompat/]: RUNTIME_PROBE PAIR player=PortTwo guard=0b09e1f5-b845-402b-9585-a4d9227c0d59 proxy=58910799-9ca2-4240-981c-080d5775c55b hearts=28
+> 
+  
+[10:39:51] [Server thread/INFO] [de.ot.mc.McaMobCompat/]: RUNTIME_PROBE RESTART_PRESERVED player=PortOne guard=ede11b0b-d679-46cf-877b-114321d9dadb proxy=141c6bd0-d797-4099-b79f-3bd05cafcf98 hearts=21
+> 
+  
+[10:39:51] [Server thread/INFO] [de.ot.mc.McaMobCompat/]: RUNTIME_PROBE MOVEMENT_VERIFIED player=PortOne
+> 
+  
+[10:39:51] [Server thread/INFO] [de.ot.mc.McaMobCompat/]: RUNTIME_PROBE PAIR player=PortOne guard=ede11b0b-d679-46cf-877b-114321d9dadb proxy=141c6bd0-d797-4099-b79f-3bd05cafcf98 hearts=28
+> 
+  
+[10:39:52] [Server thread/INFO] [de.ot.mc.McaMobCompat/]: RUNTIME_PROBE CLIENT_READY PortTwo
+> 
+  
+[10:39:52] [Server thread/INFO] [de.ot.mc.McaMobCompat/]: RUNTIME_PROBE CLIENT_READY PortOne
+> 
+  
+[10:39:56] [Server thread/INFO] [de.ot.mc.McaMobCompat/]: RUNTIME_PROBE PROXY_SPECIFIC player=PortTwo canceled=false
+> 
+  
+[10:39:56] [Server thread/INFO] [de.ot.mc.McaMobCompat/]: RUNTIME_PROBE PROXY_GENERIC player=PortTwo canceled=false
+> 
+  
+[10:39:57] [Server thread/INFO] [de.ot.mc.McaMobCompat/]: RUNTIME_PROBE PROXY_SPECIFIC player=PortOne canceled=false
+> 
+  
+[10:39:57] [Server thread/INFO] [de.ot.mc.McaMobCompat/]: RUNTIME_PROBE PROXY_GENERIC player=PortOne canceled=false
+> 
+  
+[10:40:03] [Server thread/INFO] [de.ot.mc.McaMobCompat/]: RUNTIME_PROBE PROXY_SPECIFIC player=PortTwo canceled=false
+> 
+  
+[10:40:03] [Server thread/INFO] [de.ot.mc.McaMobCompat/]: RUNTIME_PROBE PROXY_GENERIC player=PortTwo canceled=false
+> 
+  
+[10:40:04] [Server thread/INFO] [de.ot.mc.McaMobCompat/]: RUNTIME_PROBE PROXY_SPECIFIC player=PortOne canceled=false
+> 
+  
+[10:40:04] [Server thread/INFO] [de.ot.mc.McaMobCompat/]: RUNTIME_PROBE PROXY_GENERIC player=PortOne canceled=false
+> 
+  
+[10:40:21] [Server thread/INFO] [minecraft/ServerGamePacketListenerImpl]: PortTwo lost connection: Disconnected
+> 
+  
+[10:40:21] [Server thread/INFO] [minecraft/MinecraftServer]: PortTwo left the game
+> 
+  
+[10:40:22] [Server thread/INFO] [minecraft/ServerGamePacketListenerImpl]: PortOne lost connection: Disconnected
+> 
+  
+[10:40:22] [Server thread/INFO] [minecraft/MinecraftServer]: PortOne left the game
+> mcamobcompat guards status
+> mcamobcompat guards proxies
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]: Guard bridge
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]:   active
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]:   MCA interaction: on (plain click opens MCA's screen through a hidden proxy)
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]:   2 identity(ies) stored, 0 deceased, 0 conflicting (quarantined).
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]:   2 proxy(ies) loaded, 0 orphaned, 0 guard(s) without one.
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]: MCA proxies
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]:   Norwood (141c6bd0-d797-4099-b79f-3bd05cafcf98) in minecraft:overworld -> ede11b0b-d679-46cf-877b-114321d9dadb
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]:   Fenwick (58910799-9ca2-4240-981c-080d5775c55b) in minecraft:overworld -> 0b09e1f5-b845-402b-9585-a4d9227c0d59
+> save-all flush
+> stop
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]: Saving the game (this may take a moment!)
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]: ThreadedAnvilChunkStorage (world): All chunks are saved
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]: ThreadedAnvilChunkStorage: All dimensions are saved
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]: Saved the game
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]: Stopping the server
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]: Stopping server
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]: Saving players
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]: Saving worlds
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_nether
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_end
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]: ThreadedAnvilChunkStorage (world): All chunks are saved
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+> 
+  
+[10:42:13] [Server thread/INFO] [minecraft/MinecraftServer]: ThreadedAnvilChunkStorage: All dimensions are saved
+> 

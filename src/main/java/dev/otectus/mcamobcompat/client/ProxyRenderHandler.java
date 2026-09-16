@@ -6,11 +6,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RenderLivingEvent;
-import net.minecraftforge.client.event.ScreenEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.RenderLivingEvent;
+import net.neoforged.neoforge.client.event.ScreenEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 /**
  * Decides what is drawn when something asks to draw a hidden proxy villager: nothing in the world,
@@ -25,38 +25,33 @@ import net.minecraftforge.fml.common.Mod;
  * <p>Screens are the exception. MCAConversations' dialogue frame and MCAQuests' quest menu draw the
  * villager they are talking to through vanilla's {@code InventoryScreen.renderEntityInInventory}
  * helpers, and that villager is the proxy. Cancelling there leaves the box empty, so inside a
- * screen the guard is drawn in the proxy's place instead, wearing the pose the helper just put on
- * the proxy. World rendering and screen rendering never overlap within a frame, which is what makes
- * the {@link ScreenEvent.Render} flag a reliable way to tell the two apart.
- *
- * <p>The client cannot see the persistent data that makes a proxy a proxy, so the test is
- * {@link GuardProxy#looksLikeProxy}, a heuristic over synced entity flags, and the guard is found by
- * position with {@link GuardProxy#nearbyGuardOf}. Both are kept free of client-only types precisely
- * so this class can be the only one in the jar that needs them.
- *
- * <p>The single client-side class in this mod, and the only {@code Dist.CLIENT} subscriber.
+ * screen the guard is drawn in the proxy's place. A scoped stack inspection recognizes the
+ * screen helper without leaving global state behind after a canceled or exceptional render.
+ * Explicit server UUID pairs identify the proxy and its guard, including clustered guards.
+ * This class is loaded only on physical clients.
  */
-@Mod.EventBusSubscriber(modid = McaMobCompat.MOD_ID, value = Dist.CLIENT,
-        bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = McaMobCompat.MOD_ID, value = Dist.CLIENT)
 public final class ProxyRenderHandler {
 
-    /** True while a screen is rendering; set and cleared on the render thread only. */
-    private static boolean renderingScreen;
-
-    /** Re-entrancy guard: drawing the guard fires this event again, for the guard. */
     private static boolean substituting;
-
-    private ProxyRenderHandler() {
-    }
-
-    @SubscribeEvent
-    public static void onScreenRenderPre(ScreenEvent.Render.Pre event) {
-        renderingScreen = true;
-    }
+    private static final StackWalker RENDER_STACK = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
+    private ProxyRenderHandler() {}
 
     @SubscribeEvent
-    public static void onScreenRenderPost(ScreenEvent.Render.Post event) {
-        renderingScreen = false;
+    public static void onLogout(net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent.LoggingOut event) {
+        dev.otectus.mcamobcompat.network.ProxyPairs.clearClient();
+    }
+    @SubscribeEvent
+    public static void onClientEntityTick(net.neoforged.neoforge.event.tick.EntityTickEvent.Post event) {
+        if (event.getEntity().level().isClientSide && event.getEntity() instanceof net.minecraft.world.entity.npc.Villager proxy
+                && GuardProxy.isProxy(proxy)) GuardProxy.hide(proxy);
+    }
+    private static boolean isPortrait() {
+        // Inspect only renders of explicitly paired proxies. No global Pre/Post screen state can
+        // leak through a canceled render or an exception. Covers the vanilla inventory helper
+        // used by MCA and the companion screens, plus their direct render calls.
+        return RENDER_STACK.walk(frames -> frames.anyMatch(frame ->
+                net.minecraft.client.gui.screens.Screen.class.isAssignableFrom(frame.getDeclaringClass())));
     }
 
     @SubscribeEvent
@@ -66,7 +61,7 @@ public final class ProxyRenderHandler {
             return;
         }
         event.setCanceled(true);
-        if (!renderingScreen) {
+        if (!isPortrait()) {
             return;
         }
         Mob guard = GuardProxy.nearbyGuardOf(entity);
@@ -105,6 +100,7 @@ public final class ProxyRenderHandler {
         guard.xRotO = proxy.xRotO;
 
         substituting = true;
+        event.getPoseStack().pushPose();
         try {
             EntityRenderer<? super Mob> renderer =
                     Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(guard);
@@ -113,6 +109,7 @@ public final class ProxyRenderHandler {
         } catch (RuntimeException e) {
             McaMobCompat.debug("Could not draw guard {} in place of its proxy: {}", guard.getUUID(), e.toString());
         } finally {
+            event.getPoseStack().popPose();
             substituting = false;
             guard.yBodyRot = yBodyRot;
             guard.yBodyRotO = yBodyRotO;

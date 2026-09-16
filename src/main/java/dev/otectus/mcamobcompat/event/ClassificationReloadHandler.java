@@ -2,9 +2,9 @@ package dev.otectus.mcamobcompat.event;
 
 import dev.otectus.mcamobcompat.McaMobCompat;
 import dev.otectus.mcamobcompat.classification.ClassificationCache;
-import net.minecraftforge.event.TagsUpdatedEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.TagsUpdatedEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 /**
  * Drops the classification cache whenever the tags behind it change.
@@ -14,7 +14,7 @@ import net.minecraftforge.fml.common.Mod;
  * {@code /reload}. It also means the empty answers computed before any tags existed are thrown away
  * rather than becoming permanent.
  */
-@Mod.EventBusSubscriber(modid = McaMobCompat.MOD_ID)
+@EventBusSubscriber(modid = McaMobCompat.MOD_ID)
 public final class ClassificationReloadHandler {
 
     private ClassificationReloadHandler() {

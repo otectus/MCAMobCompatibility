@@ -24,6 +24,8 @@ import java.util.Set;
  */
 public final class TagClassifier {
 
+    private static final Set<Class<?>> WARNED_PROVIDERS = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     private TagClassifier() {
     }
 
@@ -43,7 +45,7 @@ public final class TagClassifier {
 
     /** Roles for a live entity: its type's tags, plus anything the providers add. */
     public static Set<MobRole> rolesFor(Entity entity) {
-        if (entity == null) {
+        if (entity == null || ModIntegrations.isSuppressed(entity.getType())) {
             return Set.of();
         }
         Set<MobRole> fromTags = rolesFor(entity.getType());
@@ -58,7 +60,7 @@ public final class TagClassifier {
                 extra = provider.rolesFor(entity);
             } catch (Throwable t) {
                 // A misbehaving third-party provider degrades its own contribution and nothing else.
-                McaMobCompat.LOGGER.warn("Classification provider {} threw; skipping it for this entity",
+                if (WARNED_PROVIDERS.add(provider.getClass())) McaMobCompat.LOGGER.warn("Classification provider {} threw; skipping it for this entity",
                         provider.getClass().getName(), t);
                 continue;
             }

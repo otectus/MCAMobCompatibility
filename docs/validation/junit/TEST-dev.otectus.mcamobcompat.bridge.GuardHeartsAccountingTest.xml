@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.otectus.mcamobcompat.bridge.GuardHeartsAccountingTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-09-14T14:31:46" hostname="OsPC" time="0.033">
+  <properties/>
+  <testcase name="queuedDeltasCanCrossTheEntireBalanceRange()" classname="dev.otectus.mcamobcompat.bridge.GuardHeartsAccountingTest" time="0.017"/>
+  <testcase name="offlineChangesAreCountedOnceAcrossRestart()" classname="dev.otectus.mcamobcompat.bridge.GuardHeartsAccountingTest" time="0.001"/>
+  <testcase name="saturatedArithmeticDoesNotWrap()" classname="dev.otectus.mcamobcompat.bridge.GuardHeartsAccountingTest" time="0.0"/>
+  <testcase name="versionTwoDuplicateLedgerIsMigratedAndOriginalIsRetained()" classname="dev.otectus.mcamobcompat.bridge.GuardHeartsAccountingTest" time="0.007"/>
+  <testcase name="futureSchemaAndMalformedRecordsAreNeverSilentlyRewritten()" classname="dev.otectus.mcamobcompat.bridge.GuardHeartsAccountingTest" time="0.002"/>
+  <testcase name="duplicateProxyOwnersRemainQuarantinedAcrossSave()" classname="dev.otectus.mcamobcompat.bridge.GuardHeartsAccountingTest" time="0.002"/>
+  <system-out><![CDATA[[10:31:46] [Test worker/ERROR] [de.ot.mc.McaMobCompat/]: Unsupported guard identity schema 999; preserving it read-only.
+[10:31:46] [Test worker/ERROR] [de.ot.mc.McaMobCompat/]: Conflicting saved guard/proxy UUIDs: preserving [66e0e4d5-e2eb-4fc5-9b27-2634723ea17f, 6e904fbd-1b9a-4968-b63a-c1fc4ea4bac6] identities without relinking or recreating them.
+[10:31:46] [Test worker/ERROR] [de.ot.mc.McaMobCompat/]: Conflicting saved guard/proxy UUIDs: preserving [66e0e4d5-e2eb-4fc5-9b27-2634723ea17f, 6e904fbd-1b9a-4968-b63a-c1fc4ea4bac6] identities without relinking or recreating them.
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

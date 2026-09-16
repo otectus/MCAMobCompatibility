@@ -34,7 +34,7 @@ public final class GuardVillagersModule extends IntegrationModule {
      * blocker to match, for free.
      */
     public static final TagKey<Item> CONVERTIBLE_GUARD_ITEMS = TagKey.create(
-            Registries.ITEM, new ResourceLocation(ModIds.GUARD_VILLAGERS, "convertible_guard_items"));
+            Registries.ITEM, ResourceLocation.fromNamespaceAndPath(ModIds.GUARD_VILLAGERS, "convertible_guard_items"));
 
     public GuardVillagersModule() {
         super(ModIds.GUARD_VILLAGERS, ModIds.GUARD_VILLAGERS, "Guard Villagers");

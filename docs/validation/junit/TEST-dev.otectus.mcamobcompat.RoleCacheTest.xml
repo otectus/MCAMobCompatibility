@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.otectus.mcamobcompat.RoleCacheTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-14T14:31:46" hostname="OsPC" time="0.005">
+  <properties/>
+  <testcase name="keysAreIndependent()" classname="dev.otectus.mcamobcompat.RoleCacheTest" time="0.002"/>
+  <testcase name="invalidateForcesRecomputation()" classname="dev.otectus.mcamobcompat.RoleCacheTest" time="0.001"/>
+  <testcase name="emptyResultsAreCachedToo()" classname="dev.otectus.mcamobcompat.RoleCacheTest" time="0.001"/>
+  <testcase name="computesOncePerKey()" classname="dev.otectus.mcamobcompat.RoleCacheTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

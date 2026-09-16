@@ -9,7 +9,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
-import net.minecraftforge.common.MinecraftForge;
+import net.neoforged.neoforge.common.NeoForge;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -99,60 +99,54 @@ final class GuardIdentityView implements GuardIdentity {
 
     @Override
     public int hearts(UUID player) {
+        if (player == null) return 0;
         Mob proxy = loadedProxy();
         if (proxy != null) {
             OptionalInt live = McaBinding.hearts(proxy, player);
             if (live.isPresent()) {
-                return live.getAsInt();
+                int legacy = entry.heartsMigrated(player) ? 0 : entry.hearts(player);
+                if (entry.heartsMigrated(player)) data.snapshotHearts(entry, player, live.getAsInt());
+                return GuardIdentityData.bounded((long) live.getAsInt() + legacy + entry.pendingDelta(player));
             }
         }
-        // Pending hearts are part of the answer: they were earned, they are simply waiting for a
-        // moment when both the proxy and the player are loaded.
-        return entry.hearts(player) + entry.pendingHearts(player);
+        return GuardIdentityData.bounded((long) entry.hearts(player) + entry.pendingDelta(player));
     }
 
-    /**
-     * Moves a player's hearts, on MCA's side when that is reachable and in our store otherwise.
-     *
-     * <p>MCA's per-player memories need a live {@code Player}, so an offline player's change is
-     * banked in {@code pendingHearts} and folded in the next time they and the proxy are both
-     * there. The same pass migrates whatever the store held for that player from before the proxy
-     * existed, exactly once -- that is what {@code heartsMigrated} records -- so hearts a player
-     * earned under the old emulation are not lost and not counted twice.
-     */
     @Override
     public void modHearts(UUID player, int delta) {
-        if (player == null || delta == 0) {
-            return;
-        }
+        if (player == null || delta == 0 || data.isReadOnly()) return;
+        if (server != null && !server.isSameThread()) throw new IllegalStateException("Hearts must change on the server thread");
         int before = hearts(player);
+        int after = GuardIdentityData.bounded((long) before + delta);
+        long actual = (long) after - before;
+        data.addPendingHearts(entry, player, GuardIdentityData.bounded(actual));
+        flush(player);
+        Mob guard = GuardIdentityStore.resolveLoaded(server, entry.uuid());
+        NeoForge.EVENT_BUS.post(new GuardHeartsChangedEvent(this, guard, player, before, hearts(player)));
+    }
 
+    /** Runs on the pair heartbeat, so reconnect does not require another earned delta. */
+    void synchronize() {
+        Mob proxy = loadedProxy();
+        if (proxy == null || data.isReadOnly()) return;
+        java.util.Set<UUID> players = new java.util.HashSet<>(entry.knownPlayers());
+        players.addAll(entry.pendingHeartPlayers());
+        players.addAll(McaBinding.heartSnapshot(proxy).keySet());
+        for (UUID player : players) flush(player);
+        if (proxy.hasCustomName()) data.rename(entry, proxy.getCustomName().getString());
+        McaBinding.personality(proxy).ifPresent(value -> data.snapshotPersonality(entry, value));
+    }
+
+    private void flush(UUID player) {
         Mob proxy = loadedProxy();
         ServerPlayer target = server == null ? null : server.getPlayerList().getPlayer(player);
-        boolean applied = false;
-        if (proxy != null && target != null) {
-            int migrating = entry.heartsMigrated(player) ? 0 : entry.hearts(player);
-            int pending = entry.pendingHearts(player);
-            applied = McaBinding.modHearts(proxy, target, delta + migrating + pending);
-            if (applied) {
-                data.markHeartsMigrated(entry, player);
-                data.clearPendingHearts(entry, player);
-            }
+        if (proxy == null) return;
+        long outstanding = (long) (entry.heartsMigrated(player) ? 0 : entry.hearts(player)) + entry.pendingDelta(player);
+        if (target != null && McaBinding.modHearts(proxy, target, outstanding)) {
+            data.markHeartsMigrated(entry, player);
+            data.clearPendingHearts(entry, player);
         }
-
-        // The store's own copy is kept current either way: it is what answers for an unloaded
-        // guard, and what a version of this world without MCA's binding would fall back to.
-        data.addHearts(entry, player, delta);
-        if (!applied) {
-            data.addPendingHearts(entry, player, delta);
-        }
-
-        // Nullable on purpose: hearts are keyed on a UUID and can move while the guard is in an
-        // unloaded chunk or a level nobody is in. Resolving the mob is a convenience for listeners,
-        // never a precondition for the change.
-        Mob guard = GuardIdentityStore.resolveLoaded(server, entry.uuid());
-        MinecraftForge.EVENT_BUS.post(
-                new GuardHeartsChangedEvent(this, guard, player, before, hearts(player)));
+        if (entry.heartsMigrated(player)) McaBinding.hearts(proxy, player).ifPresent(value -> data.snapshotHearts(entry, player, value));
     }
 
     @Override

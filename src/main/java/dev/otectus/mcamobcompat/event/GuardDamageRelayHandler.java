@@ -1,122 +1,146 @@
 package dev.otectus.mcamobcompat.event;
 
 import dev.otectus.mcamobcompat.McaMobCompat;
-import dev.otectus.mcamobcompat.bridge.GuardBridge;
-import dev.otectus.mcamobcompat.bridge.GuardProxy;
+import dev.otectus.mcamobcompat.bridge.*;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.npc.Villager;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.*;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 
-/**
- * Makes MCA feel a hit that landed on a guard.
- *
- * <p>The guard takes the damage -- it is the entity with the model, the armour and the health bar --
- * but MCA, MCACrime and MCAReputation all watch for a <em>villager</em> being hurt or killed. So
- * every hit is replayed onto the hidden proxy with the same damage source, which is what makes an
- * assault on a guard an assault on a villager to every addon in the suite, and what lets MCA apply
- * its own memory penalty instead of a second scale invented here.
- *
- * <p>The proxy's own health is meaningless and is topped up either side of the relay, so it cannot
- * die from an accumulation of relayed hits: only the death relay kills it, and only when the guard
- * itself has died.
- *
- * <p>All three handlers hang off one static re-entrancy flag. It is read and written on the server
- * thread only, inside a {@code try/finally} that spans a single {@code hurt} call, so there is no
- * window in which an unrelated entity's damage can be mistaken for a relay.
- */
-@Mod.EventBusSubscriber(modid = McaMobCompat.MOD_ID)
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.UUID;
+
+/** Combat health belongs to the guard; scoped synthetic notifications reach its MCA identity. */
+@EventBusSubscriber(modid = McaMobCompat.MOD_ID)
 public final class GuardDamageRelayHandler {
+    private record Relay(Mob guard, Villager proxy, float amount, boolean lethal) {}
+    private record Hit(Mob guard, Villager proxy, DamageSource source, float amount) {}
+    private static final java.util.List<Hit> SURVIVAL_CHECKS = new java.util.ArrayList<>();
+    private record Death(Mob guard, DamageSource source, LivingDeathEvent event) {}
+    private static final ThreadLocal<Relay> ACTIVE = new ThreadLocal<>();
+    private static final Map<UUID, Death> DEATHS = new LinkedHashMap<>();
+    private GuardDamageRelayHandler() {}
 
-    /** Set for exactly the length of one relayed {@code hurt} call. */
-    private static boolean relaying;
+    public static boolean isRelay(Entity entity) { Relay relay = ACTIVE.get(); return relay != null && relay.proxy == entity; }
 
-    private GuardDamageRelayHandler() {
-    }
-
-    /**
-     * Relays a hit on the guard onto its proxy.
-     *
-     * <p>{@code LOWEST} so the amount relayed is what the guard actually took, after armour,
-     * enchantments and every other mod's mitigation. Every source is relayed, not only players: a
-     * guard burnt or shot is a villager MCA should react to, and the addons key off the proxy's
-     * events rather than off ours.
-     */
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onGuardHurt(LivingHurtEvent event) {
-        if (relaying || event.getEntity().level().isClientSide) {
-            return;
-        }
-        if (!(event.getEntity() instanceof Mob guard) || !GuardBridge.isBridgedGuard(guard)) {
-            return;
-        }
+    public static void onGuardHurt(LivingDamageEvent.Post event) {
+        if (event.getEntity().level().isClientSide || isRelay(event.getEntity()) || event.getNewDamage() <= 0
+                || !(event.getEntity() instanceof Mob guard)) return;
         Villager proxy = GuardProxy.proxyOf(guard);
-        if (proxy == null) {
+        if (proxy == null || !proxy.isAlive()) return;
+        // A lethal hit is handled only after the guard's death/totem outcome is known.
+        if (guard.getHealth() <= 0) {
+            SURVIVAL_CHECKS.add(new Hit(guard, proxy, event.getSource(), event.getNewDamage()));
             return;
         }
-
-        float max = proxy.getMaxHealth();
-        float amount = Math.min(event.getAmount(), max - 1.0F);
-        if (amount <= 0.0F) {
-            return;
-        }
-        relaying = true;
-        try {
-            proxy.setHealth(max);
-            proxy.hurt(event.getSource(), amount);
-        } finally {
-            proxy.setHealth(max);
-            relaying = false;
-        }
+        relay(guard, proxy, event.getSource(), Math.min(event.getNewDamage(), proxy.getMaxHealth() - 1), false);
+        GuardIdentityStore.synchronize(guard);
     }
 
-    /**
-     * Kills the proxy with the guard, through {@code hurt} rather than {@code kill}.
-     *
-     * <p>{@code kill()} hides the killer, and the killer is the entire point: MCACrime and
-     * MCAReputation read the damage source to decide who murdered a villager. The link is dropped
-     * straight afterwards so nothing discards the proxy out from under MCA's death handling -- the
-     * family tree, the grave and the village announcement all still have to run on it.
-     */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onGuardDeath(LivingDeathEvent event) {
-        if (relaying || event.getEntity().level().isClientSide) {
-            return;
-        }
-        if (!(event.getEntity() instanceof Mob guard) || !GuardBridge.isBridgedGuard(guard)) {
-            return;
-        }
-        Villager proxy = GuardProxy.proxyOf(guard);
-        if (proxy == null) {
-            return;
-        }
-
-        relaying = true;
-        try {
-            proxy.hurt(event.getSource(), Float.MAX_VALUE);
-        } finally {
-            relaying = false;
-        }
-        GuardProxy.unlink(guard);
-        McaMobCompat.debug("Relayed the death of bridged guard {} onto proxy {}",
-                guard.getUUID(), proxy.getUUID());
+        if (event.getEntity().level().isClientSide || isRelay(event.getEntity())
+                || !(event.getEntity() instanceof Mob guard) || GuardProxy.isProxy(guard)) return;
+        if (GuardIdentityStore.get(guard.getServer()).find(guard.getUUID()) != null)
+            DEATHS.put(guard.getUUID(), new Death(guard, event.getSource(), event));
     }
 
-    /**
-     * Nothing may damage the proxy except this class.
-     *
-     * <p>It stands in lava, in fire, in the rain and in front of whatever is attacking the guard,
-     * and it has no AI to get out of the way. Without this it would quietly die of a fall the guard
-     * walked off, and take the guard's MCA identity with it.
-     */
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onProxyAttacked(LivingAttackEvent event) {
-        if (!relaying && GuardProxy.isProxy(event.getEntity())) {
-            event.setCanceled(true);
+    @SubscribeEvent
+    public static void afterServerTick(ServerTickEvent.Post event) {
+        for (Death death : java.util.List.copyOf(DEATHS.values())) {
+            Mob guard = death.guard;
+            if (death.event.isCanceled() || guard.isAlive()) { DEATHS.remove(guard.getUUID()); continue; }
+            if (guard.getPose() == Pose.DYING || guard.getRemovalReason() == Entity.RemovalReason.KILLED) finishDeath(death);
         }
+        for (Hit hit : java.util.List.copyOf(SURVIVAL_CHECKS)) {
+            if (hit.guard.isAlive() && hit.proxy.isAlive()) {
+                relay(hit.guard, hit.proxy, hit.source, Math.min(hit.amount, hit.proxy.getMaxHealth() - 1), false);
+                GuardIdentityStore.synchronize(hit.guard);
+            }
+        }
+        SURVIVAL_CHECKS.clear();
+    }
+
+    public static void confirmRemoval(Mob guard) {
+        Death death = DEATHS.get(guard.getUUID());
+        if (death != null) finishDeath(death);
+    }
+
+    private static void finishDeath(Death death) {
+        Mob guard = death.guard;
+        DEATHS.remove(guard.getUUID());
+        Villager proxy = GuardProxy.proxyOf(guard);
+        GuardIdentityStore.get(guard.getServer()).markDeceased(guard.getUUID(), guard.level().getGameTime());
+        if (proxy == null) return;
+        if (proxy.isAlive()) relay(guard, proxy, death.source, proxy.getMaxHealth() + 1, true);
+        if (proxy.getPose() == Pose.DYING || proxy.isRemoved()) {
+            GuardIdentityStore.synchronize(guard);
+            GuardProxy.unlink(guard);
+        } else {
+            // Never retry a canceled synthetic death: MCA's override can already have run its
+            // relationship callbacks. Preserve the UUID link for diagnosis/recovery.
+            McaMobCompat.LOGGER.warn("Guard {} died but MCA proxy {} rejected its death; preserving the identity link.",
+                    guard.getUUID(), proxy.getUUID());
+        }
+        GuardProxySync.forget(guard);
+    }
+
+    private static void relay(Mob guard, Villager proxy, DamageSource source, float amount, boolean lethal) {
+        if (amount <= 0) return;
+        Relay previous = ACTIVE.get();
+        boolean invulnerable = proxy.isInvulnerable();
+        ACTIVE.set(new Relay(guard, proxy, amount, lethal));
+        try {
+            proxy.setInvulnerable(false);
+            proxy.invulnerableTime = 0;
+            proxy.setHealth(proxy.getMaxHealth());
+            proxy.hurt(source, amount);
+        } finally {
+            // A callback may have legitimately killed/removed the proxy. Never revive it here.
+            if (!lethal && proxy.isAlive() && proxy.getPose() != Pose.DYING) proxy.setHealth(proxy.getMaxHealth());
+            proxy.setInvulnerable(invulnerable);
+            if (previous == null) ACTIVE.remove(); else ACTIVE.set(previous);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onProxyAttacked(LivingIncomingDamageEvent event) {
+        if (GuardProxy.isProxy(event.getEntity()) && !isRelay(event.getEntity())) event.setCanceled(true);
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void relayFinalDamage(LivingDamageEvent.Pre event) {
+        Relay relay = ACTIVE.get();
+        if (relay == null || relay.proxy != event.getEntity()) return;
+        event.getEntity().setAbsorptionAmount(0);
+        event.setNewDamage(relay.amount);
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void proxyExperience(LivingExperienceDropEvent event) {
+        if (GuardProxy.isProxy(event.getEntity())) event.setCanceled(true);
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void proxyLoot(LivingDropsEvent event) {
+        // The visible guard supplies combat loot. MCA's separately stored gifts are dropped
+        // once by MCA after vanilla die() returns and are not part of this loot-table event.
+        if (GuardProxy.isProxy(event.getEntity())) event.setCanceled(true);
+    }
+
+    @SubscribeEvent
+    public static void stop(ServerStoppedEvent event) {
+        DEATHS.clear(); SURVIVAL_CHECKS.clear(); ACTIVE.remove(); GuardProxySync.clear();
+        dev.otectus.mcamobcompat.classification.ClassificationCache.invalidate();
+        ChoreSafetyHandler.invalidateConfig();
     }
 }

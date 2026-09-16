@@ -27,8 +27,8 @@ class McaEntityIdTest {
     @Test
     void mcaVillagerIdsAreExactlyTheTwoHumanVillagers() {
         assertEquals(
-                Set.of(new ResourceLocation("mca", "male_villager"),
-                        new ResourceLocation("mca", "female_villager")),
+                Set.of(ResourceLocation.fromNamespaceAndPath("mca", "male_villager"),
+                        ResourceLocation.fromNamespaceAndPath("mca", "female_villager")),
                 McaEntities.villagerIds(),
                 "The protected MCA villager set changed. These two ids have been stable across every MCA "
                         + "build, through two Java package renames, which is exactly why this mod "
@@ -39,15 +39,15 @@ class McaEntityIdTest {
     void zombieVillagersAreDeliberatelyExcluded() {
         // They are zombies: they do not pass the instanceof-Villager gate that Guard Villagers'
         // conversion uses, and guards ought to be free to attack them.
-        assertFalse(McaEntities.villagerIds().contains(new ResourceLocation("mca", "male_zombie_villager")));
-        assertFalse(McaEntities.villagerIds().contains(new ResourceLocation("mca", "female_zombie_villager")));
+        assertFalse(McaEntities.villagerIds().contains(ResourceLocation.fromNamespaceAndPath("mca", "male_zombie_villager")));
+        assertFalse(McaEntities.villagerIds().contains(ResourceLocation.fromNamespaceAndPath("mca", "female_zombie_villager")));
     }
 
     @Test
     void theExtensionTagIsInOurOwnNamespace() {
         // A pack extends the protected set through this tag; it is additive on top of the constants
         // above and can never remove one of them.
-        assertEquals(new ResourceLocation("mcamobcompat", "mca_villagers"),
+        assertEquals(ResourceLocation.fromNamespaceAndPath("mcamobcompat", "mca_villagers"),
                 McaEntities.ADDITIONAL_VILLAGERS_ID);
     }
 

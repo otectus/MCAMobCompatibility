@@ -1,0 +1,40 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.12/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :createMinecraftArtifacts UP-TO-DATE
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :jarJar NO-SOURCE
+> Task :jar UP-TO-DATE
+> Task :assemble UP-TO-DATE
+
+> Task :checkJarContents
+checkJarContents: mcamobcompat-neoforge-0.3.0+1.21.1.jar is clean (no shaded MCA/optional-mod classes, no foreign package names outside the 1-class allowlist).
+
+> Task :compileGameTestJava UP-TO-DATE
+> Task :compileTestJava
+> Task :processGameTestResources UP-TO-DATE
+> Task :gameTestClasses UP-TO-DATE
+> Task :downloadAssets UP-TO-DATE
+> Task :writeNeoForgeTestClasspath UP-TO-DATE
+> Task :prepareNeoForgeTestFiles UP-TO-DATE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses
+> Task :test
+
+> Task :verifyProductionJar
+Verified production jar: mcamobcompat-neoforge-0.3.0+1.21.1.jar
+
+> Task :check
+> Task :build
+
+[Incubating] Problems report is available at: file:///home/otectus/Projects/MCAMobCompatibility/.port-work/MCAMobCompatibility_1.21.1/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.12/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 33s
+13 actionable tasks: 4 executed, 9 up-to-date

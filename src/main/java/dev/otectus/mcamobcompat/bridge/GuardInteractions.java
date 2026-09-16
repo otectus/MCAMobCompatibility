@@ -16,6 +16,29 @@ import net.minecraft.world.entity.Pose;
  */
 public final class GuardInteractions {
 
+    /** Player.interactOn's 1.21.1 item/creative fallback, after the caller already posted its hook. */
+    public static InteractionResult interactAfterHook(ServerPlayer player, Mob target, InteractionHand hand) {
+        net.minecraft.world.item.ItemStack held = player.getItemInHand(hand);
+        net.minecraft.world.item.ItemStack before = held.copy();
+        InteractionResult result = target.interact(player, hand);
+        if (result.consumesAction()) {
+            if (player.getAbilities().instabuild && held == player.getItemInHand(hand) && held.getCount() < before.getCount()) held.setCount(before.getCount());
+            if (!player.getAbilities().instabuild && held.isEmpty()) net.neoforged.neoforge.event.EventHooks.onPlayerDestroyItem(player, before, hand);
+            return result;
+        }
+        if (held.isEmpty()) return InteractionResult.PASS;
+        net.minecraft.world.item.ItemStack item = player.getAbilities().instabuild ? before : held;
+        result = item.interactLivingEntity(player, target, hand);
+        if (result.consumesAction()) {
+            player.level().gameEvent(net.minecraft.world.level.gameevent.GameEvent.ENTITY_INTERACT, target.position(), net.minecraft.world.level.gameevent.GameEvent.Context.of(player));
+            if (item.isEmpty() && !player.getAbilities().instabuild) {
+                net.neoforged.neoforge.event.EventHooks.onPlayerDestroyItem(player, before, hand);
+                player.setItemInHand(hand, net.minecraft.world.item.ItemStack.EMPTY);
+            }
+        }
+        return result;
+    }
+
     private GuardInteractions() {
     }
 
@@ -40,7 +63,7 @@ public final class GuardInteractions {
         try {
             player.setShiftKeyDown(false);
             player.setPose(Pose.STANDING);
-            return guard.interact(player, hand);
+            return interactAfterHook(player, guard, hand);
         } finally {
             player.setShiftKeyDown(shift);
             player.setPose(pose);

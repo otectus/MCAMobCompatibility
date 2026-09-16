@@ -1,0 +1,92 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.12/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Task :createMinecraftArtifacts
+Loaded 131 artifacts from /home/otectus/Projects/1.21.1 Ports/MCAMobCompatibility_1.21.1/build/tmp/createMinecraftArtifacts/nfrt_artifact_manifest.properties
+*** Started working on downloadJson
+ ✓ Completed downloadJson in 0.03s
+*** Started working on downloadClient
+*** Started working on downloadServer
+*** Started working on downloadClientMappings
+ ✓ Completed downloadClient in 0.03s
+ ✓ Completed downloadServer in 0.03s
+ ✓ Completed downloadClientMappings in 0.03s
+*** Started working on mergeMappings
+ ♻ Used cache of mergeMappings in 0.00s
+*** Started working on stripClient
+ ♻ Used cache of stripClient in 0.00s
+*** Started working on extractServer
+ ♻ Used cache of extractServer in 0.00s
+*** Started working on stripServer
+ ♻ Used cache of stripServer in 0.00s
+*** Started working on merge
+ ♻ Used cache of merge in 0.00s
+*** Started working on rename
+ ♻ Used cache of rename in 0.00s
+*** Started working on decompile
+ ♻ Used cache of decompile in 0.00s
+*** Started working on inject
+ ♻ Used cache of inject in 0.00s
+*** Started working on patch
+ ♻ Used cache of patch in 0.00s
+*** Started working on applyNeoforgePatches
+ ♻ Used cache of applyNeoforgePatches in 0.00s
+*** Started working on transformSources
+ ♻ Used cache of transformSources in 0.00s
+*** Started working on recompile
+ ♻ Used cache of recompile in 0.00s
+*** Started working on sourcesWithNeoForge
+ ♻ Used cache of sourcesWithNeoForge in 0.00s
+*** Started working on compiledWithNeoForge
+ ♻ Used cache of compiledWithNeoForge in 0.00s
+*** Started working on sourcesAndCompiledWithNeoForge
+ ♻ Used cache of sourcesAndCompiledWithNeoForge in 0.00s
+Total runtime: 1.07s
+
+
+> Task :compileJava
+Note: /home/otectus/Projects/1.21.1 Ports/MCAMobCompatibility_1.21.1/src/main/java/dev/otectus/mcamobcompat/McaMobCompatConfig.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :processResources
+> Task :classes
+> Task :jarJar NO-SOURCE
+> Task :jar
+> Task :assemble
+
+> Task :checkJarContents
+checkJarContents: mcamobcompat-neoforge-0.3.0+1.21.1.jar is clean (no shaded MCA/optional-mod classes, no foreign package names outside the 1-class allowlist).
+
+> Task :compileGameTestJava
+> Task :compileTestJava
+> Task :processGameTestResources
+> Task :gameTestClasses
+
+> Task :downloadAssets
+Loaded 131 artifacts from /home/otectus/Projects/1.21.1 Ports/MCAMobCompatibility_1.21.1/build/tmp/downloadAssets/nfrt_artifact_manifest.properties
+Downloading asset index 17
+Using Minecraft asset root: /home/otectus/.gradle/caches/neoformruntime/assets
+  ↓ https://piston-meta.mojang.com/v1/packages/e3bf1a07f3fc063f5c08dea6c3193f365a792b5a/17.json
+
+> Task :writeNeoForgeTestClasspath
+> Task :prepareNeoForgeTestFiles
+> Task :processTestResources NO-SOURCE
+> Task :testClasses
+> Task :test
+
+> Task :verifyProductionJar
+Verified production jar: mcamobcompat-neoforge-0.3.0+1.21.1.jar
+
+> Task :check
+> Task :build
+
+[Incubating] Problems report is available at: file:///home/otectus/Projects/1.21.1%20Ports/MCAMobCompatibility_1.21.1/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.12/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 26s
+13 actionable tasks: 13 executed

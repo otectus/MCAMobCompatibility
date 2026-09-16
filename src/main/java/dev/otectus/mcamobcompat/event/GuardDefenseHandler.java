@@ -13,10 +13,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import java.util.List;
 
@@ -38,8 +39,15 @@ import java.util.List;
  * at runtime would be the smaller change, but writing to another mod's config file is exactly the
  * kind of reaching-in this mod refuses to do.
  */
-@Mod.EventBusSubscriber(modid = McaMobCompat.MOD_ID)
+@EventBusSubscriber(modid = McaMobCompat.MOD_ID)
 public final class GuardDefenseHandler {
+
+    @SubscribeEvent
+    public static void onFriendlyFire(LivingIncomingDamageEvent event) {
+        if (!event.getEntity().level().isClientSide && McaEntities.isMcaVillager(event.getEntity())
+                && ModIntegrations.guardVillagers().preventsFriendlyFire()
+                && MobCompatibilityAPI.isGuard(event.getSource().getEntity())) event.setCanceled(true);
+    }
 
     private GuardDefenseHandler() {
     }
@@ -50,7 +58,7 @@ public final class GuardDefenseHandler {
         if (changer.level().isClientSide) {
             return;
         }
-        LivingEntity newTarget = event.getNewTarget();
+        LivingEntity newTarget = event.getNewAboutToBeSetTarget();
         if (!McaEntities.isMcaVillager(newTarget)) {
             return;
         }
@@ -72,7 +80,8 @@ public final class GuardDefenseHandler {
     }
 
     @SubscribeEvent
-    public static void onHurt(LivingHurtEvent event) {
+    public static void onHurt(LivingDamageEvent.Post event) {
+        if (event.getNewDamage() <= 0) return;
         LivingEntity victim = event.getEntity();
         if (victim.level().isClientSide || !McaEntities.isMcaVillager(victim)) {
             return;

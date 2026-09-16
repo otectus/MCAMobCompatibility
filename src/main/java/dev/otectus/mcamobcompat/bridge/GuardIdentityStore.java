@@ -10,7 +10,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
-import net.minecraftforge.common.MinecraftForge;
+import net.neoforged.neoforge.common.NeoForge;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -33,7 +33,8 @@ public final class GuardIdentityStore {
     /** The world's identity store, created on first use. */
     public static GuardIdentityData get(MinecraftServer server) {
         return server.overworld().getDataStorage().computeIfAbsent(
-                GuardIdentityData::load, GuardIdentityData::new, GuardIdentityData.STORAGE_KEY);
+                new net.minecraft.world.level.saveddata.SavedData.Factory<>(GuardIdentityData::new,
+                        (tag, registries) -> GuardIdentityData.load(tag)), GuardIdentityData.STORAGE_KEY);
     }
 
     /**
@@ -74,6 +75,7 @@ public final class GuardIdentityStore {
         }
 
         GuardIdentityData data = get(server);
+        if (data.isReadOnly() || data.isQuarantined(guard.getUUID())) return Optional.empty();
         UUID uuid = guard.getUUID();
         GuardIdentityData.Entry existing = data.find(uuid);
         if (existing != null) {
@@ -102,7 +104,7 @@ public final class GuardIdentityStore {
         GuardIdentity identity = new GuardIdentityView(server, data, entry);
         McaMobCompat.debug("Gave guard {} the identity {} ({}, {})",
                 uuid, name, gender.id(), entry.personality());
-        MinecraftForge.EVENT_BUS.post(new GuardIdentityCreatedEvent(guard, identity));
+        NeoForge.EVENT_BUS.post(new GuardIdentityCreatedEvent(guard, identity));
         return Optional.of(identity);
     }
 
@@ -169,6 +171,14 @@ public final class GuardIdentityStore {
             }
         }
         return null;
+    }
+
+    public static void synchronize(Mob guard) {
+        MinecraftServer server = serverFor(guard);
+        if (server == null) return;
+        GuardIdentityData data = get(server);
+        GuardIdentityData.Entry entry = data.find(guard.getUUID());
+        if (entry != null) new GuardIdentityView(server, data, entry).synchronize();
     }
 
     /** The server this entity belongs to, or null when it is client-side or not in a level yet. */

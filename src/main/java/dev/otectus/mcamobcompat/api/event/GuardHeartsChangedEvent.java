@@ -2,7 +2,7 @@ package dev.otectus.mcamobcompat.api.event;
 
 import dev.otectus.mcamobcompat.api.GuardIdentity;
 import net.minecraft.world.entity.Mob;
-import net.minecraftforge.eventbus.api.Event;
+import net.neoforged.bus.api.Event;
 
 import java.util.UUID;
 

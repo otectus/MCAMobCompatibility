@@ -1,5 +1,6 @@
 package dev.otectus.mcamobcompat.bridge;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import dev.otectus.mcamobcompat.integration.guardvillagers.GuardReflection;
 import dev.otectus.mcamobcompat.mca.McaBinding;
 import net.minecraft.core.BlockPos;
@@ -8,7 +9,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.npc.Villager;
-import net.minecraftforge.registries.ForgeRegistries;
+
 
 import java.util.Map;
 import java.util.Optional;
@@ -37,6 +38,7 @@ public final class GuardProxySync {
 
     /** Speed the guard is given when it is replaying a path MCA laid for the proxy. */
     private static final double RELAY_SPEED = 1.0D;
+    private static final String FOLLOW_TARGET = "mcamobcompat:follow_target";
 
     /**
      * The last player to interact with each guard, by guard UUID.
@@ -46,6 +48,9 @@ public final class GuardProxySync {
      * opened it is the answer. Transient on purpose: losing it on restart costs a follow order
      * nobody is still standing there waiting on.
      */
+    private static final Map<UUID, String> LAST_NAME = new ConcurrentHashMap<>();
+    private static final Map<UUID, String> LAST_MOVE = new ConcurrentHashMap<>();
+
     private static final Map<UUID, UUID> LAST_INTERACTION = new ConcurrentHashMap<>();
 
     private GuardProxySync() {
@@ -62,8 +67,12 @@ public final class GuardProxySync {
     public static void forget(Mob guard) {
         if (guard != null) {
             LAST_INTERACTION.remove(guard.getUUID());
+            LAST_NAME.remove(guard.getUUID());
+            LAST_MOVE.remove(guard.getUUID());
         }
     }
+
+    public static void clear() { LAST_INTERACTION.clear(); LAST_NAME.clear(); LAST_MOVE.clear(); }
 
     /** One tick of the pair. Server side; both entities are assumed alive and linked. */
     public static void tick(ServerLevel level, Mob guard, Villager proxy) {
@@ -71,7 +80,6 @@ public final class GuardProxySync {
         // and dismounting it is also what neutralises that option.
         if (proxy.isPassenger()) {
             proxy.stopRiding();
-            return;
         }
 
         proxy.moveTo(guard.getX(), guard.getY(), guard.getZ(), guard.getYRot(), guard.getXRot());
@@ -83,12 +91,16 @@ public final class GuardProxySync {
         // decide whether a villager was defending itself.
         proxy.setTarget(guard.getTarget());
 
-        relayNavigation(guard, proxy);
+        boolean enabled = dev.otectus.mcamobcompat.integration.ModIntegrations.guardVillagers().opensMcaInteraction()
+                && GuardBridge.isBridgedGuard(guard);
+        if (enabled) relayNavigation(guard, proxy);
 
         if (proxy.tickCount % SLOW_INTERVAL == 0) {
             reassertProfession(guard, proxy);
-            mirrorMoveState(guard, proxy);
+            if (enabled) mirrorMoveState(guard, proxy);
             reconcileNames(guard, proxy);
+            GuardIdentityStore.synchronize(guard);
+            dev.otectus.mcamobcompat.network.ProxyPairs.broadcast(guard, proxy);
         }
     }
 
@@ -101,7 +113,7 @@ public final class GuardProxySync {
      */
     private static void relayNavigation(Mob guard, Villager proxy) {
         PathNavigation navigation = proxy.getNavigation();
-        if (navigation.isDone() || navigation.getPath() == null) {
+        if (guard.getTarget() != null || navigation.isDone() || navigation.getPath() == null) {
             return;
         }
         BlockPos target = navigation.getTargetPos();
@@ -121,7 +133,7 @@ public final class GuardProxySync {
      */
     private static void reassertProfession(Mob guard, Villager proxy) {
         ResourceLocation current =
-                ForgeRegistries.VILLAGER_PROFESSIONS.getKey(proxy.getVillagerData().getProfession());
+                BuiltInRegistries.VILLAGER_PROFESSION.getKey(proxy.getVillagerData().getProfession());
         if (!GuardProxy.GUARD_PROFESSION.equals(current)) {
             GuardProxy.applyVillagerData(proxy, guard);
         }
@@ -133,9 +145,23 @@ public final class GuardProxySync {
         if (state.isEmpty()) {
             return;
         }
-        switch (state.get()) {
+        String movement = state.get();
+        UUID followTarget = null;
+        if ("FOLLOW".equals(movement)) {
+            followTarget = McaBinding.followTarget(proxy).orElse(null);
+            if (followTarget != null) proxy.getPersistentData().putUUID(FOLLOW_TARGET, followTarget);
+            else if (proxy.getPersistentData().hasUUID(FOLLOW_TARGET)) followTarget = proxy.getPersistentData().getUUID(FOLLOW_TARGET);
+        } else proxy.getPersistentData().remove(FOLLOW_TARGET);
+        if ("FOLLOW".equals(movement) && (followTarget == null || guard.getServer().getPlayerList().getPlayer(followTarget) == null)) {
+            GuardReflection.setFollowing(guard, false);
+            LAST_MOVE.remove(guard.getUUID());
+            return;
+        }
+        String intent = movement + ":" + followTarget;
+        if (intent.equals(LAST_MOVE.put(guard.getUUID(), intent))) return;
+        switch (movement) {
             case "FOLLOW" -> {
-                UUID owner = LAST_INTERACTION.get(guard.getUUID());
+                UUID owner = followTarget;
                 if (owner != null) {
                     GuardReflection.setOwnerId(guard, owner);
                 }
@@ -164,12 +190,14 @@ public final class GuardProxySync {
     private static void reconcileNames(Mob guard, Villager proxy) {
         String proxyName = proxy.hasCustomName() ? proxy.getCustomName().getString() : "";
         String guardName = guard.hasCustomName() ? guard.getCustomName().getString() : "";
-        if (!guardName.isBlank() && !guardName.equals(proxyName)) {
-            proxy.setCustomName(guard.getCustomName());
-            return;
+        String previous = LAST_NAME.get(guard.getUUID());
+        if (previous == null) {
+            var entry = GuardIdentityStore.get(guard.getServer()).find(guard.getUUID());
+            previous = entry == null ? proxyName : entry.name();
         }
-        if (!proxyName.isBlank() && !proxyName.equals(guardName)) {
-            GuardProxy.copyNameToGuard(guard, proxy);
-        }
+        // A changed guard name wins simultaneous edits; otherwise preserve the MCA-side rename.
+        if (!guardName.isBlank() && !guardName.equals(previous)) proxy.setCustomName(guard.getCustomName());
+        else if (!proxyName.isBlank() && !proxyName.equals(guardName)) GuardProxy.copyNameToGuard(guard, proxy);
+        LAST_NAME.put(guard.getUUID(), proxy.hasCustomName() ? proxy.getCustomName().getString() : guardName);
     }
 }

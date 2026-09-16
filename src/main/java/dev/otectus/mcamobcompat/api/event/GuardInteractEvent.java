@@ -4,8 +4,8 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.eventbus.api.Cancelable;
-import net.minecraftforge.eventbus.api.Event;
+import net.neoforged.bus.api.ICancellableEvent;
+import net.neoforged.bus.api.Event;
 
 /**
  * Fired on the Forge bus when a player right-clicks a bridged guard, before the guard's own mod
@@ -20,8 +20,7 @@ import net.minecraftforge.eventbus.api.Event;
  * check {@code getGuard().level().isClientSide} itself; one that only wants a single fire per click
  * should check {@link #getHand()}. Cancelling on the server alone leaves the client swinging.
  */
-@Cancelable
-public class GuardInteractEvent extends Event {
+public class GuardInteractEvent extends Event implements ICancellableEvent {
 
     private final Player player;
     private final Mob guard;

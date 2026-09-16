@@ -25,7 +25,7 @@ add `#mcamobcompat:horse` to your own `livestock.json` — it is one line.
 
 ## Adding a mod
 
-Create `data/<your_pack>/tags/entity_types/<role>.json` in your datapack:
+Create `data/mcamobcompat/tags/entity_type/<role>.json` in your datapack:
 
 ```json
 {
@@ -68,16 +68,11 @@ this mod:
 `/mcamobcompat classify` gives the roles of whatever you are looking at, which is the quickest way to
 check your pack worked. Both need permission level 2, and both update on `/reload`.
 
-## Forge conventional tags
+## Optional conventional aliases
 
-The shipped tags reference the Forge conventional entity tags (`#forge:cow`, `#forge:pig`,
-`#forge:sheep`, `#forge:chicken`, `#forge:horses`, and so on) wherever one exists. Any mod that
-registers its animals into those is classified with no work from anyone — which is how DragN's
-Livestock Overhaul is largely covered, since it populates them itself.
+The shipped tags retain optional `#forge:cow`, `#forge:pig`, `#forge:sheep`, `#forge:chicken` and equine aliases for packs that still populate them. These are data identifiers, not Forge Java dependencies. NeoForge 1.21.1 does not define equivalent standard species tags, so do not mechanically rename them to `c:` or `neoforge:`. Explicit entity IDs and the `mcamobcompat` tags are the reliable extension points.
 
-If you are a mod author adding farm animals, putting them in the Forge conventional tags is the
-single most useful thing you can do: it makes them work with this mod, and with everything else that
-reads those tags, for free.
+A file under `data/my_pack/tags/entity_type/cattle.json` defines `my_pack:cattle`; it does not extend `mcamobcompat:cattle` unless the latter explicitly includes it. Use the namespace/path above, and a pack metadata file with `pack_format: 48` for Minecraft 1.21.1 data packs.
 
 ## Turning a mod off instead
 
@@ -100,16 +95,8 @@ bundled list is the fallback used only before a proxy exists or while MCA is unr
 
 ## Operator note: hidden proxies
 
-While `guardMcaInteraction` is on, every bridged guard is paired with a real, invisible MCA villager
-(the "proxy") that carries its MCA state. Every proxy carries the scoreboard tag
-`mcamobcompat_proxy`, so a stuck or duplicated one can be removed by hand:
+Use `/mcamobcompat guards proxies` to inspect loaded pairs. A missing partner may be unloaded or in another dimension. Existing pairs survive module toggles and partial chunk unload; a recorded UUID blocks automatic replacement while its partner is unresolved.
 
-```
-/kill @e[tag=mcamobcompat_proxy]
-/mcamobcompat guards rebuild
-```
+`/mcamobcompat guards rebuild` is destructive for healthy loaded pairs: it replaces the guard's MCA identity. It does not automatically repair unresolved/conflicting saved links. Diagnose and back up first; do not bulk-kill proxies as a routine recovery step.
 
-`guards rebuild` discards and recreates the proxy of every loaded bridged guard, whether or not it
-already had one. It is destructive — a rebuilt proxy is a new villager to MCA, so an intact proxy's
-family-tree node and memories are thrown away along with an orphan's — so use it only after
-confirming with `/mcamobcompat guards proxies` that something is actually broken.
+The recognition tag `mcamobcompat:mca_villagers` supplements the ten public semantic roles. Ordinary MCA villagers are excluded from proxy eligibility even if also tagged as guards. Tagging an unrelated mob as a guard does not grant it Guard Villagers movement methods.

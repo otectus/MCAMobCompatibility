@@ -2,8 +2,8 @@ package dev.otectus.mcamobcompat.integration;
 
 import dev.otectus.mcamobcompat.McaMobCompat;
 import dev.otectus.mcamobcompat.util.ConfigAccess;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.ModList;
+import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.fml.ModList;
 
 import java.util.Optional;
 
@@ -104,7 +104,7 @@ public abstract class IntegrationModule {
      * {@link ConfigAccess}; the default passed in is what the option ships as, so an early answer
      * matches the eventual one for anyone who has not changed it.
      */
-    protected static boolean safeBoolean(ForgeConfigSpec.BooleanValue value, boolean fallback) {
+    protected static boolean safeBoolean(ModConfigSpec.BooleanValue value, boolean fallback) {
         return ConfigAccess.bool(value, fallback);
     }
 }

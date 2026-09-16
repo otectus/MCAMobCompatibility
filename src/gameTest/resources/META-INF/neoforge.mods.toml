@@ -1,0 +1,13 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="GPL-3.0-only"
+[[mods]]
+modId="mcamobcompat_tests"
+version="1"
+displayName="MCA Mob Compatibility integration tests"
+[[dependencies.mcamobcompat_tests]]
+modId="mcamobcompat"
+type="required"
+versionRange="[0,)"
+ordering="AFTER"
+side="BOTH"

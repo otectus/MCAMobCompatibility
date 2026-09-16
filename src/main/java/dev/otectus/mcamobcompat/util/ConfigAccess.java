@@ -1,6 +1,6 @@
 package dev.otectus.mcamobcompat.util;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ public final class ConfigAccess {
     private ConfigAccess() {
     }
 
-    public static boolean bool(ForgeConfigSpec.BooleanValue value, boolean fallback) {
+    public static boolean bool(ModConfigSpec.BooleanValue value, boolean fallback) {
         try {
             Boolean current = value.get();
             return current == null ? fallback : current;
@@ -26,7 +26,7 @@ public final class ConfigAccess {
         }
     }
 
-    public static List<? extends String> strings(ForgeConfigSpec.ConfigValue<List<? extends String>> value,
+    public static List<? extends String> strings(ModConfigSpec.ConfigValue<List<? extends String>> value,
                                                  List<? extends String> fallback) {
         try {
             List<? extends String> current = value.get();
@@ -36,7 +36,7 @@ public final class ConfigAccess {
         }
     }
 
-    public static int integer(ForgeConfigSpec.IntValue value, int fallback) {
+    public static int integer(ModConfigSpec.IntValue value, int fallback) {
         try {
             Integer current = value.get();
             return current == null ? fallback : current;

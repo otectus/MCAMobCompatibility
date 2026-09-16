@@ -9,14 +9,14 @@ import dev.otectus.mcamobcompat.mca.McaBinding;
 import dev.otectus.mcamobcompat.util.ConfigAccess;
 import dev.otectus.mcamobcompat.util.ModIds;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.config.ModConfigEvent;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+
 import org.slf4j.Logger;
 
 /**
@@ -42,7 +42,7 @@ public final class McaMobCompat {
 
     /** A {@link ResourceLocation} in this mod's namespace. */
     public static ResourceLocation id(String path) {
-        return new ResourceLocation(MOD_ID, path);
+        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
     }
 
     /**
@@ -58,13 +58,14 @@ public final class McaMobCompat {
         }
     }
 
-    public McaMobCompat() {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, McaMobCompatConfig.COMMON_SPEC);
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, McaMobCompatConfig.SERVER_SPEC);
+    public McaMobCompat(IEventBus modBus, ModContainer container) {
+        container.registerConfig(ModConfig.Type.COMMON, McaMobCompatConfig.COMMON_SPEC);
+        container.registerConfig(ModConfig.Type.SERVER, McaMobCompatConfig.SERVER_SPEC);
 
-        final IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(this::onConfigReload);
+        modBus.addListener((ModConfigEvent.Loading event) -> invalidateConfig());
+        modBus.addListener((ModConfigEvent.Unloading event) -> invalidateConfig());
 
         LOGGER.info("MCA: Mob Compatibility initialising (mod id '{}')", MOD_ID);
     }
@@ -77,8 +78,13 @@ public final class McaMobCompat {
     private void onConfigReload(ModConfigEvent.Reloading event) {
         if (event.getConfig().getSpec() == McaMobCompatConfig.COMMON_SPEC
                 || event.getConfig().getSpec() == McaMobCompatConfig.SERVER_SPEC) {
-            ClassificationCache.invalidate();
+            invalidateConfig();
         }
+    }
+
+    private static void invalidateConfig() {
+        ClassificationCache.invalidate();
+        dev.otectus.mcamobcompat.event.ChoreSafetyHandler.invalidateConfig();
     }
 
     private void onCommonSetup(FMLCommonSetupEvent event) {

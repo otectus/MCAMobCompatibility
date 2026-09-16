@@ -1,5 +1,6 @@
 package dev.otectus.mcamobcompat.event;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import dev.otectus.mcamobcompat.McaMobCompat;
 import dev.otectus.mcamobcompat.bridge.GuardProxy;
 import dev.otectus.mcamobcompat.integration.ModIntegrations;
@@ -14,11 +15,11 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 /**
  * Stops Guard Villagers converting an MCA villager into a guard, which would destroy the villager.
@@ -52,7 +53,7 @@ import net.minecraftforge.fml.common.Mod;
  * other gesture is untouched, and blocking too much here costs one awkward interaction while
  * blocking too little costs somebody their family.
  */
-@Mod.EventBusSubscriber(modid = McaMobCompat.MOD_ID)
+@EventBusSubscriber(modid = McaMobCompat.MOD_ID)
 public final class ConversionGuardHandler {
 
     private ConversionGuardHandler() {
@@ -60,12 +61,12 @@ public final class ConversionGuardHandler {
 
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
-        if (!McaEntities.isMcaVillager(event.getTarget())) {
+        if (event.getLevel().isClientSide || GuardProxy.isProxy(event.getTarget()) || !McaEntities.isMcaVillager(event.getTarget())) {
             return;
         }
 
         Player player = event.getEntity();
-        if (!player.isCrouching()) {
+        if (!player.isCrouching() && !player.isShiftKeyDown()) {
             return;
         }
 
@@ -107,11 +108,11 @@ public final class ConversionGuardHandler {
      * That is the whole difference between this and the conversion it replaces.
      */
     private static void recruit(Player player, Entity target) {
-        if (!(target instanceof Villager villager)) {
+        if (!(target instanceof Villager villager) || villager.isBaby() || !villager.getMainHandItem().isEmpty()) {
             return;
         }
         VillagerProfession profession =
-                ForgeRegistries.VILLAGER_PROFESSIONS.getValue(GuardProxy.GUARD_PROFESSION);
+                BuiltInRegistries.VILLAGER_PROFESSION.getOptional(GuardProxy.GUARD_PROFESSION).orElse(null);
         if (profession == null) {
             McaMobCompat.LOGGER.warn("No villager profession '{}' is registered, so {} cannot be "
                             + "recruited as a guard.", GuardProxy.GUARD_PROFESSION,
@@ -119,8 +120,9 @@ public final class ConversionGuardHandler {
             return;
         }
 
+        if (villager.getVillagerData().getProfession() == profession) return;
         villager.setVillagerData(villager.getVillagerData().setProfession(profession));
-        villager.setItemSlot(EquipmentSlot.MAINHAND, player.getMainHandItem().split(1));
+        villager.setItemSlot(EquipmentSlot.MAINHAND, player.getAbilities().instabuild ? player.getMainHandItem().copyWithCount(1) : player.getMainHandItem().split(1));
         player.displayClientMessage(
                 Component.translatable("message.mcamobcompat.recruited", villager.getName()), true);
         McaMobCompat.debug("{} recruited {} as an MCA guard",

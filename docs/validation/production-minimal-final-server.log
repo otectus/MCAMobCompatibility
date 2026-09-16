@@ -1,0 +1,218 @@
+[10:44:46.829] [main/INFO] [Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgeserver, --fml.neoForgeVersion, 21.1.249, --fml.fmlVersion, 4.0.44, --fml.mcVersion, 1.21.1, --fml.neoFormVersion, 20240808.144430, nogui] 
+[10:44:46.833] [main/INFO] [Launcher/MODLAUNCHER]: JVM identified as Eclipse Adoptium OpenJDK 64-Bit Server VM 21.0.12.1+1-LTS 
+[10:44:46.834] [main/INFO] [Launcher/MODLAUNCHER]: ModLauncher 11.0.5+main.901c6ea8 starting: java version 21.0.12.1 by Eclipse Adoptium; OS Linux arch amd64 version 7.2.4-3-cachyos 
+[10:44:46.983] [main/INFO] [loading.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgeserver 
+[10:44:47.065] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.7 Source=union:/home/otectus/Projects/MCAMobCompatibility/.port-work/minimal-server/libraries/net/fabricmc/sponge-mixin/0.15.2+mixin.0.8.7/sponge-mixin-0.15.2+mixin.0.8.7.jar%2373!/ Service=ModLauncher Env=SERVER 
+[10:44:47.475] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "server-1.21.1-20240808.144430-srg.jar" [locator: production server provider +net.neoforged:neoforge:21.1.249:server] 
+[10:44:47.506] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "neoforge-21.1.249-universal.jar" [locator: PathBasedLocator[name=neoforge, paths=[libraries/net/neoforged/neoforge/21.1.249/neoforge-21.1.249-universal.jar]], reader: mod manifest] 
+[10:44:47.524] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "mca-neoforge-7.7.36-beta.3+1.21.1.jar" [locator: {mods folder locator at /home/otectus/Projects/MCAMobCompatibility/.port-work/minimal-server/mods}, reader: mod manifest] 
+[10:44:47.526] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "mcamobcompat-neoforge-0.3.0+1.21.1-runtime-probe.jar" [locator: {mods folder locator at /home/otectus/Projects/MCAMobCompatibility/.port-work/minimal-server/mods}, reader: mod manifest] 
+[10:44:47.536] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "mcamobcompat-neoforge-0.3.0+1.21.1.jar" [locator: {mods folder locator at /home/otectus/Projects/MCAMobCompatibility/.port-work/minimal-server/mods}, reader: mod manifest] 
+[10:44:47.713] [main/INFO] [loading.moddiscovery.locators.JarInJarDependencyLocator/]: Found 2 dependencies adding them to mods collection 
+[10:44:47.713] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found gamelibrary file "mixinextras-neoforge-0.5.4.jar" [parent: mca-neoforge-7.7.36-beta.3+1.21.1.jar, locator: jarinjar, reader: mod manifest] 
+[10:44:47.714] [main/INFO] [loading.moddiscovery.ModDiscoverer/SCAN]: Found library file "net.neoforged.neoforge-coremods-21.1.249.jar" [parent: neoforge-21.1.249-universal.jar, locator: jarinjar, reader: mod manifest] 
+[10:44:47.715] [main/INFO] [loading.moddiscovery.ModDiscoverer/]: 
+     Mod List:
+		Name Version (Mod Id)
+
+		MCA Mob Compatibility isolated runtime validation 1 (mcamobcompat_probe)
+		MCA: Mob Compatibility 0.3.0+1.21.1 (mcamobcompat)
+		Minecraft 1.21.1 (minecraft)
+		Minecraft Comes Alive 7.7.36-beta.3+1.21.1 (mca)
+		NeoForge 21.1.249 (neoforge) 
+[10:44:48.307] [main/INFO] [mixin/]: Compatibility level set to JAVA_17 
+[10:44:48.326] [main/INFO] [LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgeserver' with arguments [nogui] 
+[10:44:48.368] [main/WARN] [mixin/]: Reference map 'mca.refmap.json' for mca.mixins.json could not be read. If this is a development environment you can ignore this message 
+[10:44:49] [main/INFO] [MixinExtras|Service/]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.4).
+[10:44:56] [modloading-worker-0/INFO] [ne.ne.ne.co.NeoForgeMod/NEOFORGE-MOD]: NeoForge mod loading, version 21.1.249, for MC 1.21.1
+[10:44:57] [modloading-worker-0/INFO] [de.ot.mc.McaMobCompat/]: MCA: Mob Compatibility initialising (mod id 'mcamobcompat')
+[10:44:57] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: Guard Villagers not installed; integration skipped.
+[10:44:57] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: SWEM not installed; integration skipped.
+[10:44:57] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: Genetic Animals not installed; integration skipped.
+[10:44:57] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: DragN's Livestock Overhaul not installed; integration skipped.
+[10:44:57] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: MCA binding: root net.conczin.mca, MCA 7.7.36-beta.3+1.21.1, members [personality API: namespaced registry, class: net.conczin.mca.entity.VillagerEntityMCA, VillagerEntityMCA: ok, getVillagerBrain: ok, getCurrentJob: ok, abandonJob: ok, getPersonality: ok, setPersonality: ok, getMemories: ok, getMemoriesForPlayer: ok, getMoveState: ok, getHearts: ok, modHearts: ok].
+[10:44:57] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: MCA: Mob Compatibility ready. MCA villagers recognised as [mca:male_villager, mca:female_villager].
+[10:44:57] [main/INFO] [mojang/YggdrasilAuthenticationService]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[10:44:57] [main/WARN] [minecraft/VanillaPackResourcesBuilder]: Assets URL 'union:/home/otectus/Projects/MCAMobCompatibility/.port-work/minimal-server/libraries/net/minecraft/server/1.21.1-20240808.144430/server-1.21.1-20240808.144430-srg.jar%23120!/assets/.mcassetsroot' uses unexpected schema
+[10:44:57] [main/WARN] [minecraft/VanillaPackResourcesBuilder]: Assets URL 'union:/home/otectus/Projects/MCAMobCompatibility/.port-work/minimal-server/libraries/net/minecraft/server/1.21.1-20240808.144430/server-1.21.1-20240808.144430-srg.jar%23120!/data/.mcassetsroot' uses unexpected schema
+[10:44:58] [main/INFO] [minecraft/Main]: No existing world data, creating new world
+[10:44:58] [main/ERROR] [minecraft/DedicatedServerProperties]: No key layers in MapLike[{}]
+[10:44:59] [main/INFO] [minecraft/RecipeManager]: Loaded 1516 recipes
+[10:44:59] [main/INFO] [minecraft/AdvancementTree]: Loaded 1620 advancements
+[10:45:00] [Server thread/INFO] [minecraft/DedicatedServer]: Starting minecraft server version 1.21.1
+[10:45:00] [Server thread/INFO] [minecraft/DedicatedServer]: Loading properties
+[10:45:00] [Server thread/INFO] [minecraft/DedicatedServer]: Default game type: SURVIVAL
+[10:45:00] [Server thread/INFO] [minecraft/MinecraftServer]: Generating keypair
+> 
+  
+[10:45:00] [Server thread/INFO] [minecraft/DedicatedServer]: Starting Minecraft server on 127.0.0.1:25577
+> 
+  
+[10:45:00] [Server thread/INFO] [minecraft/ServerConnectionListener]: Using epoll channel type
+> 
+  
+[10:45:00] [Server thread/WARN] [minecraft/DedicatedServer]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+> 
+  
+[10:45:00] [Server thread/WARN] [minecraft/DedicatedServer]: The server will make no attempt to authenticate usernames. Beware.
+> 
+  
+[10:45:00] [Server thread/WARN] [minecraft/DedicatedServer]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+> 
+  
+[10:45:00] [Server thread/WARN] [minecraft/DedicatedServer]: To change this, set "online-mode" to "true" in the server.properties file.
+> 
+  
+[10:45:00] [Server thread/INFO] [minecraft/DedicatedServer]: Preparing level "world"
+> 
+  
+[10:45:01] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing start region for dimension minecraft:overworld
+> 
+  
+[10:45:01] [Worker-Main-5/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 2%
+> 
+  
+[10:45:01] [Server thread/INFO] [minecraft/LoggerChunkProgressListener]: Time elapsed: 240 ms
+> 
+  
+[10:45:01] [Server thread/INFO] [minecraft/DedicatedServer]: Done (0.725s)! For help, type "help"
+> 
+  
+[10:45:01] [Server thread/INFO] [ne.ne.ne.se.pe.PermissionAPI/]: Successfully initialized permission handler neoforge:default_handler
+> 
+  
+[10:45:36] [Server thread/INFO] [minecraft/PlayerList]: PortMinimal[/127.0.0.1:41000] logged in with entity id 1 at (-8.5, -60.0, 3.5)
+> 
+  
+[10:45:36] [Server thread/INFO] [minecraft/MinecraftServer]: PortMinimal joined the game
+> 
+  
+[10:45:36] [Server thread/INFO] [de.ot.mc.McaMobCompat/]: RUNTIME_PROBE MINIMAL_PLAYER_JOIN PortMinimal
+> 
+  
+[10:45:41] [Server thread/INFO] [minecraft/ServerGamePacketListenerImpl]: PortMinimal lost connection: Disconnected
+> 
+  
+[10:45:41] [Server thread/INFO] [minecraft/MinecraftServer]: PortMinimal left the game
+> mcamobcompat status
+> mcamobcompat mca
+> stop
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]: MCA: Mob Compatibility
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:   MCA villagers recognised as: [mca:male_villager, mca:female_villager]
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:   Integrations
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     Guard Villagers (guardvillagers): not installed
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     SWEM (swem): not installed
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     Genetic Animals (eanimod): not installed
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     DragN's Livestock Overhaul (dragnlivestock): not installed
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:   Roles
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     mcamobcompat:livestock: 8 entity type(s)
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     mcamobcompat:cattle: 2 entity type(s)
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     mcamobcompat:sheep: 1 entity type(s)
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     mcamobcompat:pig: 1 entity type(s)
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     mcamobcompat:poultry: 1 entity type(s)
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     mcamobcompat:horse: 5 entity type(s)
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     mcamobcompat:mount: 7 entity type(s)
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     mcamobcompat:pet: 3 entity type(s)
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     mcamobcompat:guard: 0 entity type(s)
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     mcamobcompat:humanoid_npc: 4 entity type(s)
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:   136 type(s) cached, 1 classification provider(s) registered.
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]: MCA binding
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:   MCA version: 7.7.36-beta.3+1.21.1
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:   package root: net.conczin.mca
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     personality API: namespaced registry
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     class: net.conczin.mca.entity.VillagerEntityMCA
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     VillagerEntityMCA: ok
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     getVillagerBrain: ok
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     getCurrentJob: ok
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     abandonJob: ok
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     getPersonality: ok
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     setPersonality: ok
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     getMemories: ok
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     getMemoriesForPlayer: ok
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     getMoveState: ok
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     getHearts: ok
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]:     modHearts: ok
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]: Stopping the server
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]: Stopping server
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]: Saving players
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]: Saving worlds
+> 
+  
+[10:49:42] [Server thread/INFO] [minecraft/MinecraftServer]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+> 

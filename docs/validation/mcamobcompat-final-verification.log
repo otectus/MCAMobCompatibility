@@ -1,0 +1,140 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.12/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :createMinecraftArtifacts UP-TO-DATE
+> Task :compileJava
+> Task :processResources UP-TO-DATE
+> Task :classes
+> Task :jarJar NO-SOURCE
+> Task :jar
+> Task :assemble
+
+> Task :checkJarContents
+checkJarContents: mcamobcompat-neoforge-0.3.0+1.21.1.jar is clean (no shaded MCA/optional-mod classes, no foreign package names outside the 1-class allowlist).
+
+> Task :compileRuntimeProbeJava
+> Task :processRuntimeProbeResources UP-TO-DATE
+> Task :runtimeProbeClasses
+> Task :runtimeProbeJarJar NO-SOURCE
+> Task :runtimeProbeJar
+> Task :compileGameTestJava
+> Task :compileTestJava UP-TO-DATE
+> Task :processGameTestResources UP-TO-DATE
+> Task :gameTestClasses
+> Task :downloadAssets UP-TO-DATE
+> Task :writeNeoForgeTestClasspath UP-TO-DATE
+> Task :prepareNeoForgeTestFiles UP-TO-DATE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test
+
+> Task :verifyProductionJar
+Verified production jar: mcamobcompat-neoforge-0.3.0+1.21.1.jar
+
+> Task :check
+> Task :build
+> Task :writeGameTestServerLegacyClasspath UP-TO-DATE
+> Task :prepareGameTestServerRun UP-TO-DATE
+
+> Task :runGameTestServer
+WARN StatusConsoleListener Advanced terminal features are not available in this environment
+[10:31:48] [main/INFO] [cp.mo.mo.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgeserverdev, --gameDir, ., --fml.fmlVersion, 4.0.43, --fml.mcVersion, 1.21.1, --fml.neoForgeVersion, 21.1.248, --fml.neoFormVersion, 20240808.144430]
+[10:31:48] [main/INFO] [cp.mo.mo.Launcher/MODLAUNCHER]: JVM identified as Eclipse Adoptium OpenJDK 64-Bit Server VM 21.0.12.1+1-LTS
+[10:31:48] [main/INFO] [cp.mo.mo.Launcher/MODLAUNCHER]: ModLauncher 11.0.5+main.901c6ea8 starting: java version 21.0.12.1 by Eclipse Adoptium; OS Linux arch amd64 version 7.2.4-3-cachyos
+[10:31:48] [main/INFO] [ne.ne.fm.lo.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgeserverdev
+[10:31:48] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.7 Source=union:/home/otectus/.gradle/caches/modules-2/files-2.1/net.fabricmc/sponge-mixin/0.15.2+mixin.0.8.7/2af2f021d8e02a0220dc27a7a72b4666d66d44ca/sponge-mixin-0.15.2+mixin.0.8.7.jar%2394!/ Service=ModLauncher Env=SERVER
+[10:31:49] [main/INFO] [ne.ne.fm.lo.mo.lo.JarInJarDependencyLocator/]: Found 2 dependencies adding them to mods collection
+[10:31:49] [main/INFO] [ne.ne.fm.lo.mo.ModDiscoverer/]: 
+     Mod List:
+		Name Version (Mod Id)
+
+		GeckoLib 4 4.7.5.1 (geckolib)
+		Guard Villagers 2.4.12 (guardvillagers)
+		MCA Mob Compatibility integration tests 1 (mcamobcompat_tests)
+		MCA: Mob Compatibility 0.3.0+1.21.1 (mcamobcompat)
+		Minecraft 1.21.1 (minecraft)
+		Minecraft Comes Alive 7.7.36-beta.3+1.21.1 (mca)
+		NeoForge 21.1.248 (neoforge)
+		Player Animator 2.0.4+1.21.1 (playeranimator)
+		Star Worm Equestrian Mod 1.6.12 (swem)
+[10:31:50] [main/INFO] [mixin/]: Compatibility level set to JAVA_21
+[10:31:50] [main/INFO] [cp.mo.mo.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgeserverdev' with arguments [--gameDir, .]
+[10:31:50] [main/WARN] [mixin/]: Reference map 'guardvillagers.refmap.json' for guardvillagers.mixins.json could not be read. If this is a development environment you can ignore this message
+[10:31:50] [main/WARN] [mixin/]: Reference map 'geckolib.refmap.json' for geckolib.mixins.json could not be read. If this is a development environment you can ignore this message
+[10:31:50] [main/WARN] [mixin/]: Reference map 'mca.refmap.json' for mca.mixins.json could not be read. If this is a development environment you can ignore this message
+[10:31:51] [main/INFO] [MixinExtras|Service/]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.4).
+[10:31:56] [main/WARN] [mixin/]: Mixin swem.mixins.json:LeashFenceKnotEntityMixin from mod swem has multiple constructors, <init>(Lnet/minecraft/world/entity/EntityType;Lnet/minecraft/world/level/Level;)V was selected
+
+[10:31:59] [main/WARN] [minecraft/Commands]: Ambiguity between arguments [teleport, location] and [teleport, destination] with inputs: [0.1 -0.5 .9, 0 0 0]
+[10:31:59] [main/WARN] [minecraft/Commands]: Ambiguity between arguments [teleport, location] and [teleport, targets] with inputs: [0.1 -0.5 .9, 0 0 0]
+[10:31:59] [main/WARN] [minecraft/Commands]: Ambiguity between arguments [teleport, destination] and [teleport, targets] with inputs: [Player, 0123, @e, dd12be42-52a9-4a91-a8a1-11c01849e498]
+[10:31:59] [main/WARN] [minecraft/Commands]: Ambiguity between arguments [teleport, targets] and [teleport, destination] with inputs: [Player, 0123, dd12be42-52a9-4a91-a8a1-11c01849e498]
+[10:31:59] [main/WARN] [minecraft/Commands]: Ambiguity between arguments [teleport, targets, location] and [teleport, targets, destination] with inputs: [0.1 -0.5 .9, 0 0 0]
+[10:32:00] [modloading-worker-0/INFO] [ne.ne.ne.co.NeoForgeMod/NEOFORGE-MOD]: NeoForge mod loading, version 21.1.248, for MC 1.21.1
+[10:32:00] [modloading-worker-0/INFO] [co.al.sw.ModRef/]: No community packs found.
+[10:32:00] [modloading-worker-0/INFO] [de.ot.mc.McaMobCompat/]: MCA: Mob Compatibility initialising (mod id 'mcamobcompat')
+[10:32:01] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: Detected Guard Villagers 2.4.12; integration enabled.
+[10:32:01] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: Detected SWEM 1.6.12; integration enabled.
+[10:32:01] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: Genetic Animals not installed; integration skipped.
+[10:32:01] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: DragN's Livestock Overhaul not installed; integration skipped.
+[10:32:01] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: MCA binding: root net.conczin.mca, MCA 7.7.36-beta.3+1.21.1, members [personality API: namespaced registry, class: net.conczin.mca.entity.VillagerEntityMCA, VillagerEntityMCA: ok, getVillagerBrain: ok, getCurrentJob: ok, abandonJob: ok, getPersonality: ok, setPersonality: ok, getMemories: ok, getMemoriesForPlayer: ok, getMoveState: ok, getHearts: ok, modHearts: ok].
+[10:32:01] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: MCA: Mob Compatibility ready. MCA villagers recognised as [mca:male_villager, mca:female_villager].
+[10:32:01] [NeoForge Version Check/INFO] [ne.ne.fm.VersionChecker/]: [guardvillagers] Starting version check at https://api.modrinth.com/updates/H1sntfo8/forge_updates.json
+[10:32:01] [main/INFO] [mojang/YggdrasilAuthenticationService]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[10:32:02] [main/WARN] [minecraft/VanillaPackResourcesBuilder]: Assets URL 'union:/home/otectus/Projects/MCAMobCompatibility/.port-work/MCAMobCompatibility_1.21.1/build/moddev/artifacts/neoforge-21.1.248.jar%23126!/assets/.mcassetsroot' uses unexpected schema
+[10:32:02] [main/WARN] [minecraft/VanillaPackResourcesBuilder]: Assets URL 'union:/home/otectus/Projects/MCAMobCompatibility/.port-work/MCAMobCompatibility_1.21.1/build/moddev/artifacts/neoforge-21.1.248.jar%23126!/data/.mcassetsroot' uses unexpected schema
+[10:32:02] [main/INFO] [ne.ne.ne.ga.GameTestHooks/]: Enabled Gametest Namespaces: [mcamobcompat, mcamobcompat_swem]
+[10:32:02] [NeoForge Version Check/INFO] [ne.ne.fm.VersionChecker/]: [guardvillagers] Found status: BETA Current: 2.4.12 Target: null
+[10:32:04] [main/INFO] [minecraft/RecipeManager]: Loaded 2479 recipes
+[10:32:04] [main/INFO] [minecraft/AdvancementTree]: Loaded 2478 advancements
+[10:32:06] [Server thread/INFO] [HorseDataManager/]: Loading horse data...
+[10:32:06] [Server thread/INFO] [HorseDataManager/]: Loaded 0 horse data.
+[10:32:06] [Server thread/INFO] [HorseDataManager/]: Loading horse data...
+[10:32:06] [Server thread/INFO] [HorseDataManager/]: Loaded 0 horse data.
+[10:32:06] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing start region for dimension minecraft:overworld
+[10:32:06] [worldgen/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 2%
+[10:32:06] [Server thread/INFO] [minecraft/LoggerChunkProgressListener]: Time elapsed: 152 ms
+[10:32:06] [Server thread/INFO] [minecraft/GameTestServer]: Started game test server
+[10:32:06] [Server thread/INFO] [ne.ne.ne.se.pe.PermissionAPI/]: Successfully initialized permission handler neoforge:default_handler
+[10:32:06] [Server thread/INFO] [minecraft/GameTestServer]: 19 tests are now running at position -9126395, -59, 6695443!
+[10:32:07] [Server thread/INFO] [minecraft/GameTestRunner]: Running test batch 'defaultBatch:0' (19 tests)...
+[10:32:07] [Server thread/INFO] [minecraft/GameTestServer]: [                   ]
+[10:32:08] [Server thread/INFO] [minecraft/LivingEntity]: Named entity Guard['Roderick'/26, l='ServerLevel[Test Level]', x=-9126355.50, y=-59.00, z=6695466.50] died: Roderick died
+[10:32:08] [Server thread/INFO] [minecraft/Villager]: Villager VillagerEntityMCA['Roderick'/27, l='ServerLevel[Test Level]', x=-9126355.50, y=-59.00, z=6695466.50] died, message: 'Roderick died'
+[10:32:08] [Server thread/INFO] [minecraft/LivingEntity]: Named entity VillagerEntityMCA['Roderick'/27, l='ServerLevel[Test Level]', x=-9126355.50, y=-59.00, z=6695466.50] died: Roderick died
+[10:32:08] [Server thread/INFO] [minecraft/GameTestServer]: [+++_+++_+++++++++++]
+[10:32:09] [Server thread/INFO] [minecraft/GameTestServer]: [+++_+++_+++++++++++]
+[10:32:09] [Server thread/INFO] [minecraft/GameTestServer]: [+++_+++_+++++++++++]
+[10:32:09] [Server thread/INFO] [minecraft/GameTestServer]: [+++_+++_+++++++++++]
+[10:32:09] [Server thread/INFO] [minecraft/GameTestServer]: [+++_+++_+++++++++++]
+[10:32:09] [Server thread/INFO] [minecraft/GameTestServer]: [+++_+++_+++++++++++]
+[10:32:09] [Server thread/INFO] [minecraft/GameTestServer]: [+++_+++_+++++++++++]
+[10:32:09] [Server thread/INFO] [minecraft/GameTestServer]: [+++_+++_+++++++++++]
+[10:32:09] [Server thread/INFO] [minecraft/GameTestServer]: [+++_+++_+++++++++++]
+[10:32:10] [Server thread/INFO] [minecraft/GameTestServer]: [+++_+++++++++++++++]
+[10:32:10] [Server thread/INFO] [minecraft/GameTestServer]: [+++_+++++++++++++++]
+[10:32:10] [Server thread/INFO] [minecraft/GameTestServer]: [+++++++++++++++++++]
+[10:32:10] [Server thread/INFO] [minecraft/GameTestServer]: ========= 19 GAME TESTS COMPLETE IN 3.501 s ======================
+[10:32:10] [Server thread/INFO] [minecraft/GameTestServer]: All 19 required tests passed :)
+[10:32:10] [Server thread/INFO] [minecraft/GameTestServer]: ====================================================
+[10:32:10] [Server thread/INFO] [minecraft/MinecraftServer]: Stopping server
+[10:32:10] [Server thread/INFO] [minecraft/MinecraftServer]: Saving players
+[10:32:10] [Server thread/INFO] [minecraft/MinecraftServer]: Saving worlds
+[10:32:10] [Server thread/INFO] [minecraft/MinecraftServer]: Saving chunks for level 'ServerLevel[Test Level]'/minecraft:overworld
+[10:32:12] [Server thread/INFO] [minecraft/MinecraftServer]: Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_end
+[10:32:12] [Server thread/INFO] [minecraft/MinecraftServer]: Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_nether
+[10:32:12] [Server thread/INFO] [minecraft/MinecraftServer]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[10:32:12] [Server thread/INFO] [minecraft/MinecraftServer]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[10:32:12] [Server thread/INFO] [minecraft/MinecraftServer]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[10:32:12] [Server thread/INFO] [minecraft/MinecraftServer]: ThreadedAnvilChunkStorage: All dimensions are saved
+[10:32:12] [Server thread/INFO] [minecraft/GameTestServer]: Game test server shutting down
+
+[Incubating] Problems report is available at: file:///home/otectus/Projects/MCAMobCompatibility/.port-work/MCAMobCompatibility_1.21.1/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.12/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 53s
+19 actionable tasks: 9 executed, 10 up-to-date

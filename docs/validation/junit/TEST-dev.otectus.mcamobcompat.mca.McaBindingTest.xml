@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.otectus.mcamobcompat.mca.McaBindingTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-09-14T14:31:46" hostname="OsPC" time="0.006">
+  <properties/>
+  <testcase name="theBindingReportIsCompleteWhetherOrNotAnythingBound()" classname="dev.otectus.mcamobcompat.mca.McaBindingTest" time="0.001"/>
+  <testcase name="theNewerLayoutWinsWhenBothResolve()" classname="dev.otectus.mcamobcompat.mca.McaBindingTest" time="0.001"/>
+  <testcase name="aThrowingProbeYieldsEmptyRatherThanPropagating()" classname="dev.otectus.mcamobcompat.mca.McaBindingTest" time="0.001"/>
+  <testcase name="theOlderLayoutBindsWhenItIsTheOnlyOne()" classname="dev.otectus.mcamobcompat.mca.McaBindingTest" time="0.001"/>
+  <testcase name="noMcaMeansNoRoot()" classname="dev.otectus.mcamobcompat.mca.McaBindingTest" time="0.001"/>
+  <testcase name="everyAccessorDegradesToEmptyWithoutMca()" classname="dev.otectus.mcamobcompat.mca.McaBindingTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

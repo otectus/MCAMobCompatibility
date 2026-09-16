@@ -1,0 +1,473 @@
+{
+  "recorded": "2026-09-14",
+  "minecraft": "1.21.1",
+  "java": 21,
+  "gradle": "8.12",
+  "moddevgradle": "2.0.141",
+  "forge_baseline": "7062152e3f1a370a9173be89a0bc11f7ed5b2f08",
+  "artifacts": [
+    {
+      "name": "MCA",
+      "file": "mca-neoforge-7.7.36-beta.3+1.21.1.jar",
+      "sha256": "de4763d34a41cb84ffa392b87cdb23191beddda2323b56552a1a2fcd7c436fc3",
+      "source": "https://maven.conczin.net/Artifacts/net/conczin/mca/mca-neoforge/7.7.36-beta.3+1.21.1/mca-neoforge-7.7.36-beta.3+1.21.1.jar",
+      "mods": [
+        {
+          "modId": "mca",
+          "version": "7.7.36-beta.3+1.21.1",
+          "displayName": "Minecraft Comes Alive",
+          "displayURL": "https://conczin.net/",
+          "logoFile": "icon.png",
+          "credits": "",
+          "authors": "Luke100000, S0llace, CDAGaming, ffrannny, jahx_senpoopie, WildBamaBoy, SheWolfDeadly",
+          "description": "No more squidward-villagers! Interact with male and female human villagers and online library."
+        }
+      ],
+      "dependencies": {
+        "mca": [
+          {
+            "modId": "neoforge",
+            "type": "required",
+            "versionRange": "[1,)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "minecraft",
+            "type": "required",
+            "versionRange": "[1.21, 1.22)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          }
+        ]
+      },
+      "use": "runtime only; not compiled against or redistributed"
+    },
+    {
+      "name": "Guard Villagers",
+      "file": "guard-villagers-JyXugpy2.jar",
+      "sha256": "aab03d59216bd931a05434b2527e0d5b7641793bd0178a9958100579c4f11407",
+      "source": "https://cdn.modrinth.com/data/H1sntfo8/versions/JyXugpy2/guardvillagers-2.4.12-1.21.1.jar",
+      "mods": [
+        {
+          "modId": "guardvillagers",
+          "version": "2.4.12",
+          "displayName": "Guard Villagers",
+          "authors": "TallestEgg, HadeZ/SadNya69 for the textures.",
+          "displayURL": "https://www.curseforge.com/minecraft/mc-mods/guard-villagers",
+          "updateJSONURL": "https://api.modrinth.com/updates/H1sntfo8/forge_updates.json",
+          "logoFile": "guard_villagers.png",
+          "description": "Need some help with pest control? The Guards are ready to help!"
+        }
+      ],
+      "dependencies": {
+        "guardvillagers": [
+          {
+            "modId": "neoforge",
+            "type": "required",
+            "versionRange": "[20.4,)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "minecraft",
+            "type": "required",
+            "versionRange": "[1.21.1, 1.22)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          }
+        ]
+      },
+      "use": "runtime only; not compiled against or redistributed"
+    },
+    {
+      "name": "SWEM",
+      "file": "swem-582697-8557159.jar",
+      "sha256": "88e4f3e338a0e3d59a55df41aba4961ec8fadea4b999e64093675914d4811e1d",
+      "source": "https://edge.forgecdn.net/files/8557/159/swem-1.21.1-1.6.12.jar",
+      "mods": [
+        {
+          "modId": "swem",
+          "version": "1.6.12",
+          "displayName": "Star Worm Equestrian Mod",
+          "displayURL": "https://wiki.swequestrian.com/",
+          "logoFile": "icon.jpg",
+          "credits": "Quarris, Silverwolf, Dronade, Mothfet",
+          "authors": "AlaharranHonor, legenden",
+          "description": "Minecraft Java 1.21.1 (NeoForge) mod called Star Worm Equestrian Mod.\nThe mod is bringing forward a whole new minecraft horse model, 18 horse coat textures, new animations, jumps, level progression, horse armor, tack, fencing, and stable decor ~ among other things."
+        }
+      ],
+      "dependencies": {
+        "swem": [
+          {
+            "modId": "neoforge",
+            "versionRange": "[21.1.240,)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "minecraft",
+            "versionRange": "[1.21.1]",
+            "ordering": "NONE",
+            "side": "BOTH"
+          }
+        ]
+      },
+      "use": "runtime only; not compiled against or redistributed"
+    },
+    {
+      "name": "Player Animator",
+      "file": "player-animator-658587-7389814.jar",
+      "sha256": "dbe5de45f5cd60c0e5e47af14e6d564534a98456e973cf670cb881f6938eee92",
+      "source": "https://www.curseforge.com/minecraft/mc-mods/playeranimator/files/7389814",
+      "mods": [
+        {
+          "modId": "playeranimator",
+          "version": "2.0.4+1.21.1",
+          "displayURL": "https://github.com/KosmX/minecraftPlayerAnimator",
+          "displayName": "Player Animator",
+          "authors": "KosmX",
+          "description": "A lightweight library to easily animate the player"
+        }
+      ],
+      "dependencies": {
+        "playeranimator": [
+          {
+            "modId": "minecraft",
+            "type": "required",
+            "mandatory": true,
+            "versionRange": "[1.21,1.21.2)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          }
+        ]
+      },
+      "use": "runtime only; not compiled against or redistributed"
+    },
+    {
+      "name": "GeckoLib",
+      "file": "geckolib-neoforge-1.21.1-4.7.5.1.jar",
+      "sha256": "18ed56f73327525fa96bf90c5e98c044641d2287447215810a464a77468b5e0a",
+      "source": "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/software/bernie/geckolib/geckolib-neoforge-1.21.1/4.7.5.1/geckolib-neoforge-1.21.1-4.7.5.1.jar",
+      "mods": [
+        {
+          "modId": "geckolib",
+          "version": "4.7.5.1",
+          "displayName": "GeckoLib 4",
+          "displayURL": "http://geckolib.com/",
+          "logoFile": "geckolib.png",
+          "credits": "Gecko, Eliot, AzureDoom, DerToaster, Tslat, Witixin",
+          "authors": "Gecko, Eliot, AzureDoom, DerToaster, Tslat, Witixin",
+          "description": "GeckoLib is an animation engine for Minecraft Mods, with support for complex 3D keyframe-based animations, 30+ easings, concurrent animation support, sound and particle keyframes, event keyframes, and more.\n"
+        }
+      ],
+      "dependencies": {
+        "geckolib": [
+          {
+            "modId": "neoforge",
+            "type": "required",
+            "versionRange": "[21.1.62,)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "minecraft",
+            "type": "required",
+            "versionRange": "[1.21,)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          }
+        ]
+      },
+      "use": "runtime only; not compiled against or redistributed"
+    },
+    {
+      "name": "MCAQuests_1.21.1",
+      "file": "mcaquests-1.6.4.jar",
+      "sha256": "fefac9f94fff23d3f60b4c20711a1cbc8ef398ca73c6357dcd2e54b8388aff51",
+      "source": "Local built artifact: /home/otectus/Projects/1.21.1 Ports/MCAQuests_1.21.1/build/libs/mcaquests-1.6.4.jar",
+      "mods": [
+        {
+          "modId": "mcaquests",
+          "version": "1.6.4",
+          "displayName": "MCA: Quests",
+          "authors": "otectus",
+          "description": "An RPG-style, datapack-driven quest system for Minecraft Comes Alive: Reborn villagers."
+        }
+      ],
+      "dependencies": {
+        "mcaquests": [
+          {
+            "modId": "neoforge",
+            "type": "required",
+            "versionRange": "[21.1.0,21.2)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "minecraft",
+            "type": "required",
+            "versionRange": "[1.21.1,1.21.2)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "mca",
+            "type": "required",
+            "versionRange": "[7.7,8)",
+            "ordering": "AFTER",
+            "side": "BOTH"
+          },
+          {
+            "modId": "ftbquests",
+            "type": "optional",
+            "versionRange": "[2101.1,)",
+            "ordering": "AFTER",
+            "side": "BOTH"
+          },
+          {
+            "modId": "mcareputation",
+            "type": "optional",
+            "versionRange": "[0.2,)",
+            "ordering": "AFTER",
+            "side": "BOTH"
+          },
+          {
+            "modId": "townstead",
+            "type": "optional",
+            "versionRange": "[0.7.5,0.8)",
+            "ordering": "AFTER",
+            "side": "BOTH"
+          },
+          {
+            "modId": "journeymap",
+            "type": "optional",
+            "versionRange": "[1.21.1-6.0.0,)",
+            "ordering": "AFTER",
+            "side": "CLIENT"
+          },
+          {
+            "modId": "xaerominimap",
+            "type": "optional",
+            "versionRange": "[26.0,27)",
+            "ordering": "AFTER",
+            "side": "CLIENT"
+          },
+          {
+            "modId": "mcacapitals",
+            "type": "optional",
+            "versionRange": "[1.3.5,)",
+            "ordering": "AFTER",
+            "side": "BOTH"
+          },
+          {
+            "modId": "map_atlases",
+            "type": "optional",
+            "versionRange": "*",
+            "ordering": "AFTER",
+            "side": "CLIENT"
+          }
+        ]
+      },
+      "use": "runtime only; not compiled against or redistributed"
+    },
+    {
+      "name": "MCAConversations_1.21.1",
+      "file": "mcaconversations-neoforge-1.6.3+1.21.1.jar",
+      "sha256": "8bd6d0032593a4bb58aea83ce6356ab5a68a11a9d9f0eff6f8c809cd780b5e3b",
+      "source": "Local built artifact: /home/otectus/Projects/1.21.1 Ports/MCAConversations_1.21.1/build/libs/mcaconversations-neoforge-1.6.3+1.21.1.jar",
+      "mods": [
+        {
+          "modId": "mcaconversations",
+          "version": "1.6.3+1.21.1",
+          "displayName": "MCA: Conversations",
+          "authors": "otectus",
+          "description": "Deeper, less repetitive villager conversations for Minecraft Comes Alive: Reborn \u2014 heart-gated personal topics, conversation memory, gratitude, personalized lines, and village gossip."
+        }
+      ],
+      "dependencies": {
+        "mcaconversations": [
+          {
+            "modId": "neoforge",
+            "type": "required",
+            "versionRange": "[21.1.234,21.2)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "minecraft",
+            "type": "required",
+            "versionRange": "[1.21.1,1.21.2)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "mca",
+            "type": "required",
+            "versionRange": "[7.7.13,8)",
+            "ordering": "AFTER",
+            "side": "BOTH"
+          },
+          {
+            "modId": "mcareputation",
+            "type": "optional",
+            "versionRange": "[0.2,)",
+            "ordering": "AFTER",
+            "side": "BOTH"
+          },
+          {
+            "modId": "mcaquests",
+            "type": "optional",
+            "versionRange": "[0.8,)",
+            "ordering": "AFTER",
+            "side": "BOTH"
+          },
+          {
+            "modId": "mcacapitals",
+            "type": "optional",
+            "versionRange": "[1.3,)",
+            "ordering": "AFTER",
+            "side": "BOTH"
+          },
+          {
+            "modId": "townstead",
+            "type": "optional",
+            "versionRange": "[0.7.5,0.8)",
+            "ordering": "AFTER",
+            "side": "BOTH"
+          }
+        ]
+      },
+      "use": "runtime only; not compiled against or redistributed"
+    },
+    {
+      "name": "MCACrime_1.21.1",
+      "file": "mcacrime-0.7.2.jar",
+      "sha256": "85c5d1d0c42a54aff617d178c2b2552e6061bbb0b1be5f7431e8e1eb91fd4d99",
+      "source": "Local built artifact: /home/otectus/Projects/1.21.1 Ports/MCACrime_1.21.1/build/libs/mcacrime-0.7.2.jar",
+      "mods": [
+        {
+          "modId": "mcacrime",
+          "version": "0.7.2",
+          "displayName": "MCA: Crime",
+          "authors": "otectus",
+          "description": "A server-authoritative village law-and-crime framework for Minecraft Comes Alive: Reborn."
+        }
+      ],
+      "dependencies": {
+        "mcacrime": [
+          {
+            "modId": "neoforge",
+            "type": "required",
+            "versionRange": "[21.1.248,21.2)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "minecraft",
+            "type": "required",
+            "versionRange": "[1.21.1,1.21.2)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "mca",
+            "type": "required",
+            "versionRange": "[7.7.36-beta.3+1.21.1]",
+            "ordering": "AFTER",
+            "side": "BOTH"
+          },
+          {
+            "modId": "mcareputation",
+            "type": "optional",
+            "versionRange": "[0.2,)",
+            "ordering": "AFTER",
+            "side": "BOTH"
+          }
+        ]
+      },
+      "use": "runtime only; not compiled against or redistributed"
+    },
+    {
+      "name": "MCAReputation_1.21.1",
+      "file": "mcareputation-0.5.0.jar",
+      "sha256": "84fe5638398bc8f8ba776b7f7c109f90fcb788f09406e7572bc173fda186b662",
+      "source": "Local built artifact: /home/otectus/Projects/1.21.1 Ports/MCAReputation_1.21.1/build/libs/mcareputation-0.5.0.jar",
+      "mods": [
+        {
+          "modId": "mcareputation",
+          "version": "0.5.0",
+          "displayName": "MCA: Reputation",
+          "authors": "otectus",
+          "description": "Public standing with MCA villages: your deeds become stories, and those stories shape how the village treats you."
+        }
+      ],
+      "dependencies": {
+        "mcareputation": [
+          {
+            "modId": "neoforge",
+            "type": "required",
+            "versionRange": "[21.1.249,21.2)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "minecraft",
+            "type": "required",
+            "versionRange": "[1.21.1,1.21.2)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "mca",
+            "type": "required",
+            "versionRange": "[7.7,8)",
+            "ordering": "AFTER",
+            "side": "BOTH"
+          },
+          {
+            "modId": "mcaquests",
+            "type": "optional",
+            "versionRange": "[1.0,)",
+            "ordering": "BEFORE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "mcaconversations",
+            "type": "optional",
+            "versionRange": "[1.0,)",
+            "ordering": "BEFORE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "mcacrime",
+            "type": "optional",
+            "versionRange": "[0.1,)",
+            "ordering": "BEFORE",
+            "side": "BOTH"
+          }
+        ]
+      },
+      "use": "runtime only; not compiled against or redistributed"
+    },
+    {
+      "name": "NeoForge installer",
+      "version": "21.1.248",
+      "file": "neoforge-21.1.248-installer.jar",
+      "sha256": "68eeab77059ba53df1812f1afa5bf530ab2566a3cdcd5f924aa6e71be42e410c",
+      "source": "https://maven.neoforged.net/releases/net/neoforged/neoforge/21.1.248/neoforge-21.1.248-installer.jar"
+    },
+    {
+      "name": "NeoForge installer",
+      "version": "21.1.249",
+      "file": "neoforge-21.1.249-installer.jar",
+      "sha256": "d88b448eab73cd65bdf1720844a4828262de30a15fc71bd04dd81acc61c5399a",
+      "source": "https://maven.neoforged.net/releases/net/neoforged/neoforge/21.1.249/neoforge-21.1.249-installer.jar"
+    }
+  ],
+  "unverified_optional_targets": [
+    "Genetic Animals (eanimod)",
+    "DragN Livestock Overhaul (dragnlivestock)"
+  ],
+  "upstream_issue": "MCAReputation 0.5.0 reports API v2; Quests 1.6.4 and Crime 0.7.2 require API v1 and disable their reputation integration."
+}

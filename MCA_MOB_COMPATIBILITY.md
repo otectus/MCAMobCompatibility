@@ -1,3 +1,5 @@
+> Historical Forge 1.20.1 research and implementation record. It does not describe the current NeoForge port or prove target-version behavior. Current architecture, migration and validation: [PORTING.md](docs/PORTING.md), [VALIDATION.md](docs/VALIDATION.md), [README.md](README.md). Historical package names, loader APIs, blanket feature claims and proxy lifetime/rendering descriptions below are superseded.
+
 # MCA: Mob Compatibility — Research & Implementation Specification (v0.1.0 shipped, 0.2.0 guard bridge shipped, 0.3.0 chore safety implemented)
 
 *Target platform: Minecraft 1.20.1, Minecraft Forge. Deliverable: a research-backed engineering specification an autonomous coding agent can implement from scratch.*

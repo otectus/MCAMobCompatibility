@@ -1,0 +1,19 @@
+{
+  "release": "2.0+1.21.1",
+  "command": "./gradlew clean build",
+  "result": "BUILD SUCCESSFUL; both artifact gates passed",
+  "junit": {
+    "tests": 53,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "artifact": "mcamobcompat-neoforge-2.0+1.21.1.jar",
+  "sha256": "b1af7d916a5edc03b6272317a2aa323a9f64621dcfbc7f892344d5530ca599de",
+  "compared_to_runtime_tested_sha256": "fcec034a100ef339b5fe4514d27a4bb8d27c53f1eb9ae4c7a9cd11f666ab47fe",
+  "changed_zip_entries": [
+    "META-INF/neoforge.mods.toml"
+  ],
+  "only_content_change": "Addon version in NeoForge metadata: 0.3.0+1.21.1 -> 2.0+1.21.1",
+  "runtime_tests": "Earlier GameTest, single-player and multiplayer evidence remains associated with 0.3.0; runtime tests were not repeated for this metadata-only version update."
+}
