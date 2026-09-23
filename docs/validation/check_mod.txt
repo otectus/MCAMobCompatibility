@@ -1,0 +1,8 @@
+check_mod — mcamobcompat @ /home/otectus/Projects/MCAMobCompatibility
+0 errors, 0 warnings, 0 notes
+
+No problems found.
+
+Lang keys: 10 string literals in src/main/java name a key; en_us.json defines 10.
+Missing from en_us.json: none
+Defined but never named: none

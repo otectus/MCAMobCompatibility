@@ -1,8 +1,11 @@
 package dev.otectus.mcamobcompat.integration.guardvillagers;
 
 import dev.otectus.mcamobcompat.McaMobCompat;
+import dev.otectus.mcamobcompat.util.ModIds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 
 import java.lang.reflect.Method;
@@ -23,7 +26,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p><b>Why by name is safe here.</b> These five are Guard Villagers' own members, not names
  * inherited from Minecraft, so they are never SRG-mangled: {@code setFollowing} is spelled the same
  * in a dev run and on a production server. A Minecraft-inherited name ({@code hurt}, {@code tick})
- * could not be bound this way at all.
+ * could not be bound this way at all. Each member is bound by its whole signature -- name,
+ * parameter types and return type -- so a same-named method that means something else is refused.
+ * The variant getter is {@code getGuardVariant()} on Guard Villagers for 1.20.1 and
+ * {@code getVariant()} on 1.21.1; both are tried.
  *
  * <p>Nothing here holds a Guard Villagers type: the guard arrives as a vanilla {@link Mob} and
  * every handle is a {@link Method}. Every member is best-effort and warns exactly once, so a Guard
@@ -80,14 +86,14 @@ public final class GuardReflection {
             return Optional.empty();
         }
         Handles resolved = handles(guard);
-        if (resolved != null && resolved.getGuardVariant != null) {
+        if (resolved != null && resolved.getVariant != null) {
             try {
-                Object value = resolved.getGuardVariant.invoke(guard);
+                Object value = resolved.getVariant.invoke(guard);
                 if (value instanceof String text && !text.isBlank()) {
                     return Optional.of(text);
                 }
             } catch (Throwable t) {
-                warnOnce("getGuardVariant", t);
+                warnOnce(resolved.getVariant.getName(), t);
             }
         }
         try {
@@ -109,8 +115,20 @@ public final class GuardReflection {
         }
     }
 
+    /**
+     * The handles for this guard's runtime class -- but only for Guard Villagers' own entities. A
+     * pack can tag another mod's defender as a guard, and a same-named method on that class means
+     * whatever that mod says it means; this mod only knows what Guard Villagers' members do.
+     */
     private static Handles handles(Mob guard) {
-        return guard == null ? null : CACHE.computeIfAbsent(guard.getClass(), Handles::resolve);
+        if (guard == null) {
+            return null;
+        }
+        ResourceLocation type = EntityType.getKey(guard.getType());
+        if (type == null || !ModIds.GUARD_VILLAGERS.equals(type.getNamespace())) {
+            return null;
+        }
+        return CACHE.computeIfAbsent(guard.getClass(), Handles::resolve);
     }
 
     private static void warnOnce(String member, Throwable t) {
@@ -127,34 +145,41 @@ public final class GuardReflection {
         private final Method setPatrolling;
         private final Method setPatrolPos;
         private final Method setOwnerId;
-        private final Method getGuardVariant;
+        private final Method getVariant;
 
         private Handles(Class<?> owner) {
-            setFollowing = find(owner, "setFollowing", 1);
-            setPatrolling = find(owner, "setPatrolling", 1);
-            setPatrolPos = find(owner, "setPatrolPos", 1);
-            setOwnerId = find(owner, "setOwnerId", 1);
-            getGuardVariant = find(owner, "getGuardVariant", 0);
+            setFollowing = find(owner, "setFollowing", void.class, boolean.class);
+            setPatrolling = find(owner, "setPatrolling", void.class, boolean.class);
+            setPatrolPos = find(owner, "setPatrolPos", void.class, BlockPos.class);
+            setOwnerId = find(owner, "setOwnerId", void.class, UUID.class);
+            Method variant = lookup(owner, "getGuardVariant", String.class);
+            getVariant = variant != null ? variant : find(owner, "getVariant", String.class);
         }
 
         static Handles resolve(Class<?> owner) {
             return new Handles(owner);
         }
 
-        /** By name and arity: the parameter types are vanilla, but the owner class is not nameable. */
-        private static Method find(Class<?> owner, String name, int arity) {
+        /**
+         * By exact signature: the parameter and return types are vanilla or JDK types, so they can be
+         * named even though the owner class cannot. Warns once when the member is not there.
+         */
+        private static Method find(Class<?> owner, String name, Class<?> result, Class<?>... parameters) {
+            Method method = lookup(owner, name, result, parameters);
+            if (method == null) {
+                warnOnce(name, new NoSuchMethodException(name + " with the expected signature"));
+            }
+            return method;
+        }
+
+        /** The public method with exactly this signature, or null. Never warns. */
+        private static Method lookup(Class<?> owner, String name, Class<?> result, Class<?>... parameters) {
             try {
-                for (Method candidate : owner.getMethods()) {
-                    if (candidate.getName().equals(name) && candidate.getParameterCount() == arity) {
-                        return candidate;
-                    }
-                }
-            } catch (LinkageError t) {
-                warnOnce(name, t);
+                Method method = owner.getMethod(name, parameters);
+                return method.getReturnType() == result ? method : null;
+            } catch (NoSuchMethodException | LinkageError | SecurityException e) {
                 return null;
             }
-            warnOnce(name, new NoSuchMethodException(name + "/" + arity));
-            return null;
         }
     }
 }

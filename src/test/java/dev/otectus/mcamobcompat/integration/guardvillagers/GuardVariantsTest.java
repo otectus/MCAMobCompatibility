@@ -1,5 +1,6 @@
 package dev.otectus.mcamobcompat.integration.guardvillagers;
 
+import dev.otectus.mcamobcompat.McaMobCompat;
 import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.Test;
 
@@ -16,13 +17,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 class GuardVariantsTest {
 
-    private static final ResourceLocation PLAINS = new ResourceLocation("minecraft", "plains");
+    private static final ResourceLocation PLAINS = McaMobCompat.location("minecraft", "plains");
 
     @Test
     void theSevenVanillaNamesPassStraightThrough() {
         for (String variant : new String[]{"desert", "savanna", "swamp", "jungle", "taiga", "snow",
                 "plains"}) {
-            assertEquals(new ResourceLocation("minecraft", variant),
+            assertEquals(McaMobCompat.location("minecraft", variant),
                     GuardVariants.villagerType(variant),
                     "'" + variant + "' is the name of a vanilla villager type and must be used as one.");
         }
@@ -40,7 +41,7 @@ class GuardVariantsTest {
 
     @Test
     void theNameIsNormalisedBeforeItIsMatched() {
-        assertEquals(new ResourceLocation("minecraft", "taiga"), GuardVariants.villagerType("TAIGA"));
-        assertEquals(new ResourceLocation("minecraft", "snow"), GuardVariants.villagerType(" Snow "));
+        assertEquals(McaMobCompat.location("minecraft", "taiga"), GuardVariants.villagerType("TAIGA"));
+        assertEquals(McaMobCompat.location("minecraft", "snow"), GuardVariants.villagerType(" Snow "));
     }
 }

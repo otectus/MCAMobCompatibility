@@ -25,16 +25,21 @@ dev.otectus.mcamobcompat                             2 files
 dev.otectus.mcamobcompat.api                         5 files
 dev.otectus.mcamobcompat.api.event                   3 files
 dev.otectus.mcamobcompat.bridge                      8 files
-dev.otectus.mcamobcompat.classification              5 files
-dev.otectus.mcamobcompat.client                      1 file
+dev.otectus.mcamobcompat.classification              6 files
+dev.otectus.mcamobcompat.client                      2 files
 dev.otectus.mcamobcompat.command                     1 file
-dev.otectus.mcamobcompat.event                       8 files
+dev.otectus.mcamobcompat.event                       13 files
 dev.otectus.mcamobcompat.integration                 2 files
+dev.otectus.mcamobcompat.integration.alexsmobs       1 file
 dev.otectus.mcamobcompat.integration.dragnlivestock  1 file
 dev.otectus.mcamobcompat.integration.geneticanimals  1 file
 dev.otectus.mcamobcompat.integration.guardvillagers  3 files
+dev.otectus.mcamobcompat.integration.icysbetterhorses 2 files
 dev.otectus.mcamobcompat.integration.swem            1 file
-dev.otectus.mcamobcompat.mca                         2 files
+dev.otectus.mcamobcompat.mca                         3 files
+dev.otectus.mcamobcompat.mount                       4 files
+dev.otectus.mcamobcompat.network                     1 file
+dev.otectus.mcamobcompat.threat                      3 files
 dev.otectus.mcamobcompat.util                        2 files
 ```
 
@@ -67,22 +72,44 @@ Run `check_mod.py` for a full consistency check (missing models, lang keys, text
 <!-- MODMAP:AUTO:END — everything below is hand-maintained and preserved -->
 
 
-
-
-
 ## Current focus
 
-_What you are working on right now. One or two lines._
+0.2.1 is implemented, documented and validated on this Forge 1.20.1 build and on the NeoForge 1.21.1
+build (`../1.21.1 Ports/MCAMobCompatibility_1.21.1`), which are one mod held together by
+`scripts/parity.py`. This build is on `main` and the NeoForge build on `neoforge/1.21.1`.
+`docs/VALIDATION.md` records what was run.
 
 ## Roadmap
 
-- [ ] …
+- [x] 0.2.1 (developed as 0.3.0, then 2.1): hidden proxy released and hardened, chore safety, creeper
+      awareness, mount policy, Icy's Better Horses, Alex's Mobs, MCA 7.7
+      (`docs/MCA_MOB_COMPATIBILITY.md` §21), the recruit fix, parity with the NeoForge build
+- [ ] Next: MCA farmer/livestock chores on modded animals
+- [ ] SWEM steering, only if SWEM adopts `docs/UPSTREAM.md`
 
 ## Decisions
 
-_Choices that should not be re-litigated every session (why a system was built a
-certain way, APIs deliberately avoided, balance rules, naming rules)._
+- **Real MCA behaviour, never an emulation.** A bridged guard gets MCA's screen, hearts and family
+  through a real hidden `mca:*_villager` proxy; an imitation screen was built once and rejected.
+- **No mixins, no access transformers, no optional-mod class names.** Only `mca/McaBinding` names MCA
+  classes, as dotted strings. Guard Villagers and Icy's are reached by their own member names.
+- **Nothing deletes a proxy on a timer.** An unloaded partner looks the same as a missing one.
+- **Guard death is relayed only once confirmed** at the end of the server tick (totems, late cancels).
+- **The client learns proxies from the `proxy_pair` channel**, never from entity flags.
+- **Mounts a villager cannot steer are refused**, not faked: SWEM's horse takes orders only from a
+  player (its `getControllingPassenger` and `isVehicle` count only players), and no mixin-free fix
+  exists.
+- **`alexsmobs:villagers` is not extended**: it would make Alex's predators hunt MCA villagers.
+- **Icy's commands need no rule**: its command goals run only while a horse is owned and unridden.
+- **GameTests use `ConfigAccess.override`, never `ConfigValue.set()`**, which races the file watcher.
+- **One mod on two loaders.** Every change lands on both builds; `scripts/parity.py` fails on a file
+  that exists on one side only, a loader-neutral file that is no longer identical, or a
+  loader-specific file changed on one side only.
 
 ## Known issues
 
-_Bugs you know about but have not fixed, with the symptom and any lead._
+- SWEM horses cannot be ridden by villagers; refused under the default `REFUSE` policy.
+- A player killing a proxy by hand, or `guards rebuild`, gives the guard a new MCA villager and loses
+  the old one's memories, hearts and family-tree node. By design; documented in `DATAPACK.md`.
+- Guard Villagers' own guards do not attack creepers, because their `MobBlackList` names creepers
+  by default; this mod does not edit that list.

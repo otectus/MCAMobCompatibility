@@ -76,12 +76,20 @@ class McaBindingTest {
         assertEquals(OptionalInt.empty(), McaBinding.hearts(null, UUID.randomUUID()));
         assertEquals(OptionalInt.empty(), McaBinding.hearts(null, null));
         assertFalse(McaBinding.modHearts(null, null, 5));
+        assertFalse(McaBinding.modHearts(null, null, (long) Integer.MAX_VALUE + 1));
+        assertTrue(McaBinding.heartSnapshot(null).isEmpty());
         assertTrue(McaBinding.moveState(null).isEmpty());
+        // The NeoForge build runs its unit tests with MCA loaded, so the binding may have resolved;
+        // only an unresolved binding must refuse rollback. Either way a null proxy is a no-op.
+        if (!McaBinding.isAvailable()) {
+            assertFalse(McaBinding.canRollbackSpawn());
+        }
+        McaBinding.rollbackSpawn(null);
     }
 
     @Test
     void theBindingReportIsCompleteWhetherOrNotAnythingBound() {
-        assertEquals(11, McaBinding.describeBindings().size(),
+        assertEquals(McaBinding.BINDING_LINES, McaBinding.describeBindings().size(),
                 "Every bound member gets a line, so the diagnostic command can say which one is "
                         + "missing rather than only that something is.");
         assertTrue(McaBinding.describeBindings().stream().allMatch(line -> line.contains(": ")));

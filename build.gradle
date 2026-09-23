@@ -4,17 +4,40 @@ plugins {
     id 'net.minecraftforge.gradle' version '[6.0,6.2)'
 }
 
-version = mod_version
+// <version>+<minecraft>, and a loader in the archive name, exactly as the NeoForge build names its
+// jar: mcamobcompat-forge-0.2.1+1.20.1.jar beside mcamobcompat-neoforge-0.2.1+1.21.1.jar.
+version = "${mod_version}+${minecraft_version}"
 group = mod_group_id
 
 base {
-    archivesName = mod_id
+    archivesName = "${mod_id}-forge"
 }
 
 // Minecraft 1.18+ ships Java 17; target it explicitly (system default JDK may be newer).
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
+
+// GameTests live in their own source set and their own development-only mod, so nothing in them
+// can reach the shipped jar (checkJarContents also refuses the package outright).
+sourceSets {
+    gameTest {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+    // An opt-in production validation driver for disposable test worlds, packaged on its own by
+    // runtimeProbeJar. Never part of the release jar, build or installMod.
+    runtimeProbe {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+configurations {
+    gameTestImplementation.extendsFrom implementation
+    gameTestRuntimeOnly.extendsFrom runtimeOnly
+    runtimeProbeImplementation.extendsFrom implementation
+}
+
 
 minecraft {
     mappings channel: mapping_channel, version: mapping_version
@@ -26,6 +49,13 @@ minecraft {
             workingDirectory project.file('run')
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
+
+            // MCA's mixins ship without a refmap and name Minecraft members by their SRG names,
+            // which a dev run (official names) cannot resolve. Remapping mixin references through
+            // ForgeGradle's SRG-to-official table is what lets MCA, and so every dev run and
+            // GameTest here, start at all.
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
             mods {
                 "${mod_id}" {
                     source sourceSets.main
@@ -42,8 +72,17 @@ minecraft {
             args '--nogui'
         }
 
+        // `gradlew runGameTestServer` runs every GameTest in the mcamobcompat namespace against the
+        // real MCA and Guard Villagers, and exits non-zero if any fails. -PwithSwem, -PwithIcy,
+        // -PwithAlex and -PwithGolems add those mods and enable their own test namespaces.
         gameTestServer {
-            property 'forge.enabledGameTestNamespaces', mod_id
+            workingDirectory project.file('run-gametest')
+            property 'forge.enabledGameTestNamespaces', gameTestNamespaces()
+            mods {
+                mcamobcompat_tests {
+                    source sourceSets.gameTest
+                }
+            }
         }
 
         data {
@@ -54,6 +93,16 @@ minecraft {
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+/** The GameTest namespaces to enable: the core suite, plus one per optional mod flag. */
+def gameTestNamespaces() {
+    def namespaces = [mod_id]
+    if (project.hasProperty('withSwem')) namespaces << 'mcamobcompat_swem'
+    if (project.hasProperty('withIcy')) namespaces << 'mcamobcompat_icy'
+    if (project.hasProperty('withAlex')) namespaces << 'mcamobcompat_alex'
+    if (project.hasProperty('withGolems')) namespaces << 'mcamobcompat_golems'
+    return namespaces.join(',')
+}
 
 repositories {
     // Architectury API (hard runtime dependency of MCA Reborn's Forge build).
@@ -73,6 +122,112 @@ repositories {
     }
 }
 
+// ---------------------------------------------------------------------------------------------
+// Runtime mods for dev runs and GameTests.
+//
+// Every third-party mod jar here is a production jar: Minecraft members are named by SRG name, and
+// its mixins name them the same way -- in @Shadow declarations, and for Loom/Forgix-built mods such
+// as MCA directly in the annotations, with no refmap. fg.deobf remaps bytecode references but not
+// those, so such a mod cannot start in a dev runtime at all. remapDevMods writes a development copy
+// of each jar with every SRG member name (m_123_ / f_123_) rewritten to its official name -- in
+// class constant pools, refmaps and access transformers alike -- using ForgeGradle's own
+// SRG-to-official table. The copies live in build/devmods, are never shipped, and are never a
+// compile dependency: runtimeOnly, from the devModSource configuration alone.
+def devModsDir = layout.buildDirectory.dir('devmods')
+def mcaDevVersion = project.hasProperty('mcaDev77') ? mca_version_77 : mca_version
+configurations {
+    devModSource { transitive = false }
+}
+
+/** Rewrites every SRG member name (m_123_ / f_123_) in one class file's constant pool. */
+static byte[] remapSrgMembers(byte[] bytes, Map<String, String> names, java.util.regex.Pattern srg) {
+    def input = new DataInputStream(new ByteArrayInputStream(bytes))
+    def buffer = new ByteArrayOutputStream(bytes.length + 256)
+    def output = new DataOutputStream(buffer)
+    output.writeInt(input.readInt())
+    output.writeShort(input.readUnsignedShort())
+    output.writeShort(input.readUnsignedShort())
+    int count = input.readUnsignedShort()
+    output.writeShort(count)
+    boolean changed = false
+    for (int i = 1; i < count; i++) {
+        int tag = input.readUnsignedByte()
+        output.writeByte(tag)
+        switch (tag) {
+            case 1:
+                String text = input.readUTF()
+                String renamed = text.replaceAll(srg) { String match -> names.getOrDefault(match, match) }
+                changed |= renamed != text
+                output.writeUTF(renamed)
+                break
+            case 3: case 4:
+                output.writeInt(input.readInt()); break
+            case 5: case 6:
+                output.writeLong(input.readLong()); i++; break
+            case 7: case 8: case 16: case 19: case 20:
+                output.writeShort(input.readUnsignedShort()); break
+            case 9: case 10: case 11: case 12: case 17: case 18:
+                output.writeShort(input.readUnsignedShort()); output.writeShort(input.readUnsignedShort()); break
+            case 15:
+                output.writeByte(input.readUnsignedByte()); output.writeShort(input.readUnsignedShort()); break
+            default:
+                throw new GradleException("Unknown constant-pool tag ${tag}")
+        }
+    }
+    output.write(input.readAllBytes())
+    return changed ? buffer.toByteArray() : bytes
+}
+
+tasks.register('remapDevMods') {
+    description = 'Builds dev-runtime copies of the third-party mod jars with SRG names rewritten to official names.'
+    dependsOn 'createSrgToMcp'
+    def srgToMcp = layout.buildDirectory.file('createSrgToMcp/output.srg')
+    inputs.files(configurations.devModSource)
+    inputs.file(srgToMcp)
+    outputs.dir(devModsDir)
+    doLast {
+        Map<String, String> names = [:]
+        srgToMcp.get().asFile.eachLine { String line ->
+            def parts = line.split(' ')
+            if (line.startsWith('MD: ') && parts.length == 5) {
+                names[parts[1].substring(parts[1].lastIndexOf('/') + 1)] = parts[3].substring(parts[3].lastIndexOf('/') + 1)
+            } else if (line.startsWith('FD: ') && parts.length == 3) {
+                names[parts[1].substring(parts[1].lastIndexOf('/') + 1)] = parts[2].substring(parts[2].lastIndexOf('/') + 1)
+            }
+        }
+        def srg = java.util.regex.Pattern.compile('(?<![A-Za-z0-9_$])[mf]_\\d+_(?![A-Za-z0-9_])')
+        def outDir = devModsDir.get().asFile
+        project.delete(outDir)
+        outDir.mkdirs()
+        configurations.devModSource.files.each { File source ->
+            def target = new File(outDir, source.name.replaceAll(/\.jar$/, '-dev.jar'))
+            int rewritten = 0
+            new java.util.zip.ZipFile(source).withCloseable { zip ->
+                new java.util.zip.ZipOutputStream(new FileOutputStream(target)).withCloseable { out ->
+                    zip.entries().each { entry ->
+                        byte[] bytes = zip.getInputStream(entry).bytes
+                        if (entry.name.endsWith('.class')) {
+                            byte[] remapped = remapSrgMembers(bytes, names, srg)
+                            rewritten += remapped.is(bytes) ? 0 : 1
+                            bytes = remapped
+                        } else if (entry.name.endsWith('refmap.json') || entry.name.endsWith('accesstransformer.cfg')) {
+                            String text = new String(bytes, 'UTF-8')
+                            String renamed = text.replaceAll(srg) { String match -> names.getOrDefault(match, match) }
+                            rewritten += renamed == text ? 0 : 1
+                            bytes = renamed.getBytes('UTF-8')
+                        }
+                        out.putNextEntry(new java.util.zip.ZipEntry(entry.name))
+                        out.write(bytes)
+                        out.closeEntry()
+                    }
+                }
+            }
+            logger.lifecycle("remapDevMods: ${source.name} -> ${target.name} (${rewritten} entries rewritten)")
+        }
+    }
+}
+// ---------------------------------------------------------------------------------------------
+
 /**
  * Adds libs/&lt;name&gt; to the dev run classpath if it is present, skipping it with one line otherwise.
  * libs/ is gitignored (those jars are All Rights Reserved and must not be redistributed), so a
@@ -84,7 +239,7 @@ def devMod(String jarName, boolean byDefault) {
     }
     def jar = file("libs/${jarName}")
     if (jar.exists()) {
-        dependencies.add('runtimeOnly', fg.deobf(files(jar)))
+        dependencies.add('devModSource', files(jar))
         logger.lifecycle("dev run will include ${jarName}")
     } else {
         logger.info("libs/${jarName} not present; dev runs will not include it.")
@@ -100,13 +255,44 @@ dependencies {
     // are identified by their entity-type registry ids, and every behaviour this mod implements
     // reaches them through vanilla APIs (VillagerEntityMCA extends net.minecraft...npc.Villager).
     // NoOptionalModStaticLinkTest fails the build if a compile-time reference ever appears.
-    runtimeOnly fg.deobf("maven.modrinth:minecraft-comes-alive-reborn:${mca_version}")
+    //
+    // -PmcaDev77 launches the 7.7 line (package root forge.net.conczin.mca, registry-backed
+    // personalities) instead, which is how McaBinding is checked against both layouts it supports.
+    //
+    // Not through fg.deobf: MCA is built with Loom and Forgix, and its mixins name Minecraft members
+    // by SRG name in their annotations with no refmap, which fg.deobf does not touch and which a dev
+    // runtime therefore cannot apply. remapDevMods (below) rewrites every SRG member name in a
+    // copy of the jar -- annotations included -- to the official names a dev run uses.
+    devModSource "maven.modrinth:minecraft-comes-alive-reborn:${mcaDevVersion}"
+    if (!project.hasProperty('mcaDev77')) {
+        // Architectury API (Forge) -- MCA 7.6's Forge build needs it on the dev run classpath. This
+        // mod names not one Architectury symbol, so it is never a compile dependency: an accidental
+        // `import dev.architectury.*` stays a compile error. (MCA 7.7 drops Architectury, which is
+        // why mods.toml does not declare it.)
+        devModSource "dev.architectury:architectury-forge:${architectury_version}"
+    }
 
-    // Architectury API (Forge) -- MCA 7.6's Forge build needs it on the dev run classpath. This mod
-    // names not one Architectury symbol, so runtimeOnly rather than implementation: an accidental
-    // `import dev.architectury.*` stays a compile error. (MCA 7.7 drops Architectury, which is why
-    // mods.toml does not declare it.)
-    runtimeOnly fg.deobf("dev.architectury:architectury-forge:${architectury_version}")
+    // Optional mods and their libraries, for dev runs and GameTests only, one flag per mod. Pinned
+    // in gradle.properties; runtime-only so that nothing can ever compile against them.
+    if (project.hasProperty('withSwem') || project.hasProperty('withIcy')) {
+        devModSource "maven.modrinth:geckolib:${dev_geckolib_version}"
+    }
+    if (project.hasProperty('withSwem')) {
+        devModSource "maven.modrinth:playeranimator:${dev_playeranimator_version}"
+    }
+    if (project.hasProperty('withIcy')) {
+        devModSource "maven.modrinth:patchouli:${dev_patchouli_version}"
+        devModSource "maven.modrinth:icys-better-horses:${dev_icys_better_horses_version}"
+    }
+    if (project.hasProperty('withAlex')) {
+        devModSource "maven.modrinth:citadel:${dev_citadel_version}"
+        devModSource "maven.modrinth:alexs-mobs:${dev_alexsmobs_version}"
+    }
+    if (project.hasProperty('withGolems')) {
+        devModSource "maven.modrinth:golemskillcreepers:${dev_golemskillcreepers_version}"
+    }
+    runtimeOnly files({ configurations.devModSource.files.collect { File source ->
+        devModsDir.get().file(source.name.replaceAll(/\.jar$/, '-dev.jar')).asFile } }).builtBy('remapDevMods')
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
@@ -119,17 +305,19 @@ dependencies {
 // the handlers against.
 //
 // Guard Villagers is included by default because its only dependencies are Forge and Minecraft, and
-// because every safety-critical behaviour in 0.1.0 is about it. SWEM (geckolib + playeranimator),
-// DLO (geckolib + patchouli) and Genetic Animals pull dependency trees this build does not provide,
-// so they are opt-in via -PdevExtraMods=true and are really meant to be tested in a real CurseForge
-// instance via `gradlew installMod`.
+// because every safety-critical behaviour is about it. SWEM is not on Modrinth for 1.20.1, so its
+// jar comes from libs/ under -PwithSwem, with GeckoLib and PlayerAnimator fetched above. Genetic
+// Animals and DLO stay opt-in via -PdevExtraMods=true and are meant for a real instance via
+// `gradlew installMod`.
 devMod('guardvillagers-1.20.1-1.6.19.jar', true)
-devMod('swem-1.20.1-1.6.6.jar', false)
+devMod('swem-1.20.1-1.6.6.jar', project.hasProperty('withSwem'))
 devMod('eanimod-0_11_9.jar', false)
 devMod('DragNs_Livestock_Overhaul-1.20.1-3.9.4.jar', false)
 
 test {
     useJUnitPlatform()
+    // The file-reading tests resolve paths against this, so they work from any working directory.
+    systemProperty 'mcamobcompat.projectDir', projectDir.absolutePath
 }
 
 // Expand metadata placeholders into mods.toml / pack.mcmeta at build time.
@@ -138,7 +326,7 @@ tasks.named('processResources', ProcessResources).configure {
             minecraft_version: minecraft_version, minecraft_version_range: minecraft_version_range,
             forge_version: forge_version, forge_version_range: forge_version_range,
             loader_version_range: loader_version_range,
-            mod_id: mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
+            mod_id: mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: project.version.toString(),
             mod_authors: mod_authors, mod_description: mod_description,
     ]
     inputs.properties replaceProperties
@@ -185,14 +373,24 @@ tasks.register('checkJarContents') {
     doLast {
         def forbidden = ['tallestegg/guardvillagers/', 'com/alaharranhonor/swem/',
                          'mokiyoki/enhancedanimals/', 'com/dragn0007/dragnlivestock/',
+                         'icy/betterhorses/', 'com/github/alexthe666/', 'codx/codxlib/',
+                         'dev/terminalmc/golemskillcreepers/',
                          'forge/net/mca/', 'net/mca/', 'forge/net/conczin/mca/',
-                         'net/conczin/mca/', 'dev/architectury/']
+                         'net/conczin/mca/', 'dev/architectury/',
+                         // The GameTest mod is its own source set and must never reach this jar.
+                         'dev/otectus/mcamobcompat/gametest/']
         // Slash form is a real class reference; dotted form is a Class.forName name. Only the
         // allowlisted class may carry the dotted form, and only that exact entry -- no prefixes.
         def forbiddenBytes = ['forge/net/mca', 'net/conczin/mca', 'net/mca/',
                               'tallestegg/guardvillagers', 'com/alaharranhonor/swem',
                               'mokiyoki/enhancedanimals', 'com/dragn0007/dragnlivestock',
-                              'dev/architectury']
+                              'icy/betterhorses', 'com/github/alexthe666', 'codx/codxlib',
+                              'dev/terminalmc/golemskillcreepers', 'dev/architectury',
+                              // Optional mods' dotted names have no exemption, even in McaBinding.
+                              'tallestegg.guardvillagers', 'com.alaharranhonor.swem',
+                              'mokiyoki.enhancedanimals', 'com.dragn0007', 'icy.betterhorses',
+                              'com.github.alexthe666', 'codx.codxlib', 'dev.terminalmc.golemskillcreepers',
+                              'dev.architectury']
         def forbiddenNames = ['forge.net.mca', 'net.conczin.mca', 'net.mca.']
         def reflectionAllowlist = ['dev/otectus/mcamobcompat/mca/McaBinding.class'] as Set
 
@@ -246,7 +444,7 @@ tasks.register('checkJarContents') {
 }
 
 // ForgeGradle reobfuscates in place, so between `jar` and `reobfJar` the archive at
-// build/libs/mcamobcompat-<version>.jar still names Minecraft's members by their official (dev-only)
+// build/libs/mcamobcompat-forge-<version>.jar still names Minecraft's members by their official (dev-only)
 // names, which no production runtime knows. Such a jar looks completely normal and then dies the
 // instant one of our classes touches Minecraft. Both tasks below therefore run after reobfJar and
 // read the finished artifact, and `installMod` exists so copying it by hand is unnecessary.
@@ -281,13 +479,68 @@ tasks.register('verifyReobfJar') {
     }
 }
 
+// Checks what the finished artifact contains, the way a player's instance will see it: metadata
+// expanded, every shipped tag and resource present, nothing from the test or probe source sets,
+// Java 17 class files, and no NeoForge reference. The NeoForge build runs the same checks against its
+// own layout, so the two releases are held to one standard.
+tasks.register('verifyProductionJar') {
+    group = 'verification'
+    description = 'Fails if the built jar is missing shipped resources or carries anything it must not.'
+    dependsOn 'reobfJar'
+    def builtJar = tasks.named('jar', Jar).flatMap { it.archiveFile }
+    inputs.file(builtJar)
+    doLast {
+        def jarFile = builtJar.get().asFile
+        new java.util.zip.ZipFile(jarFile).withCloseable { zip ->
+            def meta = zip.getEntry('META-INF/mods.toml')
+            if (meta == null) {
+                throw new GradleException("${jarFile.name} has no META-INF/mods.toml")
+            }
+            def text = zip.getInputStream(meta).getText('UTF-8')
+            if (text.contains('$' + '{') || !text.contains(project.version.toString()) || !text.contains('modId="forge"')) {
+                throw new GradleException("${jarFile.name}: META-INF/mods.toml is unexpanded or names the wrong version/loader")
+            }
+            ['cattle', 'guard', 'horse', 'humanoid_npc', 'livestock', 'mca_villagers', 'mount', 'npc_threats',
+             'pet', 'pig', 'player_only_mounts', 'poultry', 'sheep'].each {
+                if (zip.getEntry("data/mcamobcompat/tags/entity_types/${it}.json") == null) {
+                    throw new GradleException("${jarFile.name} is missing the entity tag ${it}")
+                }
+            }
+            ['assets/mcamobcompat/lang/en_us.json', 'pack.mcmeta'].each {
+                if (zip.getEntry(it) == null) {
+                    throw new GradleException("${jarFile.name} is missing ${it}")
+                }
+            }
+            zip.entries().each { entry ->
+                if (entry.name.endsWith('.jar') || entry.name.contains('tags/entity_type/')
+                        || entry.name == 'META-INF/neoforge.mods.toml' || entry.name.contains('/gametest/')
+                        || entry.name.contains('/probe/') || entry.name.endsWith('Test.class')) {
+                    throw new GradleException("Unexpected production entry ${entry.name} in ${jarFile.name}")
+                }
+                if (entry.name.endsWith('.class')) {
+                    byte[] bytes = zip.getInputStream(entry).bytes
+                    int major = (bytes[6] & 255) * 256 + (bytes[7] & 255)
+                    if (major != 61) {
+                        throw new GradleException("${entry.name} is not a Java 17 class (major ${major})")
+                    }
+                    def symbols = new String(bytes, 'ISO-8859-1')
+                    if (symbols.contains('net/neoforged') || symbols.contains('net.neoforged')) {
+                        throw new GradleException("${entry.name} references NeoForge")
+                    }
+                }
+            }
+        }
+        logger.lifecycle("Verified production jar: ${jarFile.name}")
+    }
+}
+
 // Installs the finished jar into a mods folder, so nobody has to copy build/libs by hand and race
 // reobfJar for it. Nothing is deleted, but an older mcamobcompat jar left behind is called out,
 // because two of them in one folder is a duplicate-mod error rather than an upgrade.
 tasks.register('installMod') {
     group = 'build'
     description = 'Copies the verified, reobfuscated jar into -PmodsDir=<dir> (or $MCAMOBCOMPAT_MODS_DIR).'
-    dependsOn 'verifyReobfJar'
+    dependsOn 'checkJarContents', 'verifyReobfJar', 'verifyProductionJar'
     def builtJar = tasks.named('jar', Jar).flatMap { it.archiveFile }
     def target = (project.findProperty('modsDir') ?: System.getenv('MCAMOBCOMPAT_MODS_DIR'))?.toString()
     inputs.file(builtJar)
@@ -310,6 +563,37 @@ tasks.register('installMod') {
     }
 }
 
+// A GameTest server that fails to start -- a missing dependency, a mixin error -- still exits 0,
+// which would pass for a green run. So the run is judged by the server's own summary line instead.
+tasks.matching { it.name == 'runGameTestServer' }.configureEach {
+    doLast {
+        def log = file('run-gametest/logs/latest.log')
+        if (!log.exists()) {
+            throw new GradleException("No GameTest log at ${log}; the server did not start.")
+        }
+        def text = log.getText('UTF-8')
+        def passed = text =~ /All (\d+) required tests passed/
+        if (!passed.find()) {
+            def failed = text =~ /(\d+) required tests failed/
+            throw new GradleException(failed.find()
+                    ? "${failed.group(1)} required GameTest(s) failed; see ${log}."
+                    : "The GameTest server never reported a result (did it fail to load?); see ${log}.")
+        }
+        logger.lifecycle("GameTests: all ${passed.group(1)} required tests passed.")
+    }
+}
+
 tasks.named('build').configure {
-    dependsOn 'checkJarContents', 'verifyReobfJar'
+    dependsOn 'checkJarContents', 'verifyReobfJar', 'verifyProductionJar'
+}
+
+// Optional, separately packaged validation driver. Never included by build, jar, or installMod.
+// Reobfuscated like the release jar, because it runs on the same production (SRG-named) runtime.
+tasks.register('runtimeProbeJar', Jar) {
+    archiveClassifier = 'runtime-probe'
+    from sourceSets.runtimeProbe.output
+    finalizedBy 'reobfRuntimeProbeJar'
+}
+reobf {
+    runtimeProbeJar {}
 }

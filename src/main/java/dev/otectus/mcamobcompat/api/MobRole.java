@@ -65,7 +65,7 @@ public enum MobRole {
 
     MobRole(String path) {
         this.path = path;
-        this.tagId = new ResourceLocation(McaMobCompat.MOD_ID, path);
+        this.tagId = McaMobCompat.id(path);
     }
 
     /** The tag file name for this role, without namespace or extension. */

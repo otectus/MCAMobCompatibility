@@ -10,6 +10,7 @@ import net.minecraft.world.entity.EntityType;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Turns an entity (or an entity type) into the set of {@link MobRole}s it belongs to.
@@ -23,6 +24,9 @@ import java.util.Set;
  * </ol>
  */
 public final class TagClassifier {
+
+    /** Provider classes already reported as throwing: one warning each, not one per entity. */
+    private static final Set<Class<?>> WARNED_PROVIDERS = ConcurrentHashMap.newKeySet();
 
     private TagClassifier() {
     }
@@ -47,7 +51,9 @@ public final class TagClassifier {
             return Set.of();
         }
         Set<MobRole> fromTags = rolesFor(entity.getType());
-        if (ProviderRegistry.count() == 0) {
+        // A module switched off must make its mod's entities invisible to providers too, or a tamed
+        // SWEM horse would still come back a mount through TamedMountProvider.
+        if (ProviderRegistry.count() == 0 || ModIntegrations.isSuppressed(entity.getType())) {
             return fromTags;
         }
 
@@ -57,9 +63,12 @@ public final class TagClassifier {
             try {
                 extra = provider.rolesFor(entity);
             } catch (Throwable t) {
-                // A misbehaving third-party provider degrades its own contribution and nothing else.
-                McaMobCompat.LOGGER.warn("Classification provider {} threw; skipping it for this entity",
-                        provider.getClass().getName(), t);
+                // A misbehaving third-party provider degrades its own contribution and nothing else,
+                // and says so once rather than for every entity it is asked about.
+                if (WARNED_PROVIDERS.add(provider.getClass())) {
+                    McaMobCompat.LOGGER.warn("Classification provider {} threw; skipping it where it does",
+                            provider.getClass().getName(), t);
+                }
                 continue;
             }
             if (extra == null || extra.isEmpty()) {

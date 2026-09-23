@@ -45,6 +45,10 @@
     {
       "id": "eanimod:enhanced_horse",
       "required": false
+    },
+    {
+      "id": "#icys-better-horses:breed_horses",
+      "required": false
     }
   ]
 }

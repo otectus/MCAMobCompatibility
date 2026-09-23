@@ -1,0 +1,242 @@
+{
+  "description": "Every third-party artifact MCA: Mob Compatibility 0.2.1 for Forge 1.20.1 was tested against, with the exact file and its SHA-256. It was validated while numbered 2.1; a version in a usedIn entry is the one that run's jar carried. None is a compile dependency and none is shipped. See docs/VALIDATION.md for what each run showed.",
+  "recorded": "2026-09-22",
+  "platform": {
+    "minecraft": "1.20.1",
+    "forge": "47.4.10",
+    "java": "17",
+    "mappings": "official 1.20.1"
+  },
+  "artifacts": [
+    {
+      "name": "MCA Reborn",
+      "modId": "mca",
+      "version": "7.6.20+1.20.1",
+      "source": "Modrinth Maven maven.modrinth:minecraft-comes-alive-reborn:7.6.20+1.20.1",
+      "file": "minecraft-comes-alive-reborn-7.6.20+1.20.1.jar",
+      "bytes": 13023382,
+      "sha256": "6d77a7f54ac4abeb1c655127cc0884039cb0d673324a30a43c45a84806cc34b8",
+      "usedIn": [
+        "GameTests (core, all mods)",
+        "production runtime probe 2.1",
+        "0.3.0 production server"
+      ]
+    },
+    {
+      "name": "MCA Reborn",
+      "modId": "mca",
+      "version": "7.7.1-alpha.2+1.20.1",
+      "source": "Modrinth Maven maven.modrinth:minecraft-comes-alive-reborn:7.7.1-alpha.2+1.20.1",
+      "file": "minecraft-comes-alive-reborn-7.7.1-alpha.2+1.20.1.jar",
+      "bytes": 13384179,
+      "sha256": "ea37239455860eedfdbe0b30338a43d24a7b47af489da180a5b18dd8f167d16d",
+      "usedIn": [
+        "GameTests (core, -PmcaDev77)"
+      ]
+    },
+    {
+      "name": "Architectury API (Forge)",
+      "modId": "architectury",
+      "version": "9.2.14",
+      "source": "Maven dev.architectury:architectury-forge:9.2.14",
+      "file": "architectury-forge-9.2.14.jar",
+      "bytes": 599211,
+      "sha256": "47d5eca3d83aae1ac1d4a70116727715bd7ef4c077d228fee873065cbca94687",
+      "usedIn": [
+        "GameTests with MCA 7.6",
+        "production runtime probe 2.1",
+        "0.3.0 production server"
+      ]
+    },
+    {
+      "name": "Guard Villagers",
+      "modId": "guardvillagers",
+      "version": "1.20.1-1.6.19",
+      "source": "libs/guardvillagers-1.20.1-1.6.19.jar (not redistributable; gitignored)",
+      "file": "guardvillagers-1.20.1-1.6.19.jar",
+      "bytes": 204767,
+      "sha256": "4c48c88144bcd8d47820baa5ca0d0c1cab8984da4ec2ceeb7ed164c27d1266f3",
+      "usedIn": [
+        "GameTests (every run)",
+        "production runtime probe 2.1",
+        "0.3.0 production server"
+      ]
+    },
+    {
+      "name": "SWEM",
+      "modId": "swem",
+      "version": "1.6.6",
+      "source": "libs/swem-1.20.1-1.6.6.jar (All Rights Reserved; gitignored)",
+      "file": "swem-1.20.1-1.6.6.jar",
+      "bytes": 11579704,
+      "sha256": "d11146d3e077a604125fe14efc6a92b04bca1da6b3b5384a76bae693fd04779d",
+      "usedIn": [
+        "GameTests (-PwithSwem)"
+      ]
+    },
+    {
+      "name": "GeckoLib (Forge)",
+      "modId": "geckolib",
+      "version": "4.8.4",
+      "source": "Modrinth version aC5KMoNg",
+      "file": "geckolib-aC5KMoNg.jar",
+      "bytes": 1038209,
+      "sha256": "4518779a31b6c2abb92c98b5ad17ef3d60177df68626bfc86c44de2764913c2b",
+      "usedIn": [
+        "GameTests (-PwithSwem, -PwithIcy)"
+      ]
+    },
+    {
+      "name": "PlayerAnimator (Forge)",
+      "modId": "playeranimator",
+      "version": "1.0.2-rc1+1.20",
+      "source": "Modrinth version xe2EVE6q",
+      "file": "playeranimator-xe2EVE6q.jar",
+      "bytes": 181437,
+      "sha256": "90d9965cb9efdbda29fdc5610be3914cf7008bf5c392ff34f7ab25f96a852691",
+      "usedIn": [
+        "GameTests (-PwithSwem)"
+      ]
+    },
+    {
+      "name": "Patchouli (Forge)",
+      "modId": "patchouli",
+      "version": "1.20.1-85-forge",
+      "source": "Modrinth version 94dtOLgZ",
+      "file": "patchouli-94dtOLgZ.jar",
+      "bytes": 642732,
+      "sha256": "05f7b5d52f6b8f0fd7f8b4822fa07a192d1394d83a264309c9d221d6d4fd21c5",
+      "usedIn": [
+        "GameTests (-PwithIcy)"
+      ]
+    },
+    {
+      "name": "Icy's Better Horses (Forge)",
+      "modId": "icys_better_horses",
+      "version": "1.1.6",
+      "source": "Modrinth version M2ySgx5C",
+      "file": "icys-better-horses-M2ySgx5C.jar",
+      "bytes": 844237,
+      "sha256": "a490c0b6fed763a974bd133713892cc605b015e084771ee1aa07785339c74c44",
+      "usedIn": [
+        "GameTests (-PwithIcy)"
+      ]
+    },
+    {
+      "name": "Citadel (Forge)",
+      "modId": "citadel",
+      "version": "2.6.3",
+      "source": "Modrinth version lTAAe4sZ",
+      "file": "citadel-lTAAe4sZ.jar",
+      "bytes": 3185275,
+      "sha256": "56c7ab87348a5292583aac787b6cf11b5193e77f02af1d17ea75a96f8640b3ce",
+      "usedIn": [
+        "GameTests (-PwithAlex)"
+      ]
+    },
+    {
+      "name": "Alex's Mobs (Forge)",
+      "modId": "alexsmobs",
+      "version": "1.22.9",
+      "source": "Modrinth version XoIASRVU",
+      "file": "alexs-mobs-XoIASRVU.jar",
+      "bytes": 26350793,
+      "sha256": "16bc5bcc19db9029c24f951346ec71098e6f5b0afef96e61894a2e9407aad37c",
+      "usedIn": [
+        "GameTests (-PwithAlex)",
+        "docs/ALEXS_MOBS_AUDIT.md"
+      ]
+    },
+    {
+      "name": "Golems Kill Creepers (Forge)",
+      "modId": "golemskillcreepers",
+      "version": "1.0.0+1.20.1",
+      "source": "Modrinth version 5A4SVFRo",
+      "file": "golemskillcreepers-5A4SVFRo.jar",
+      "bytes": 642951,
+      "sha256": "9348f05bce197d2763c19d2b6823bd5388cd9db3ca829a4b85a83d84ffa86360",
+      "usedIn": [
+        "GameTests (-PwithGolems)"
+      ]
+    },
+    {
+      "name": "MCA: Quests",
+      "modId": "mcaquests",
+      "version": "1.6.6",
+      "source": "sibling project build, /home/otectus/Projects/MCAQuests/build/libs",
+      "file": "mcaquests-1.6.6.jar",
+      "bytes": 2942296,
+      "sha256": "2e5ae915948bb6a3c4927af1872e0676c3b48c69ea6de76c62d1e36137ec3723",
+      "usedIn": [
+        "0.3.0 pre-release production server only (loaded alongside; no client interaction)"
+      ]
+    },
+    {
+      "name": "MCA: Crime",
+      "modId": "mcacrime",
+      "version": "0.7.5",
+      "source": "sibling project build, /home/otectus/Projects/MCACrime/build/libs",
+      "file": "mcacrime-0.7.5.jar",
+      "bytes": 3167980,
+      "sha256": "4915cc2f2606da1a466a727762fbe449eeafaf0604a094d66542570b3fa14fcd",
+      "usedIn": [
+        "0.3.0 pre-release production server only (loaded alongside; no client interaction)"
+      ]
+    },
+    {
+      "name": "MCA: Reputation",
+      "modId": "mcareputation",
+      "version": "0.6.0",
+      "source": "sibling project build, /home/otectus/Projects/MCAReputation/build/libs",
+      "file": "mcareputation-0.6.0.jar",
+      "bytes": 733112,
+      "sha256": "81ed9c32d0e7ab872db5f1c94de8391229f3dcbccda873c2fb8e500637104b7c",
+      "usedIn": [
+        "0.3.0 pre-release production server only (loaded alongside; no client interaction)"
+      ]
+    },
+    {
+      "name": "MCA: Conversations",
+      "modId": "mcaconversations",
+      "version": "1.8.0",
+      "source": "sibling project build, /home/otectus/Projects/MCAConversations/build/libs",
+      "file": "mcaconversations-1.8.0.jar",
+      "bytes": 5100426,
+      "sha256": "51b84bc51a96df4570d8446197a3fa54689d1de7212368346b160a650e16d176",
+      "usedIn": [
+        "0.3.0 pre-release production server only (loaded alongside; no client interaction)"
+      ]
+    },
+    {
+      "name": "Forge installer",
+      "modId": "forge-installer",
+      "version": "1.20.1-47.4.10",
+      "source": "https://maven.minecraftforge.net/net/minecraftforge/forge/1.20.1-47.4.10/forge-1.20.1-47.4.10-installer.jar",
+      "file": "forge-1.20.1-47.4.10-installer.jar",
+      "bytes": 6078070,
+      "sha256": "1912760b4cb6b803d8a826de603c9076b1da71ec2765e9a1f8c1ca78f65278e3",
+      "usedIn": [
+        "production runtime probe 2.1 (--installServer and --installClient)"
+      ]
+    }
+  ],
+  "not_tested_at_runtime": [
+    {
+      "name": "Genetic Animals",
+      "modId": "eanimod",
+      "version": "0.11.9",
+      "file": "libs/eanimod-0_11_9.jar",
+      "sha256": "3cfaf55acb3b7c77058461af0027919e6cbf2e2bac6a3cce98b9d4b61ce2e70e",
+      "note": "Present in libs/ and inspected for entity ids; not loaded in any validation run of this release."
+    },
+    {
+      "name": "DragN's Livestock Overhaul",
+      "modId": "dragnlivestock",
+      "version": null,
+      "file": null,
+      "sha256": null,
+      "note": "Not present; classification relies on its Forge conventional tags and ids recorded in the spec (section 13)."
+    }
+  ],
+  "release": "0.2.1+1.20.1"
+}

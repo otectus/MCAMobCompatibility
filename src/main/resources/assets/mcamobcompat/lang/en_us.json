@@ -1,4 +1,12 @@
 {
   "message.mcamobcompat.conversion_blocked": "Converting an MCA villager into a guard would destroy their family and genetics. Blocked.",
-  "message.mcamobcompat.recruited": "%s is now a guard."
+  "message.mcamobcompat.recruited": "%s is now a guard.",
+  "message.mcamobcompat.proxy_pending": "This guard's MCA identity is still loading. Try again in a moment.",
+  "message.mcamobcompat.recruit.already_guard": "%s is already a guard.",
+  "message.mcamobcompat.recruit.too_young": "%s is too young to be a guard.",
+  "message.mcamobcompat.recruit.hand_occupied": "%s is already holding something. Their hand must be empty to take a weapon.",
+  "message.mcamobcompat.recruit.unavailable": "%s cannot be recruited: MCA's guard profession is not available.",
+  "message.mcamobcompat.mount.player_only": "%2$s only lets a player steer it, so %1$s would just sit there. Not mounting.",
+  "message.mcamobcompat.mount.icy_owned": "%2$s belongs to a player and only carries its owner. %1$s stays on foot.",
+  "message.mcamobcompat.mount.icy_hitched": "%2$s is hitched. Untie it first."
 }

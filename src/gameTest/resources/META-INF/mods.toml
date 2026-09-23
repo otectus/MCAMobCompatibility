@@ -1,0 +1,16 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="GPL-3.0-only"
+
+[[mods]]
+modId="mcamobcompat_tests"
+version="1"
+displayName="MCA: Mob Compatibility GameTests"
+description='''Development-only GameTests for MCA: Mob Compatibility. Never shipped.'''
+
+[[dependencies.mcamobcompat_tests]]
+    modId="mcamobcompat"
+    mandatory=true
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"

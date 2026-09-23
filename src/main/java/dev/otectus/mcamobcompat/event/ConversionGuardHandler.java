@@ -5,7 +5,9 @@ import dev.otectus.mcamobcompat.bridge.GuardProxy;
 import dev.otectus.mcamobcompat.integration.ModIntegrations;
 import dev.otectus.mcamobcompat.integration.guardvillagers.GuardVillagersModule;
 import dev.otectus.mcamobcompat.mca.McaEntities;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -14,7 +16,6 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -51,6 +52,14 @@ import net.minecraftforge.fml.common.Mod;
  * holding a sword or crossbow</em> does nothing, rather than opening MCA's interaction screen. Every
  * other gesture is untouched, and blocking too much here costs one awkward interaction while
  * blocking too little costs somebody their family.
+ *
+ * <p><b>Cancel on both sides, before anything else.</b> Guard Villagers' conversion is not gated
+ * to the server: on the client it also spawns a guard and calls {@code discard()} on the villager.
+ * Cancelling only on the server leaves the client to run that half, and the recruiting player then
+ * sees the villager vanish while the server still has it -- the "invisible villager" a later port
+ * of this mod reintroduced by returning early on the client. The cancel below therefore runs on
+ * both logical sides and precedes every side check; only the recruit and the message, which change
+ * state, are server-only.
  */
 @Mod.EventBusSubscriber(modid = McaMobCompat.MOD_ID)
 public final class ConversionGuardHandler {
@@ -60,12 +69,16 @@ public final class ConversionGuardHandler {
 
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
-        if (!McaEntities.isMcaVillager(event.getTarget())) {
+        // A hidden proxy is a guard's stand-in, not a villager to convert or recruit; clicks on it
+        // are routed by GuardBridgeHandler at HIGHEST and never arrive here uncancelled.
+        if (!McaEntities.isMcaVillager(event.getTarget()) || GuardProxy.isProxy(event.getTarget())) {
             return;
         }
 
         Player player = event.getEntity();
-        if (!player.isCrouching()) {
+        // Both flags: isCrouching is the pose, isShiftKeyDown the key, and they disagree while
+        // swimming or under a slab. Guard Villagers reads the pose; blocking on either is safe.
+        if (!player.isCrouching() && !player.isShiftKeyDown()) {
             return;
         }
 
@@ -98,32 +111,78 @@ public final class ConversionGuardHandler {
                 event.getTarget().getName().getString(), player.getName().getString());
     }
 
+    /** Why a recruit did or did not happen. Each has a message the player sees. */
+    enum Recruitment {
+        RECRUITED("message.mcamobcompat.recruited"),
+        ALREADY_GUARD("message.mcamobcompat.recruit.already_guard"),
+        TOO_YOUNG("message.mcamobcompat.recruit.too_young"),
+        HAND_OCCUPIED("message.mcamobcompat.recruit.hand_occupied"),
+        UNAVAILABLE("message.mcamobcompat.recruit.unavailable");
+
+        private final String messageKey;
+
+        Recruitment(String messageKey) {
+            this.messageKey = messageKey;
+        }
+    }
+
     /**
-     * Turns an MCA villager into an MCA guard in place.
+     * Turns an MCA villager into an MCA guard in place, or says why not.
      *
      * <p>Nothing but the profession and the held item changes: {@code setVillagerData} is MCA's own
      * entry point for a profession change, so MCA updates whatever it keeps alongside it, and every
      * other piece of the villager -- family, genetics, memories, inventory -- is simply left alone.
      * That is the whole difference between this and the conversion it replaces.
+     *
+     * <p>Every precondition is checked before anything changes, so a refused recruit changes
+     * nothing: a child is not armed, a villager already holding something keeps it (the weapon
+     * would otherwise overwrite it), and an existing guard is not recruited twice or handed a
+     * second weapon. The weapon moves as one item with all its data; in creative mode a copy is
+     * given and the player's stack is untouched.
      */
     private static void recruit(Player player, Entity target) {
         if (!(target instanceof Villager villager)) {
             return;
         }
+        Recruitment outcome = recruitOutcome(player, villager);
+        Component name = villager.getName();
+        player.displayClientMessage(Component.translatable(outcome.messageKey, name), true);
+        McaMobCompat.debug("{} tried to recruit {}: {}", player.getName().getString(), name.getString(), outcome);
+    }
+
+    private static Recruitment recruitOutcome(Player player, Villager villager) {
         VillagerProfession profession =
-                ForgeRegistries.VILLAGER_PROFESSIONS.getValue(GuardProxy.GUARD_PROFESSION);
-        if (profession == null) {
+                BuiltInRegistries.VILLAGER_PROFESSION.getOptional(GuardProxy.GUARD_PROFESSION).orElse(null);
+        if (profession == null
+                || !GuardProxy.GUARD_PROFESSION.equals(BuiltInRegistries.VILLAGER_PROFESSION.getKey(profession))) {
             McaMobCompat.LOGGER.warn("No villager profession '{}' is registered, so {} cannot be "
-                            + "recruited as a guard.", GuardProxy.GUARD_PROFESSION,
-                    villager.getName().getString());
-            return;
+                    + "recruited as a guard.", GuardProxy.GUARD_PROFESSION, villager.getName().getString());
+            return Recruitment.UNAVAILABLE;
+        }
+        if (villager.getVillagerData().getProfession() == profession) {
+            return Recruitment.ALREADY_GUARD;
+        }
+        if (villager.isBaby()) {
+            return Recruitment.TOO_YOUNG;
+        }
+        if (!villager.getMainHandItem().isEmpty()) {
+            return Recruitment.HAND_OCCUPIED;
+        }
+        ItemStack weapon = player.getMainHandItem();
+        if (weapon.isEmpty()) {
+            return Recruitment.UNAVAILABLE;
         }
 
+        ItemStack given = player.getAbilities().instabuild ? weapon.copyWithCount(1) : weapon.split(1);
         villager.setVillagerData(villager.getVillagerData().setProfession(profession));
-        villager.setItemSlot(EquipmentSlot.MAINHAND, player.getMainHandItem().split(1));
-        player.displayClientMessage(
-                Component.translatable("message.mcamobcompat.recruited", villager.getName()), true);
-        McaMobCompat.debug("{} recruited {} as an MCA guard",
-                player.getName().getString(), villager.getName().getString());
+        villager.setItemSlot(EquipmentSlot.MAINHAND, given);
+        // MCA builds a villager's behaviours from its profession when the brain is made, and its own
+        // profession change rebuilds the brain; a bare data change does not. Without this the new
+        // guard would keep a civilian's behaviours until it next reloaded. MCA overrides this vanilla
+        // method, and the rebuild keeps every memory.
+        if (villager.level() instanceof ServerLevel level) {
+            villager.refreshBrain(level);
+        }
+        return Recruitment.RECRUITED;
     }
 }

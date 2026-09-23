@@ -32,6 +32,28 @@ public final class ModIds {
     /** DragN's Livestock Overhaul. Entities: {@code dragnlivestock:o_cow}, {@code o_horse}, ... */
     public static final String DRAGN_LIVESTOCK = "dragnlivestock";
 
+    /**
+     * Icy's Better Horses. It mixes into vanilla {@code AbstractHorse}, so its ownership and command
+     * state are reached on vanilla horses. Release 1.1.6 registers no entity of its own; release 2.0
+     * (NeoForge 1.21.1) adds fifteen breeds and a cart under {@link #ICYS_BETTER_HORSES_ENTITIES}.
+     */
+    public static final String ICYS_BETTER_HORSES = "icys_better_horses";
+
+    /**
+     * The namespace Icy's Better Horses 2.0 registers its entities under -- with hyphens, unlike its
+     * mod id: {@code icys-better-horses:arabian_horse}, {@code icys-better-horses:horse_cart}, ...
+     */
+    public static final String ICYS_BETTER_HORSES_ENTITIES = "icys-better-horses";
+
+    /** Alex's Mobs. Entities: {@code alexsmobs:elephant}, {@code alexsmobs:raccoon}, ... */
+    public static final String ALEXS_MOBS = "alexsmobs";
+
+    /**
+     * Golems Kill Creepers. Never integrated with -- only reported on, so a pack can see that its
+     * two gamerules are left exactly as the operator set them.
+     */
+    public static final String GOLEMS_KILL_CREEPERS = "golemskillcreepers";
+
     private ModIds() {
     }
 }

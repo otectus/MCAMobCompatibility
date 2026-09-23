@@ -1,6 +1,7 @@
 package dev.otectus.mcamobcompat;
 
 import net.minecraftforge.common.ForgeConfigSpec;
+import dev.otectus.mcamobcompat.mount.NpcRidingPolicy;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
@@ -47,6 +48,8 @@ public final class McaMobCompatConfig {
         public final ForgeConfigSpec.BooleanValue swemModule;
         public final ForgeConfigSpec.BooleanValue geneticAnimalsModule;
         public final ForgeConfigSpec.BooleanValue dragnLivestockModule;
+        public final ForgeConfigSpec.BooleanValue icysBetterHorsesModule;
+        public final ForgeConfigSpec.BooleanValue alexsMobsModule;
 
         Common(ForgeConfigSpec.Builder builder) {
             builder.comment("General settings.").push("general");
@@ -76,6 +79,13 @@ public final class McaMobCompatConfig {
             dragnLivestockModule = builder
                     .comment("DragN's Livestock Overhaul.")
                     .define("dragnLivestock", true);
+            icysBetterHorsesModule = builder
+                    .comment("Icy's Better Horses (mod id 'icys_better_horses'): its horse owners and",
+                            "commands, for chore protection and for which horses a villager may ride.")
+                    .define("icysBetterHorses", true);
+            alexsMobsModule = builder
+                    .comment("Alex's Mobs (mod id 'alexsmobs').")
+                    .define("alexsMobs", true);
             builder.pop();
         }
     }
@@ -100,9 +110,19 @@ public final class McaMobCompatConfig {
         public final ForgeConfigSpec.BooleanValue protectLeashedAnimals;
         public final ForgeConfigSpec.BooleanValue abandonHuntOnProtectedTarget;
 
+        public final ForgeConfigSpec.BooleanValue creeperAwareness;
+        public final ForgeConfigSpec.IntValue creeperAlertRange;
+        public final ForgeConfigSpec.IntValue swellingFleeRange;
+        public final ForgeConfigSpec.BooleanValue guardsEngageCreepers;
+        public final ForgeConfigSpec.BooleanValue dismountToFlee;
+
+        public final ForgeConfigSpec.EnumValue<NpcRidingPolicy> npcRidingPolicy;
+
         public final ForgeConfigSpec.BooleanValue swemRecognizeAsMounts;
         public final ForgeConfigSpec.BooleanValue geneticAnimalsRecognizeLivestock;
         public final ForgeConfigSpec.BooleanValue dragnLivestockRecognizeLivestock;
+        public final ForgeConfigSpec.BooleanValue icyRecognizeOwnership;
+        public final ForgeConfigSpec.BooleanValue alexsRecognizeAnimals;
 
         Server(ForgeConfigSpec.Builder builder) {
             builder.comment("Guard Villagers interaction.").push("guard_villagers");
@@ -228,6 +248,50 @@ public final class McaMobCompatConfig {
                     .define("abandonHuntOnProtectedTarget", true);
             builder.pop();
 
+            builder.comment("How MCA villagers react to a creeper before it explodes.",
+                            "",
+                            "MCA on its own only notices a creeper lit with flint and steel; one that walks",
+                            "up and swells is unseen until its explosion lands. This gives MCA villagers the",
+                            "same warning through MCA's own panic and guard behaviour -- no creeper, golem or",
+                            "gamerule is changed. Which mobs count is the 'mcamobcompat:npc_threats' entity",
+                            "tag, shipped with minecraft:creeper.")
+                    .push("threats");
+            creeperAwareness = builder
+                    .comment("Let MCA villagers notice and react to threats in 'npc_threats'.")
+                    .define("creeperAwareness", true);
+            creeperAlertRange = builder
+                    .comment("How far, in blocks, a villager notices a threat it can see.")
+                    .defineInRange("creeperAlertRange", 8, 2, 32);
+            swellingFleeRange = builder
+                    .comment("Within this many blocks of a creeper whose fuse is burning, everyone runs --",
+                            "guards included. Doubled for a charged creeper, as its explosion is.")
+                    .defineInRange("swellingFleeRange", 4, 1, 16);
+            guardsEngageCreepers = builder
+                    .comment("Let MCA guards and archers fight a creeper that is not about to explode,",
+                            "instead of running from it. Uses MCA's own guard combat.")
+                    .define("guardsEngageCreepers", true);
+            dismountToFlee = builder
+                    .comment("A mounted villager dismounts to run from a threat. Nothing here can steer a",
+                            "villager's mount, so staying seated means staying put.")
+                    .define("dismountToFlee", true);
+            builder.pop();
+
+            builder.comment("Which mounts an MCA villager may be put on.",
+                            "",
+                            "MCA seats a villager on a horse when a player asks it to, and on a vanilla horse",
+                            "MCA then steers it. Some mounts accept a villager but only ever let a player",
+                            "steer -- SWEM's horses are the known case -- so the villager rides along with no",
+                            "say in where it goes. Those are listed in the 'mcamobcompat:player_only_mounts'",
+                            "entity tag, and integrations can refuse others (an Icy's Better Horses horse",
+                            "that belongs to a player, for example).")
+                    .push("mounts");
+            npcRidingPolicy = builder
+                    .comment("REFUSE: such a mount refuses the villager, and the player who gave the order",
+                            "is told why. ALLOW_INERT: the villager mounts anyway, as a passenger that",
+                            "cannot steer -- the behaviour before 0.2.1.")
+                    .defineEnum("npcRidingPolicy", NpcRidingPolicy.REFUSE);
+            builder.pop();
+
             builder.comment("SWEM (Star Worm Equestrian Mod).").push("swem");
             swemRecognizeAsMounts = builder
                     .comment("Treat SWEM horses as mounts. Breeding, needs, skills and tack stay entirely",
@@ -247,6 +311,23 @@ public final class McaMobCompatConfig {
                     .comment("Treat the O-Animals as livestock. Genders, breeding and genetics all remain",
                             "owned by DragN's Livestock Overhaul itself.")
                     .define("recognizeLivestock", true);
+            builder.pop();
+
+            builder.comment("Icy's Better Horses (mod id 'icys_better_horses').").push("icys_better_horses");
+            icyRecognizeOwnership = builder
+                    .comment("Treat a horse Icy's Better Horses says belongs to a player as owned, so the",
+                            "hunting chore leaves it alone and no villager rides off on it. Icy's keeps",
+                            "other players off an owned horse but does not check villagers. Read only.")
+                    .define("recognizeOwnership", true);
+            builder.pop();
+
+            builder.comment("Alex's Mobs (mod id 'alexsmobs').").push("alexs_mobs");
+            alexsRecognizeAnimals = builder
+                    .comment("Classify Alex's Mobs' animals: ground-rideable ones as mounts, tamed ones as",
+                            "pets. Off, they get no roles at all, though a tamed one is still spared by the",
+                            "hunting chore because it has an owner. Taming, riding and every creature's",
+                            "abilities stay entirely Alex's Mobs'.")
+                    .define("recognizeAnimals", true);
             builder.pop();
         }
     }

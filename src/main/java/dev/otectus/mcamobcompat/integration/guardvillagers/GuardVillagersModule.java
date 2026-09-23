@@ -1,5 +1,6 @@
 package dev.otectus.mcamobcompat.integration.guardvillagers;
 
+import dev.otectus.mcamobcompat.McaMobCompat;
 import dev.otectus.mcamobcompat.McaMobCompatConfig;
 import dev.otectus.mcamobcompat.integration.IntegrationModule;
 import dev.otectus.mcamobcompat.util.ModIds;
@@ -34,7 +35,7 @@ public final class GuardVillagersModule extends IntegrationModule {
      * blocker to match, for free.
      */
     public static final TagKey<Item> CONVERTIBLE_GUARD_ITEMS = TagKey.create(
-            Registries.ITEM, new ResourceLocation(ModIds.GUARD_VILLAGERS, "convertible_guard_items"));
+            Registries.ITEM, McaMobCompat.location(ModIds.GUARD_VILLAGERS, "convertible_guard_items"));
 
     public GuardVillagersModule() {
         super(ModIds.GUARD_VILLAGERS, ModIds.GUARD_VILLAGERS, "Guard Villagers");

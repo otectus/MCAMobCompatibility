@@ -1,0 +1,74 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.8/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Java: 17.0.19, JVM: 17.0.19+10 (Arch Linux), Arch: amd64
+dev run will include guardvillagers-1.20.1-1.6.19.jar
+
+> Task :clean
+
+> Task :compileJava
+/home/otectus/Projects/MCAMobCompatibility/src/main/java/dev/otectus/mcamobcompat/event/ProxyShapeHandler.java:36: warning: [removal] Size in EntityEvent has been deprecated and marked for removal
+    public static void onSize(EntityEvent.Size event) {
+                                         ^
+/home/otectus/Projects/MCAMobCompatibility/src/main/java/dev/otectus/mcamobcompat/McaMobCompat.java:60: warning: [removal] ResourceLocation(String,String) in ResourceLocation has been deprecated and marked for removal
+        return new ResourceLocation(namespace, path);
+               ^
+/home/otectus/Projects/MCAMobCompatibility/src/main/java/dev/otectus/mcamobcompat/McaMobCompat.java:85: warning: [removal] get() in ModLoadingContext has been deprecated and marked for removal
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, McaMobCompatConfig.COMMON_SPEC);
+                         ^
+/home/otectus/Projects/MCAMobCompatibility/src/main/java/dev/otectus/mcamobcompat/McaMobCompat.java:86: warning: [removal] get() in ModLoadingContext has been deprecated and marked for removal
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, McaMobCompatConfig.SERVER_SPEC);
+                         ^
+/home/otectus/Projects/MCAMobCompatibility/src/main/java/dev/otectus/mcamobcompat/McaMobCompat.java:88: warning: [removal] get() in FMLJavaModLoadingContext has been deprecated and marked for removal
+        final IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+                                                         ^
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+5 warnings
+
+> Task :processResources
+> Task :classes
+> Task :jar
+> Task :downloadMcpConfig
+> Task :extractSrg
+> Task :createMcpToSrg
+> Task :reobfJar
+> Task :jarJar SKIPPED
+> Task :reobfJarJar SKIPPED
+
+> Task :compileRuntimeProbeJava
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :processRuntimeProbeResources
+> Task :runtimeProbeClasses
+> Task :runtimeProbeJar
+> Task :reobfRuntimeProbeJar
+> Task :assemble
+> Task :compileTestJava
+> Task :createSrgToMcp
+
+> Task :remapDevMods
+remapDevMods: guardvillagers-1.20.1-1.6.19.jar -> guardvillagers-1.20.1-1.6.19-dev.jar (65 entries rewritten)
+remapDevMods: minecraft-comes-alive-reborn-7.6.20+1.20.1.jar -> minecraft-comes-alive-reborn-7.6.20+1.20.1-dev.jar (351 entries rewritten)
+remapDevMods: architectury-forge-9.2.14.jar -> architectury-forge-9.2.14-dev.jar (91 entries rewritten)
+
+> Task :processTestResources NO-SOURCE
+> Task :testClasses
+> Task :test
+> Task :check
+
+> Task :checkJarContents
+checkJarContents: mcamobcompat-forge-0.2.1+1.20.1.jar is clean (no shaded MCA/optional-mod classes, no foreign package names outside the 1-class allowlist).
+
+> Task :verifyProductionJar
+Verified production jar: mcamobcompat-forge-0.2.1+1.20.1.jar
+
+> Task :verifyReobfJar
+mcamobcompat-forge-0.2.1+1.20.1.jar: reobfuscated (37 classes carry SRG member names).
+
+> Task :build
+
+BUILD SUCCESSFUL in 45s
+19 actionable tasks: 19 executed

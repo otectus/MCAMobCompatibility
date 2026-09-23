@@ -153,6 +153,12 @@ public final class ChoreSafetyHandler {
         }
     }
 
+    /** Forgets the parsed option, so the next attack re-reads it. Called on config reload and stop. */
+    public static void invalidateConfig() {
+        cachedRoles = null;
+        cachedNames = null;
+    }
+
     /** The configured protected roles, parsed once per config change rather than once per attack. */
     private static Set<MobRole> protectedRoles() {
         List<? extends String> names = ConfigAccess.strings(

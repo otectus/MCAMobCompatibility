@@ -14,11 +14,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Pins the version 1 to version 2 migration of the guard identity store.
+ * Pins the version 1 migration of the guard identity store, all the way to the current schema.
  *
- * <p>Version 2 added the hidden MCA proxy, and the migration is supposed to be nothing at all: the
- * new keys are absent in an old file, absent reads as the default, and every old field survives
- * untouched. That claim is easy to make and easy to break with one {@code getCompound} that assumes
+ * <p>Version 2 added the hidden MCA proxy, and migrating a version 1 file is supposed to be nothing
+ * at all: the new keys are absent in an old file, absent reads as the default, and every old field
+ * survives untouched. (Version 3's heart-ledger split has its own test, GuardHeartsAccountingTest.)
+ * That claim is easy to make and easy to break with one {@code getCompound} that assumes
  * a key exists, so the old shape is built by hand here rather than produced by the current writer --
  * a round-trip through today's code would prove nothing about yesterday's file.
  *
@@ -80,7 +81,7 @@ class GuardIdentityDataMigrationTest {
     }
 
     @Test
-    void theNewFieldsSurviveASaveAndLoadAtVersionTwo() {
+    void theNewFieldsSurviveASaveAndLoadAtTheCurrentVersion() {
         GuardIdentityData data = GuardIdentityData.load(versionOneFile());
         GuardIdentityData.Entry entry = data.find(GUARD);
         data.linkProxy(entry, PROXY);
@@ -90,8 +91,9 @@ class GuardIdentityDataMigrationTest {
 
         CompoundTag saved = data.save(new CompoundTag());
         assertEquals(GuardIdentityData.SCHEMA_VERSION, saved.getInt("Version"));
-        assertEquals(2, GuardIdentityData.SCHEMA_VERSION,
-                "The proxy fields are what version 2 means; bumping it again needs its own test.");
+        assertEquals(3, GuardIdentityData.SCHEMA_VERSION,
+                "Version 3 separates balance snapshots from queued changes; bumping it again needs "
+                        + "its own migration test.");
 
         GuardIdentityData.Entry reloaded = GuardIdentityData.load(saved).find(GUARD);
         assertNotNull(reloaded);

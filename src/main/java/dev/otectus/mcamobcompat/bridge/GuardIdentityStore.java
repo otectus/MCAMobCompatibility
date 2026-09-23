@@ -10,7 +10,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
-import net.minecraftforge.common.MinecraftForge;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -75,6 +74,11 @@ public final class GuardIdentityStore {
 
         GuardIdentityData data = get(server);
         UUID uuid = guard.getUUID();
+        // A newer schema is preserved untouched, and a quarantined record is never replaced by a
+        // fresh roll: both are for an operator to look at, not for this mod to paper over.
+        if (data.isReadOnly() || data.isQuarantined(uuid)) {
+            return Optional.empty();
+        }
         GuardIdentityData.Entry existing = data.find(uuid);
         if (existing != null) {
             if (guard.hasCustomName()) {
@@ -102,7 +106,7 @@ public final class GuardIdentityStore {
         GuardIdentity identity = new GuardIdentityView(server, data, entry);
         McaMobCompat.debug("Gave guard {} the identity {} ({}, {})",
                 uuid, name, gender.id(), entry.personality());
-        MinecraftForge.EVENT_BUS.post(new GuardIdentityCreatedEvent(guard, identity));
+        McaMobCompat.post(new GuardIdentityCreatedEvent(guard, identity));
         return Optional.of(identity);
     }
 
@@ -120,17 +124,26 @@ public final class GuardIdentityStore {
 
     /**
      * Points a guard's entry at its hidden proxy villager, or clears the link when {@code proxy} is
-     * null. No-op for a guard with no entry: a proxy for an unknown guard is an orphan, and
-     * {@code GuardProxyHandler} discards it rather than inventing an identity for it.
+     * null. No-op for a guard with no entry, for a read-only store, and when another guard already
+     * owns that proxy -- the link is one-to-one, and a conflict is reported rather than resolved.
+     *
+     * @return whether the store now records exactly this link
      */
-    public static void link(MinecraftServer server, UUID guard, UUID proxy) {
+    public static boolean link(MinecraftServer server, UUID guard, UUID proxy) {
         if (server == null || guard == null) {
-            return;
+            return false;
         }
         GuardIdentityData data = get(server);
         GuardIdentityData.Entry entry = data.find(guard);
-        if (entry != null) {
+        if (entry == null || data.isReadOnly()) {
+            return false;
+        }
+        try {
             data.linkProxy(entry, proxy);
+            return true;
+        } catch (IllegalStateException conflict) {
+            McaMobCompat.LOGGER.warn("Not linking guard {} to proxy {}: {}", guard, proxy, conflict.getMessage());
+            return false;
         }
     }
 
@@ -169,6 +182,22 @@ public final class GuardIdentityStore {
             }
         }
         return null;
+    }
+
+    /**
+     * The pair heartbeat for this guard's identity: flushes queued hearts into MCA and records the
+     * name, personality and balances MCA reports. No-op without an identity or a loaded proxy.
+     */
+    public static void synchronize(Mob guard) {
+        MinecraftServer server = serverFor(guard);
+        if (server == null) {
+            return;
+        }
+        GuardIdentityData data = get(server);
+        GuardIdentityData.Entry entry = data.find(guard.getUUID());
+        if (entry != null) {
+            new GuardIdentityView(server, data, entry).synchronize();
+        }
     }
 
     /** The server this entity belongs to, or null when it is client-side or not in a level yet. */

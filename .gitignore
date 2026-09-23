@@ -34,3 +34,14 @@ libs/
 
 # Session summaries (local notes, not part of the published mod)
 docs/summaries/
+
+# Local NeoForge port workspace, installers and third-party runtime jars (the port lives in its own
+# repository on the neoforge/1.21.1 branch; nothing here belongs in this tree).
+.port-work/
+
+# GameTest server run directory.
+run-gametest/
+
+# Checked-in validation evidence; runtime worlds/JARs remain excluded.
+!docs/validation/*.log
+!docs/validation/**/*.log
