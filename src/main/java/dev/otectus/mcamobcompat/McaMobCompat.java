@@ -3,20 +3,25 @@ package dev.otectus.mcamobcompat;
 import com.mojang.logging.LogUtils;
 import dev.otectus.mcamobcompat.api.MobCompatibilityAPI;
 import dev.otectus.mcamobcompat.classification.ClassificationCache;
+import dev.otectus.mcamobcompat.classification.OwnedAnimalProvider;
 import dev.otectus.mcamobcompat.classification.TamedMountProvider;
+import dev.otectus.mcamobcompat.event.ChoreSafetyHandler;
 import dev.otectus.mcamobcompat.integration.ModIntegrations;
 import dev.otectus.mcamobcompat.mca.McaBinding;
+import dev.otectus.mcamobcompat.network.ProxyPairs;
 import dev.otectus.mcamobcompat.util.ConfigAccess;
 import dev.otectus.mcamobcompat.util.ModIds;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.bus.api.Event;
+import net.neoforged.bus.api.ICancellableEvent;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModList;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
-
+import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 
 /**
@@ -28,11 +33,13 @@ import org.slf4j.Logger;
  *
  * <p>The architectural rule the whole mod rests on: <b>no class in this jar references a type from
  * MCA or from any optional mod, except for dot-form string literals in {@code mca.McaBinding}.</b>
- * Entity identification uses entity-type registry ids, guards are found through tags and commanded
- * through vanilla {@code Mob.setTarget}, and SWEM ownership is read through vanilla
- * {@code AbstractHorse}. There is no mixin, and no way to get a {@code NoClassDefFoundError} out of
- * this mod without breaking this rule -- {@code NoOptionalModStaticLinkTest} and
- * {@code checkJarContents} fail the build if that ever stops being true.
+ * Entity identification uses entity-type registry ids, MCA's brain memories are reached by registry
+ * id, guards are found through tags and commanded through vanilla {@code Mob.setTarget}, and
+ * ownership is read through vanilla {@code AbstractHorse} and {@code OwnableEntity}. Optional mods'
+ * own members are reached by name on their runtime objects only, never by naming a class. There is
+ * no mixin, and no way to get a {@code NoClassDefFoundError} out of this mod without breaking this
+ * rule -- {@code NoOptionalModStaticLinkTest} and {@code checkJarContents} fail the build if that
+ * ever stops being true.
  */
 @Mod(McaMobCompat.MOD_ID)
 public final class McaMobCompat {
@@ -42,7 +49,23 @@ public final class McaMobCompat {
 
     /** A {@link ResourceLocation} in this mod's namespace. */
     public static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
+        return location(MOD_ID, path);
+    }
+
+    /**
+     * A {@link ResourceLocation} in any namespace. The one place this mod builds one, because the
+     * factory is spelled differently on each loader's Minecraft version; everything else calls this.
+     */
+    public static ResourceLocation location(String namespace, String path) {
+        return ResourceLocation.fromNamespaceAndPath(namespace, path);
+    }
+
+    /**
+     * Posts one of this mod's events on the game bus. Returns whether a listener cancelled it --
+     * false for an event that cannot be cancelled.
+     */
+    public static boolean post(Event event) {
+        return NeoForge.EVENT_BUS.post(event) instanceof ICancellableEvent cancellable && cancellable.isCanceled();
     }
 
     /**
@@ -64,8 +87,13 @@ public final class McaMobCompat {
 
         modBus.addListener(this::onCommonSetup);
         modBus.addListener(this::onConfigReload);
-        modBus.addListener((ModConfigEvent.Loading event) -> invalidateConfig());
-        modBus.addListener((ModConfigEvent.Unloading event) -> invalidateConfig());
+        // A config that loads for the first time, or unloads with a world, changes what the cached
+        // answers were computed from just as a reload does.
+        modBus.addListener((ModConfigEvent.Loading event) -> onConfigChanged(event.getConfig().getSpec()));
+        modBus.addListener((ModConfigEvent.Unloading event) -> onConfigChanged(event.getConfig().getSpec()));
+
+        // The client learns which villagers are hidden proxies from this channel alone.
+        modBus.addListener(ProxyPairs::register);
 
         LOGGER.info("MCA: Mob Compatibility initialising (mod id '{}')", MOD_ID);
     }
@@ -76,15 +104,14 @@ public final class McaMobCompat {
      * lookup reflects the new setting.
      */
     private void onConfigReload(ModConfigEvent.Reloading event) {
-        if (event.getConfig().getSpec() == McaMobCompatConfig.COMMON_SPEC
-                || event.getConfig().getSpec() == McaMobCompatConfig.SERVER_SPEC) {
-            invalidateConfig();
-        }
+        onConfigChanged(event.getConfig().getSpec());
     }
 
-    private static void invalidateConfig() {
-        ClassificationCache.invalidate();
-        dev.otectus.mcamobcompat.event.ChoreSafetyHandler.invalidateConfig();
+    private static void onConfigChanged(Object spec) {
+        if (spec == McaMobCompatConfig.COMMON_SPEC || spec == McaMobCompatConfig.SERVER_SPEC) {
+            ClassificationCache.invalidate();
+            ChoreSafetyHandler.invalidateConfig();
+        }
     }
 
     private void onCommonSetup(FMLCommonSetupEvent event) {
@@ -105,6 +132,9 @@ public final class McaMobCompat {
             // than about its type, so no tag can carry it. Registered unconditionally because it is
             // built on vanilla AbstractHorse and is just as true without SWEM installed.
             MobCompatibilityAPI.registerProvider(TamedMountProvider.INSTANCE);
+            // Likewise any animal a player owns is a pet -- a raccoon from Alex's Mobs as much as a
+            // vanilla wolf -- which also puts it under the hunting chore's protection.
+            MobCompatibilityAPI.registerProvider(OwnedAnimalProvider.INSTANCE);
 
             LOGGER.info("MCA: Mob Compatibility ready. MCA villagers recognised as {}.",
                     dev.otectus.mcamobcompat.mca.McaEntities.villagerIds());

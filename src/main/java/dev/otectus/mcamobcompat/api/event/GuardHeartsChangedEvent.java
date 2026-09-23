@@ -7,7 +7,7 @@ import net.neoforged.bus.api.Event;
 import java.util.UUID;
 
 /**
- * Fired on the Forge bus, server side, after a player's hearts with a guard changed.
+ * Fired on the NeoForge bus, server side, after a player's hearts with a guard changed.
  *
  * <p>Both this mod's own hit response and any sibling calling {@link GuardIdentity#modHearts} raise
  * it, so a reputation addon can mirror the change without caring who caused it. Never fired for a

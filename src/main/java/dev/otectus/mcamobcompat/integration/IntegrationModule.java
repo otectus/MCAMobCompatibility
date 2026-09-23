@@ -2,8 +2,8 @@ package dev.otectus.mcamobcompat.integration;
 
 import dev.otectus.mcamobcompat.McaMobCompat;
 import dev.otectus.mcamobcompat.util.ConfigAccess;
-import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.Optional;
 
@@ -15,7 +15,7 @@ import java.util.Optional;
  * datapack tags.
  *
  * <p><b>In 0.1.0 no subclass references a single type from the mod it integrates.</b> Guard
- * Villagers is reached by cancelling Forge events and reading its item tag by id; SWEM ownership is
+ * Villagers is reached by cancelling NeoForge events and reading its item tag by id; SWEM ownership is
  * read through vanilla {@code AbstractHorse}; Genetic Animals and DLO are pure tag data. The
  * subpackages exist because that will not always be true -- when a later version needs to read
  * something only a foreign class can give, this is where the reflective binding goes, and the seam
@@ -36,7 +36,7 @@ public abstract class IntegrationModule {
         this.displayName = displayName;
     }
 
-    /** The Forge mod id, as it appears in the other mod's mods.toml. */
+    /** The mod id, as it appears in the other mod's neoforge.mods.toml. */
     public final String modId() {
         return modId;
     }

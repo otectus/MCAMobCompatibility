@@ -1,0 +1,17 @@
+JUnit results from build/test-results/test after the 0.2.1 build, 2026-09-23
+dev.otectus.mcamobcompat.McaEntityIdTest                               tests=  4 failures=0 errors=0 skipped=0 time=0.025s
+dev.otectus.mcamobcompat.NoOptionalModStaticLinkTest                   tests=  3 failures=0 errors=0 skipped=0 time=0.048s
+dev.otectus.mcamobcompat.RoleCacheTest                                 tests=  4 failures=0 errors=0 skipped=0 time=0.004s
+dev.otectus.mcamobcompat.TagFileValidityTest                           tests=  4 failures=0 errors=0 skipped=0 time=0.01s
+dev.otectus.mcamobcompat.bridge.GuardHeartsAccountingTest              tests=  8 failures=0 errors=0 skipped=0 time=0.032s
+dev.otectus.mcamobcompat.bridge.GuardIdentityDataMigrationTest         tests=  3 failures=0 errors=0 skipped=0 time=0.003s
+dev.otectus.mcamobcompat.bridge.GuardIdentityDataTest                  tests=  4 failures=0 errors=0 skipped=0 time=0.005s
+dev.otectus.mcamobcompat.bridge.GuardNamesTest                         tests=  7 failures=0 errors=0 skipped=0 time=0.014s
+dev.otectus.mcamobcompat.event.ChoreProtectionPolicyTest               tests=  7 failures=0 errors=0 skipped=0 time=0.009s
+dev.otectus.mcamobcompat.integration.guardvillagers.GuardVariantsTest  tests=  3 failures=0 errors=0 skipped=0 time=0.002s
+dev.otectus.mcamobcompat.mca.McaBindingTest                            tests=  6 failures=0 errors=0 skipped=0 time=0.006s
+dev.otectus.mcamobcompat.mca.PersonalityBindingTest                    tests=  2 failures=0 errors=0 skipped=0 time=0.002s
+dev.otectus.mcamobcompat.mount.MountPolicyTest                         tests=  3 failures=0 errors=0 skipped=0 time=0.004s
+dev.otectus.mcamobcompat.network.ProxyPairCodecTest                    tests=  2 failures=0 errors=0 skipped=0 time=0.003s
+dev.otectus.mcamobcompat.threat.ThreatPolicyTest                       tests=  8 failures=0 errors=0 skipped=0 time=0.006s
+TOTAL classes=15 tests=68 failures=0 errors=0 skipped=0

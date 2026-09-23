@@ -1,0 +1,44 @@
+Lang keys: 10 string literals in src/main/java name a key; en_us.json defines 10.
+Missing from en_us.json: none
+Defined but never named: none
+
+check_mod.py reads Forge 1.20.1 projects only; every finding below is a
+Forge 1.20.1 expectation, not a fault of this NeoForge 1.21.1 build.
+
+check_mod — mcamobcompat @ /home/otectus/Projects/1.21.1 Ports/MCAMobCompatibility_1.21.1
+33 errors, 0 warnings, 0 notes
+
+--- ERROR ---
+  structure: Java toolchain is 21; Minecraft 1.20.1 requires Java 17.  [build.gradle]
+  structure: META-INF/mods.toml is missing — the mod will not load.
+  structure: data/mcamobcompat/tags/entity_type/ is the 1.21 folder name and is ignored on 1.20.1. Rename it to tags/entity_types/.  [/home/otectus/Projects/1.21.1 Ports/MCAMobCompatibility_1.21.1/src/main/resources/data/mcamobcompat/tags/entity_type]
+  structure: pack_format is 48; Minecraft 1.20.1 uses 15 for both resources and data.  [/home/otectus/Projects/1.21.1 Ports/MCAMobCompatibility_1.21.1/src/main/resources/pack.mcmeta]
+  version: ModConfigSpec is NeoForge. Forge 1.20.1 uses ForgeConfigSpec.  [McaMobCompatConfig.java:4]
+  version: ModConfigSpec is NeoForge. Forge 1.20.1 uses ForgeConfigSpec.  [IntegrationModule.java:6]
+  version: ModConfigSpec is NeoForge. Forge 1.20.1 uses ForgeConfigSpec.  [ConfigAccess.java:3]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [McaMobCompat.java:15]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [McaMobCompatConfig.java:4]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [GuardHeartsChangedEvent.java:5]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [GuardIdentityCreatedEvent.java:5]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [GuardInteractEvent.java:7]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [GuardInteractions.java:10]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [ClientProxyPairs.java:10]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [ProxyRenderHandler.java:10]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [McaMobCompatCommand.java:53]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [ChoreSafetyHandler.java:13]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [ClassificationReloadHandler.java:5]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [ConversionGuardHandler.java:19]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [GuardBridgeHandler.java:23]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [GuardDamageRelayHandler.java:15]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [GuardDefenseHandler.java:15]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [GuardProxyHandler.java:17]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [MountPolicyHandler.java:15]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [ProxyShapeHandler.java:7]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [ProxySpawnHandler.java:7]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [ServerLifecycleHandler.java:6]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [IntegrationModule.java:5]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [ProxyPairs.java:16]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [ThreatHandler.java:21]
+  version: NeoForge import. This project is Forge 1.20.1 — package root is net.minecraftforge.  [ConfigAccess.java:3]
+  version: That ResourceLocation factory is 1.21+. In 1.20.1 use new ResourceLocation(ns, path).  [McaMobCompat.java:41]
+  version: That is the NeoForge/1.20.5+ networking API. Forge 1.20.1 uses NetworkRegistry.newSimpleChannel + SimpleChannel#registerMessage.  [ProxyPairs.java:10]

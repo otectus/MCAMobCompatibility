@@ -5,7 +5,7 @@ import net.minecraft.world.entity.Mob;
 import net.neoforged.bus.api.Event;
 
 /**
- * Fired on the Forge bus, server side, the first time a guard is given an identity.
+ * Fired on the NeoForge bus, server side, the first time a guard is given an identity.
  *
  * <p>Once per guard for the life of the world, not once per load: the identity is saved data keyed
  * on the guard's UUID, so a guard that unloads and comes back does not fire this again. It is the

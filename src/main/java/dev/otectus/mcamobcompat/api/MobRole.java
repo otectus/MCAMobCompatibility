@@ -13,7 +13,7 @@ import java.util.List;
  * without anyone hardcoding what a cow is.
  *
  * <p>Each role is backed by a datapack entity-type tag at
- * {@code data/mcamobcompat/tags/entity_type/&lt;path&gt;.json}. That is the whole extension story: a
+ * {@code data/mcamobcompat/tags/entity_types/&lt;path&gt;.json}. That is the whole extension story: a
  * modpack author teaches this mod about a mod we have never seen by adding entity ids to a tag, with
  * no code and no recompile. The shipped defaults are just a datapack like any other, loaded at the
  * lowest priority, so a later pack always wins.
@@ -65,7 +65,7 @@ public enum MobRole {
 
     MobRole(String path) {
         this.path = path;
-        this.tagId = ResourceLocation.fromNamespaceAndPath(McaMobCompat.MOD_ID, path);
+        this.tagId = McaMobCompat.id(path);
     }
 
     /** The tag file name for this role, without namespace or extension. */

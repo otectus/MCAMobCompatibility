@@ -1,0 +1,98 @@
+[22Sep2026 21:18:26.284] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgeserver, --fml.neoForgeVersion, 21.1.248, --fml.fmlVersion, 4.0.43, --fml.mcVersion, 1.21.1, --fml.neoFormVersion, 20240808.144430, nogui]
+[22Sep2026 21:18:26.286] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: JVM identified as Eclipse Adoptium OpenJDK 64-Bit Server VM 21.0.12.1+1-LTS
+[22Sep2026 21:18:26.286] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher 11.0.5+main.901c6ea8 starting: java version 21.0.12.1 by Eclipse Adoptium; OS Linux arch amd64 version 7.2.6-1-cachyos
+[22Sep2026 21:18:26.355] [main/INFO] [net.neoforged.fml.loading.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgeserver
+[22Sep2026 21:18:26.387] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.7 Source=union:/tmp/claude-1000/-home-otectus-Projects-MCAMobCompatibility/46df4f3e-647f-45ca-b96e-dcbf2a3d83d2/scratchpad/runtime/neo/server/libraries/net/fabricmc/sponge-mixin/0.15.2+mixin.0.8.7/sponge-mixin-0.15.2+mixin.0.8.7.jar%2373!/ Service=ModLauncher Env=SERVER
+[22Sep2026 21:18:26.576] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "server-1.21.1-20240808.144430-srg.jar" [locator: production server provider +net.neoforged:neoforge:21.1.248:server]
+[22Sep2026 21:18:26.590] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "neoforge-21.1.248-universal.jar" [locator: PathBasedLocator[name=neoforge, paths=[libraries/net/neoforged/neoforge/21.1.248/neoforge-21.1.248-universal.jar]], reader: mod manifest]
+[22Sep2026 21:18:26.596] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "guardvillagers-2.4.12-1.21.1.jar" [locator: {mods folder locator at /tmp/claude-1000/-home-otectus-Projects-MCAMobCompatibility/46df4f3e-647f-45ca-b96e-dcbf2a3d83d2/scratchpad/runtime/neo/server/mods}, reader: mod manifest]
+[22Sep2026 21:18:26.599] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "mca-neoforge-7.7.36-beta.3+1.21.1.jar" [locator: {mods folder locator at /tmp/claude-1000/-home-otectus-Projects-MCAMobCompatibility/46df4f3e-647f-45ca-b96e-dcbf2a3d83d2/scratchpad/runtime/neo/server/mods}, reader: mod manifest]
+[22Sep2026 21:18:26.600] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "mcamobcompat-neoforge-2.0+1.21.1-runtime-probe.jar" [locator: {mods folder locator at /tmp/claude-1000/-home-otectus-Projects-MCAMobCompatibility/46df4f3e-647f-45ca-b96e-dcbf2a3d83d2/scratchpad/runtime/neo/server/mods}, reader: mod manifest]
+[22Sep2026 21:18:26.603] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Found mod file "mcamobcompat-neoforge-2.0+1.21.1.jar" [locator: {mods folder locator at /tmp/claude-1000/-home-otectus-Projects-MCAMobCompatibility/46df4f3e-647f-45ca-b96e-dcbf2a3d83d2/scratchpad/runtime/neo/server/mods}, reader: mod manifest]
+[22Sep2026 21:18:26.678] [main/INFO] [net.neoforged.fml.loading.moddiscovery.locators.JarInJarDependencyLocator/]: Found 2 dependencies adding them to mods collection
+[22Sep2026 21:18:26.678] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Found gamelibrary file "mixinextras-neoforge-0.5.4.jar" [parent: mca-neoforge-7.7.36-beta.3+1.21.1.jar, locator: jarinjar, reader: mod manifest]
+[22Sep2026 21:18:26.678] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/SCAN]: Found library file "net.neoforged.neoforge-coremods-21.1.248.jar" [parent: neoforge-21.1.248-universal.jar, locator: jarinjar, reader: mod manifest]
+[22Sep2026 21:18:26.679] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/]: 
+     Mod List:
+		Name Version (Mod Id)
+
+		Guard Villagers 2.4.12 (guardvillagers)
+		MCA Mob Compatibility isolated runtime validation 1 (mcamobcompat_probe)
+		MCA: Mob Compatibility 2.0+1.21.1 (mcamobcompat)
+		Minecraft 1.21.1 (minecraft)
+		Minecraft Comes Alive 7.7.36-beta.3+1.21.1 (mca)
+		NeoForge 21.1.248 (neoforge)
+[22Sep2026 21:18:26.936] [main/INFO] [mixin/]: Compatibility level set to JAVA_21
+[22Sep2026 21:18:26.944] [main/INFO] [cpw.mods.modlauncher.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgeserver' with arguments [nogui]
+[22Sep2026 21:18:26.965] [main/WARN] [mixin/]: Reference map 'guardvillagers.refmap.json' for guardvillagers.mixins.json could not be read. If this is a development environment you can ignore this message
+[22Sep2026 21:18:26.965] [main/WARN] [mixin/]: Reference map 'mca.refmap.json' for mca.mixins.json could not be read. If this is a development environment you can ignore this message
+[22Sep2026 21:18:27.391] [main/INFO] [MixinExtras|Service/]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.4).
+[22Sep2026 21:18:30.729] [modloading-worker-0/INFO] [net.neoforged.neoforge.common.NeoForgeMod/NEOFORGE-MOD]: NeoForge mod loading, version 21.1.248, for MC 1.21.1
+[22Sep2026 21:18:30.766] [modloading-worker-0/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: MCA: Mob Compatibility initialising (mod id 'mcamobcompat')
+[22Sep2026 21:18:30.996] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Detected Guard Villagers 2.4.12; integration enabled.
+[22Sep2026 21:18:30.997] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: SWEM not installed; integration skipped.
+[22Sep2026 21:18:30.997] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Genetic Animals not installed; integration skipped.
+[22Sep2026 21:18:30.997] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: DragN's Livestock Overhaul not installed; integration skipped.
+[22Sep2026 21:18:31.002] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: MCA binding: root net.conczin.mca, MCA 7.7.36-beta.3+1.21.1, members [personality API: namespaced registry, class: net.conczin.mca.entity.VillagerEntityMCA, VillagerEntityMCA: ok, getVillagerBrain: ok, getCurrentJob: ok, abandonJob: ok, getPersonality: ok, setPersonality: ok, getMemories: ok, getMemoriesForPlayer: ok, getMoveState: ok, getHearts: ok, modHearts: ok].
+[22Sep2026 21:18:31.003] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: MCA: Mob Compatibility ready. MCA villagers recognised as [mca:male_villager, mca:female_villager].
+[22Sep2026 21:18:31.123] [main/INFO] [com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService/]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[22Sep2026 21:18:31.123] [NeoForge Version Check/INFO] [net.neoforged.fml.VersionChecker/]: [guardvillagers] Starting version check at https://api.modrinth.com/updates/H1sntfo8/forge_updates.json
+[22Sep2026 21:18:31.150] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/tmp/claude-1000/-home-otectus-Projects-MCAMobCompatibility/46df4f3e-647f-45ca-b96e-dcbf2a3d83d2/scratchpad/runtime/neo/server/libraries/net/minecraft/server/1.21.1-20240808.144430/server-1.21.1-20240808.144430-srg.jar%23121!/assets/.mcassetsroot' uses unexpected schema
+[22Sep2026 21:18:31.150] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/tmp/claude-1000/-home-otectus-Projects-MCAMobCompatibility/46df4f3e-647f-45ca-b96e-dcbf2a3d83d2/scratchpad/runtime/neo/server/libraries/net/minecraft/server/1.21.1-20240808.144430/server-1.21.1-20240808.144430-srg.jar%23121!/data/.mcassetsroot' uses unexpected schema
+[22Sep2026 21:18:31.489] [NeoForge Version Check/INFO] [net.neoforged.fml.VersionChecker/]: [guardvillagers] Found status: BETA Current: 2.4.12 Target: null
+[22Sep2026 21:18:31.579] [main/INFO] [net.minecraft.server.Main/]: No existing world data, creating new world
+[22Sep2026 21:18:31.585] [main/ERROR] [net.minecraft.server.dedicated.DedicatedServerProperties/]: No key layers in MapLike[{}]
+[22Sep2026 21:18:31.997] [main/INFO] [net.minecraft.world.item.crafting.RecipeManager/]: Loaded 1516 recipes
+[22Sep2026 21:18:32.103] [main/INFO] [net.minecraft.advancements.AdvancementTree/]: Loaded 1621 advancements
+[22Sep2026 21:18:32.446] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Starting minecraft server version 1.21.1
+[22Sep2026 21:18:32.447] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Loading properties
+[22Sep2026 21:18:32.447] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Default game type: SURVIVAL
+[22Sep2026 21:18:32.447] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Generating keypair
+[22Sep2026 21:18:32.487] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Starting Minecraft server on 127.0.0.1:25576
+[22Sep2026 21:18:32.529] [Server thread/INFO] [net.minecraft.server.network.ServerConnectionListener/]: Using epoll channel type
+[22Sep2026 21:18:32.552] [Server thread/WARN] [net.minecraft.server.dedicated.DedicatedServer/]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[22Sep2026 21:18:32.552] [Server thread/WARN] [net.minecraft.server.dedicated.DedicatedServer/]: The server will make no attempt to authenticate usernames. Beware.
+[22Sep2026 21:18:32.552] [Server thread/WARN] [net.minecraft.server.dedicated.DedicatedServer/]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+[22Sep2026 21:18:32.552] [Server thread/WARN] [net.minecraft.server.dedicated.DedicatedServer/]: To change this, set "online-mode" to "true" in the server.properties file.
+[22Sep2026 21:18:32.579] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Preparing level "world"
+[22Sep2026 21:18:32.873] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Preparing start region for dimension minecraft:overworld
+[22Sep2026 21:18:32.888] [Worker-Main-8/INFO] [net.minecraft.server.level.progress.LoggerChunkProgressListener/]: Preparing spawn area: 2%
+[22Sep2026 21:18:32.998] [Server thread/INFO] [net.minecraft.server.level.progress.LoggerChunkProgressListener/]: Time elapsed: 124 ms
+[22Sep2026 21:18:32.999] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Done (0.439s)! For help, type "help"
+[22Sep2026 21:18:33.040] [Server thread/INFO] [net.neoforged.neoforge.server.permission.PermissionAPI/]: Successfully initialized permission handler neoforge:default_handler
+[22Sep2026 21:18:46.051] [Server thread/INFO] [net.minecraft.server.players.PlayerList/]: ProbeTwo[/127.0.0.1:40010] logged in with entity id 1 at (4.5, -60.0, -0.5)
+[22Sep2026 21:18:46.081] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ProbeTwo joined the game
+[22Sep2026 21:18:46.358] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE MOVEMENT_VERIFIED player=ProbeTwo
+[22Sep2026 21:18:46.360] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE PAIR player=ProbeTwo guard=b74f5030-b6cc-40cb-a0ed-d1b8c009f858 proxy=ce5417d1-e982-4369-acd2-54b4d82bc054 hearts=7
+[22Sep2026 21:18:46.369] [Server thread/INFO] [net.minecraft.server.players.PlayerList/]: ProbeOne[/127.0.0.1:40016] logged in with entity id 5 at (10.5, -60.0, 0.5)
+[22Sep2026 21:18:46.378] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ProbeOne joined the game
+[22Sep2026 21:18:46.403] [Server thread/WARN] [net.minecraft.server.network.ServerGamePacketListenerImpl/]: ProbeTwo moved too quickly! 12.0,160.0,3.5
+[22Sep2026 21:18:46.634] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE CLIENT_READY ProbeTwo
+[22Sep2026 21:18:47.048] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE MOVEMENT_VERIFIED player=ProbeOne
+[22Sep2026 21:18:47.049] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE PAIR player=ProbeOne guard=dd19d70c-04a7-4c7d-9722-df042752a0b9 proxy=de84e364-dcbf-4124-a65a-bd5a52981ece hearts=7
+[22Sep2026 21:18:47.176] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE CLIENT_READY ProbeOne
+[22Sep2026 21:18:51.207] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE PROXY_SPECIFIC player=ProbeTwo canceled=false
+[22Sep2026 21:18:51.208] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE PROXY_GENERIC player=ProbeTwo canceled=false
+[22Sep2026 21:18:51.657] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE PROXY_SPECIFIC player=ProbeOne canceled=false
+[22Sep2026 21:18:51.657] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE PROXY_GENERIC player=ProbeOne canceled=false
+[22Sep2026 21:19:01.212] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE RECRUIT_SETUP player=ProbeTwo villager=7f421866-f300-442d-8797-082cc204e50f
+[22Sep2026 21:19:01.652] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE RECRUIT_SETUP player=ProbeOne villager=9715dd41-7a7e-4d7f-bfa7-74ee87bc2823
+[22Sep2026 21:19:05.701] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE RECRUIT_SERVER PASS player=ProbeTwo villager=7f421866-f300-442d-8797-082cc204e50f alive=true profession=mca:guard villagerHand=Probe sword 1 playerHand=empty
+[22Sep2026 21:19:06.142] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE RECRUIT_SERVER PASS player=ProbeOne villager=9715dd41-7a7e-4d7f-bfa7-74ee87bc2823 alive=true profession=mca:guard villagerHand=Probe sword 1 playerHand=empty
+[22Sep2026 21:19:09.716] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE ALREADY_GUARD PASS player=ProbeTwo villager=7f421866-f300-442d-8797-082cc204e50f alive=true profession=mca:guard villagerHand=Probe sword 1 playerHand=Probe sword 2
+[22Sep2026 21:19:10.151] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE ALREADY_GUARD PASS player=ProbeOne villager=9715dd41-7a7e-4d7f-bfa7-74ee87bc2823 alive=true profession=mca:guard villagerHand=Probe sword 1 playerHand=Probe sword 2
+[22Sep2026 21:19:16.292] [Server thread/INFO] [net.minecraft.server.network.ServerGamePacketListenerImpl/]: ProbeTwo lost connection: Disconnected
+[22Sep2026 21:19:16.292] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ProbeTwo left the game
+[22Sep2026 21:19:16.692] [Server thread/INFO] [net.minecraft.server.network.ServerGamePacketListenerImpl/]: ProbeOne lost connection: Disconnected
+[22Sep2026 21:19:16.692] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ProbeOne left the game
+[22Sep2026 21:19:17.191] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Stopping the server
+[22Sep2026 21:19:17.241] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Stopping server
+[22Sep2026 21:19:17.241] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving players
+[22Sep2026 21:19:17.241] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving worlds
+[22Sep2026 21:19:17.322] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[22Sep2026 21:19:17.334] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_end
+[22Sep2026 21:19:17.334] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_nether
+[22Sep2026 21:19:17.336] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[22Sep2026 21:19:17.336] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[22Sep2026 21:19:17.336] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[22Sep2026 21:19:17.336] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage: All dimensions are saved

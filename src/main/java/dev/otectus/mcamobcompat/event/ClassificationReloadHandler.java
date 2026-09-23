@@ -2,9 +2,9 @@ package dev.otectus.mcamobcompat.event;
 
 import dev.otectus.mcamobcompat.McaMobCompat;
 import dev.otectus.mcamobcompat.classification.ClassificationCache;
-import net.neoforged.neoforge.event.TagsUpdatedEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.TagsUpdatedEvent;
 
 /**
  * Drops the classification cache whenever the tags behind it change.

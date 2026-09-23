@@ -5,39 +5,18 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.Pose;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.neoforged.neoforge.event.EventHooks;
 
 /**
- * The one gesture the bridge hands straight back to Guard Villagers: the crouch click.
+ * The two ways the bridge replays a click: onto the guard's own Guard Villagers gesture, and onto
+ * an entity after the NeoForge hooks have already been offered.
  *
  * <p>It lives here rather than in {@code GuardBridgeHandler} so that the event handler stays a
- * router -- it decides which gesture happened, this decides what the gesture means. Everything else
- * a click can mean is MCA's own, and reaches MCA through the hidden proxy villager rather than
- * through any code of ours.
+ * router -- it decides which gesture happened, this decides what the gesture means.
  */
 public final class GuardInteractions {
-
-    /** Player.interactOn's 1.21.1 item/creative fallback, after the caller already posted its hook. */
-    public static InteractionResult interactAfterHook(ServerPlayer player, Mob target, InteractionHand hand) {
-        net.minecraft.world.item.ItemStack held = player.getItemInHand(hand);
-        net.minecraft.world.item.ItemStack before = held.copy();
-        InteractionResult result = target.interact(player, hand);
-        if (result.consumesAction()) {
-            if (player.getAbilities().instabuild && held == player.getItemInHand(hand) && held.getCount() < before.getCount()) held.setCount(before.getCount());
-            if (!player.getAbilities().instabuild && held.isEmpty()) net.neoforged.neoforge.event.EventHooks.onPlayerDestroyItem(player, before, hand);
-            return result;
-        }
-        if (held.isEmpty()) return InteractionResult.PASS;
-        net.minecraft.world.item.ItemStack item = player.getAbilities().instabuild ? before : held;
-        result = item.interactLivingEntity(player, target, hand);
-        if (result.consumesAction()) {
-            player.level().gameEvent(net.minecraft.world.level.gameevent.GameEvent.ENTITY_INTERACT, target.position(), net.minecraft.world.level.gameevent.GameEvent.Context.of(player));
-            if (item.isEmpty() && !player.getAbilities().instabuild) {
-                net.neoforged.neoforge.event.EventHooks.onPlayerDestroyItem(player, before, hand);
-                player.setItemInHand(hand, net.minecraft.world.item.ItemStack.EMPTY);
-            }
-        }
-        return result;
-    }
 
     private GuardInteractions() {
     }
@@ -46,18 +25,12 @@ public final class GuardInteractions {
      * Runs Guard Villagers' own right-click on this guard, as though the player were standing up.
      *
      * <p>This is the gesture swap. Guard Villagers opens its inventory only when the player is
-     * <em>not</em> sneaking, and we have given the plain click to MCA -- so the crouch click has to
-     * be replayed with the shift flag down. The flag and the pose are cleared for the length of
+     * <em>not</em> sneaking, and the plain click belongs to MCA -- so the crouch click has to be
+     * replayed with the shift flag down. The flag and the pose are cleared for the length of
      * exactly one call and restored in {@code finally}, including when the guard's own handler
      * throws.
-     *
-     * <p>No recursion: Forge fires {@code PlayerInteractEvent.EntityInteract} from
-     * {@code Player#interactOn}, not from {@code Mob#interact}, so calling {@code interact} here
-     * does not re-enter this handler. The caller cancels the outer event with the result, which is
-     * what stops vanilla calling {@code interact} a second time.
      */
-    public static InteractionResult delegateToGuardVillagers(ServerPlayer player, Mob guard,
-                                                             InteractionHand hand) {
+    public static InteractionResult delegateToGuardVillagers(ServerPlayer player, Mob guard, InteractionHand hand) {
         boolean shift = player.isShiftKeyDown();
         Pose pose = player.getPose();
         try {
@@ -68,5 +41,41 @@ public final class GuardInteractions {
             player.setShiftKeyDown(shift);
             player.setPose(pose);
         }
+    }
+
+    /**
+     * Vanilla's {@code Player.interactOn}, minus its {@code EntityInteract} hook, which the caller
+     * has already offered: the entity's own {@code interact}, then the held item's
+     * {@code interactLivingEntity}, with vanilla's creative-mode stack restoration and NeoForge's
+     * destroyed-item event. Replaying it by hand means an addon listening for the hook sees one
+     * click, not two.
+     */
+    public static InteractionResult interactAfterHook(ServerPlayer player, Mob target, InteractionHand hand) {
+        ItemStack held = player.getItemInHand(hand);
+        ItemStack before = held.copy();
+        InteractionResult result = target.interact(player, hand);
+        if (result.consumesAction()) {
+            if (player.getAbilities().instabuild && held == player.getItemInHand(hand)
+                    && held.getCount() < before.getCount()) {
+                held.setCount(before.getCount());
+            }
+            if (!player.getAbilities().instabuild && held.isEmpty()) {
+                EventHooks.onPlayerDestroyItem(player, before, hand);
+            }
+            return result;
+        }
+        if (held.isEmpty()) {
+            return InteractionResult.PASS;
+        }
+        ItemStack item = player.getAbilities().instabuild ? before : held;
+        result = item.interactLivingEntity(player, target, hand);
+        if (result.consumesAction()) {
+            player.level().gameEvent(GameEvent.ENTITY_INTERACT, target.position(), GameEvent.Context.of(player));
+            if (item.isEmpty() && !player.getAbilities().instabuild) {
+                EventHooks.onPlayerDestroyItem(player, before, hand);
+                player.setItemInHand(hand, ItemStack.EMPTY);
+            }
+        }
+        return result;
     }
 }

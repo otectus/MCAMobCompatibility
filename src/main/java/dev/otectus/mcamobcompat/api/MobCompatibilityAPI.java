@@ -4,6 +4,7 @@ import dev.otectus.mcamobcompat.bridge.GuardBridge;
 import dev.otectus.mcamobcompat.bridge.GuardIdentityStore;
 import dev.otectus.mcamobcompat.classification.ProviderRegistry;
 import dev.otectus.mcamobcompat.classification.TagClassifier;
+import dev.otectus.mcamobcompat.integration.ModIntegrations;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -65,7 +66,7 @@ public final class MobCompatibilityAPI {
      *
      * <p><b>This call may create the identity</b> if the guard does not have one yet, which stores
      * it, may set the guard's custom name, and fires
-     * {@link dev.otectus.mcamobcompat.api.event.GuardIdentityCreatedEvent} on the Forge bus. Call it
+     * {@link dev.otectus.mcamobcompat.api.event.GuardIdentityCreatedEvent} on the game event bus. Call it
      * from a listener for that event only with that re-entry in mind.
      *
      * <p>Always empty on the client, and always empty for anything
@@ -97,7 +98,8 @@ public final class MobCompatibilityAPI {
     /**
      * The owning player's UUID, if this entity has one and reports it through vanilla.
      *
-     * <p>Strictly read-only, and deliberately vanilla-only. It works for SWEM horses because
+     * <p>Strictly read-only. Vanilla first, then Icy's Better Horses' own owner on the same horse,
+     * read by method name when that module is active. It works for SWEM horses because
      * {@code SWEMHorseEntityBase extends AbstractHorse} and overrides the vanilla owner accessors,
      * and for the same reason it works for DragN's equines, vanilla horses, and tamed cats and
      * wolves -- without this jar naming a single class from any of those mods. Ownership is the
@@ -105,7 +107,9 @@ public final class MobCompatibilityAPI {
      */
     public static Optional<UUID> getOwner(Entity entity) {
         if (entity instanceof AbstractHorse horse) {
-            return Optional.ofNullable(horse.getOwnerUUID());
+            UUID vanilla = horse.getOwnerUUID();
+            // Icy's Better Horses keeps an owner of its own on the same vanilla horse, read by name.
+            return vanilla != null ? Optional.of(vanilla) : ModIntegrations.icysBetterHorses().owner(horse);
         }
         if (entity instanceof OwnableEntity ownable) {
             return Optional.ofNullable(ownable.getOwnerUUID());

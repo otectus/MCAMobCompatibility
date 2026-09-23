@@ -1,0 +1,121 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.12/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :createMinecraftArtifacts UP-TO-DATE
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :compileGameTestJava UP-TO-DATE
+> Task :processGameTestResources UP-TO-DATE
+> Task :gameTestClasses UP-TO-DATE
+> Task :downloadAssets UP-TO-DATE
+> Task :writeGameTestServerLegacyClasspath UP-TO-DATE
+> Task :prepareGameTestServerRun
+
+> Task :runGameTestServer
+WARN StatusConsoleListener Advanced terminal features are not available in this environment
+[23:44:23] [main/INFO] [cp.mo.mo.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgeserverdev, --gameDir, ., --fml.fmlVersion, 4.0.43, --fml.mcVersion, 1.21.1, --fml.neoForgeVersion, 21.1.248, --fml.neoFormVersion, 20240808.144430]
+[23:44:23] [main/INFO] [cp.mo.mo.Launcher/MODLAUNCHER]: JVM identified as Eclipse Adoptium OpenJDK 64-Bit Server VM 21.0.12.1+1-LTS
+[23:44:23] [main/INFO] [cp.mo.mo.Launcher/MODLAUNCHER]: ModLauncher 11.0.5+main.901c6ea8 starting: java version 21.0.12.1 by Eclipse Adoptium; OS Linux arch amd64 version 7.2.6-1-cachyos
+[23:44:23] [main/INFO] [ne.ne.fm.lo.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgeserverdev
+[23:44:23] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.7 Source=union:/home/otectus/.gradle/caches/modules-2/files-2.1/net.fabricmc/sponge-mixin/0.15.2+mixin.0.8.7/2af2f021d8e02a0220dc27a7a72b4666d66d44ca/sponge-mixin-0.15.2+mixin.0.8.7.jar%2394!/ Service=ModLauncher Env=SERVER
+[23:44:23] [main/INFO] [ne.ne.fm.lo.mo.lo.JarInJarDependencyLocator/]: Found 2 dependencies adding them to mods collection
+[23:44:23] [main/INFO] [ne.ne.fm.lo.mo.ModDiscoverer/]: 
+     Mod List:
+		Name Version (Mod Id)
+
+		Alex's Mobs Continued 2.2.2 (alexsmobs)
+		CodxLib 1.6.1 (codxlib)
+		Guard Villagers 2.4.12 (guardvillagers)
+		MCA: Mob Compatibility 2.1+1.21.1 (mcamobcompat)
+		MCA: Mob Compatibility GameTests 1 (mcamobcompat_tests)
+		Minecraft 1.21.1 (minecraft)
+		Minecraft Comes Alive 7.7.36-beta.3+1.21.1 (mca)
+		NeoForge 21.1.248 (neoforge)
+[23:44:23] [main/INFO] [mixin/]: Compatibility level set to JAVA_21
+[23:44:23] [main/INFO] [cp.mo.mo.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgeserverdev' with arguments [--gameDir, .]
+[23:44:23] [main/WARN] [mixin/]: Reference map 'guardvillagers.refmap.json' for guardvillagers.mixins.json could not be read. If this is a development environment you can ignore this message
+[23:44:23] [main/WARN] [mixin/]: Reference map 'mca.refmap.json' for mca.mixins.json could not be read. If this is a development environment you can ignore this message
+[23:44:24] [main/INFO] [MixinExtras|Service/]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.4).
+[23:44:27] [main/WARN] [minecraft/Commands]: Ambiguity between arguments [teleport, location] and [teleport, destination] with inputs: [0.1 -0.5 .9, 0 0 0]
+[23:44:27] [main/WARN] [minecraft/Commands]: Ambiguity between arguments [teleport, location] and [teleport, targets] with inputs: [0.1 -0.5 .9, 0 0 0]
+[23:44:27] [main/WARN] [minecraft/Commands]: Ambiguity between arguments [teleport, destination] and [teleport, targets] with inputs: [Player, 0123, @e, dd12be42-52a9-4a91-a8a1-11c01849e498]
+[23:44:27] [main/WARN] [minecraft/Commands]: Ambiguity between arguments [teleport, targets] and [teleport, destination] with inputs: [Player, 0123, dd12be42-52a9-4a91-a8a1-11c01849e498]
+[23:44:27] [main/WARN] [minecraft/Commands]: Ambiguity between arguments [teleport, targets, location] and [teleport, targets, destination] with inputs: [0.1 -0.5 .9, 0 0 0]
+[23:44:27] [modloading-worker-0/INFO] [ne.ne.ne.co.NeoForgeMod/NEOFORGE-MOD]: NeoForge mod loading, version 21.1.248, for MC 1.21.1
+codxlib: common init complete (v1.6.1).
+[23:44:27] [modloading-worker-0/INFO] [de.ot.mc.McaMobCompat/]: MCA: Mob Compatibility initialising (mod id 'mcamobcompat')
+[23:44:28] [NeoForge Version Check/INFO] [ne.ne.fm.VersionChecker/]: [guardvillagers] Starting version check at https://api.modrinth.com/updates/H1sntfo8/forge_updates.json
+[23:44:28] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: Detected Guard Villagers 2.4.12; integration enabled.
+[23:44:28] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: SWEM not installed; integration skipped.
+[23:44:28] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: Genetic Animals not installed; integration skipped.
+[23:44:28] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: DragN's Livestock Overhaul not installed; integration skipped.
+[23:44:28] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: Icy's Better Horses not installed; integration skipped.
+[23:44:28] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: Detected Alex's Mobs 2.2.2; integration enabled.
+[23:44:28] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: MCA binding: root net.conczin.mca, MCA 7.7.36-beta.3+1.21.1, members [VillagerEntityMCA: ok, getVillagerBrain: ok, getCurrentJob: ok, abandonJob: ok, getPersonality: ok, setPersonality: ok, getMemories: ok, getMemoriesForPlayer: ok, getMoveState: ok, getHearts: ok, modHearts: ok, setHearts: ok, personality shape: registry (MCA 7.7), FamilyTree rollback: ok].
+[23:44:28] [modloading-sync-worker/INFO] [de.ot.mc.McaMobCompat/]: MCA: Mob Compatibility ready. MCA villagers recognised as [mca:female_villager, mca:male_villager].
+[23:44:28] [main/INFO] [mojang/YggdrasilAuthenticationService]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[23:44:28] [main/WARN] [ne.ne.ne.co.CommonHooks/WP]: The following mods have version differences that were not resolved:
+alexsmobs (version 1.22.17 -> 2.2.2)
+citadel (version 2.7.6 -> MISSING)
+geckolib (version 4.7.5.1 -> MISSING)
+golemskillcreepers (version 1.0.0+1.21.1 -> MISSING)
+icys_better_horses (version 2.0.0 -> MISSING)
+modonomicon (version 1.120.4 -> MISSING)
+playeranimator (version 2.0.4+1.21.1 -> MISSING)
+swem (version 1.6.12 -> MISSING)
+Things may not work well.
+[23:44:28] [main/WARN] [minecraft/VanillaPackResourcesBuilder]: Assets URL 'union:/home/otectus/Projects/1.21.1%20Ports/MCAMobCompatibility_1.21.1/build/moddev/artifacts/neoforge-21.1.248.jar%23126!/assets/.mcassetsroot' uses unexpected schema
+[23:44:28] [main/WARN] [minecraft/VanillaPackResourcesBuilder]: Assets URL 'union:/home/otectus/Projects/1.21.1%20Ports/MCAMobCompatibility_1.21.1/build/moddev/artifacts/neoforge-21.1.248.jar%23126!/data/.mcassetsroot' uses unexpected schema
+[23:44:28] [main/INFO] [ne.ne.ne.ga.GameTestHooks/]: Enabled Gametest Namespaces: [mcamobcompat, mcamobcompat_alex]
+[23:44:28] [NeoForge Version Check/INFO] [ne.ne.fm.VersionChecker/]: [guardvillagers] Found status: BETA Current: 2.4.12 Target: null
+[23:44:28] [Worker-Main-3/WARN] [minecraft/ReloadableServerRegistries]: Found loot table element validation problem in {minecraft:loot_table:alexsmobs:gameplay/seal_reward}.pools[0].entries[0]->{minecraft:gameplay/fishing/junk}.pools[0].entries[12].condition[0]: Parameters [<parameter minecraft:origin>] are not provided in this context
+[23:44:29] [Worker-Main-3/INFO] [co.gi.al.al.AlexsMobs/]: Adding datapack listener capsid_recipes
+[23:44:29] [main/INFO] [minecraft/RecipeManager]: Loaded 1601 recipes
+[23:44:29] [main/INFO] [minecraft/AdvancementTree]: Loaded 1728 advancements
+[23:44:29] [Server thread/WARN] [ne.ne.ne.se.ServerLifecycleHooks/]: Detected alexsmobs:stradpole that was registered with WATER_AMBIENT mob category but was added under WATER_CREATURE mob category for minecraft:basalt_deltas biome! Mobs should be added to biomes under the same mob category that the mob was registered as to prevent mob cap spawning issues.
+[23:44:29] [Server thread/WARN] [ne.ne.ne.se.ServerLifecycleHooks/]: Detected alexsmobs:skreecher that was registered with CREATURE mob category but was added under MONSTER mob category for minecraft:deep_dark biome! Mobs should be added to biomes under the same mob category that the mob was registered as to prevent mob cap spawning issues.
+[23:44:29] [Server thread/INFO] [minecraft/MinecraftServer]: Preparing start region for dimension minecraft:overworld
+[23:44:29] [worldgen/INFO] [minecraft/LoggerChunkProgressListener]: Preparing spawn area: 2%
+[23:44:29] [Server thread/INFO] [minecraft/LoggerChunkProgressListener]: Time elapsed: 76 ms
+[23:44:30] [Server thread/INFO] [minecraft/GameTestServer]: Started game test server
+[23:44:30] [Server thread/INFO] [ne.ne.ne.se.pe.PermissionAPI/]: Successfully initialized permission handler neoforge:default_handler
+[23:44:30] [Server thread/INFO] [minecraft/GameTestServer]: 30 tests are now running at position -3034733, -59, 10715000!
+[23:44:30] [Server thread/INFO] [minecraft/GameTestRunner]: Running test batch 'defaultBatch:0' (29 tests)...
+[23:44:30] [Server thread/INFO] [minecraft/GameTestServer]: [                              ]
+[23:44:30] [Server thread/INFO] [minecraft/Villager]: Villager VillagerEntityMCA['Hesper'/31, l='ServerLevel[Test Level]', x=-3034643.50, y=-59.00, z=10715027.50] died, message: 'Hesper was killed'
+[23:44:30] [Server thread/INFO] [minecraft/LivingEntity]: Named entity VillagerEntityMCA['Hesper'/31, l='ServerLevel[Test Level]', x=-3034643.50, y=-59.00, z=10715027.50] died: Hesper was killed
+[23:44:31] [Server thread/INFO] [minecraft/LivingEntity]: Named entity Guard['Sabine'/42, l='ServerLevel[Test Level]', x=-3034664.50, y=-59.00, z=10715049.50] died: Sabine died
+[23:44:31] [Server thread/INFO] [minecraft/Villager]: Villager VillagerEntityMCA['Sabine'/43, l='ServerLevel[Test Level]', x=-3034664.50, y=-59.00, z=10715049.50] died, message: 'Sabine died'
+[23:44:31] [Server thread/INFO] [minecraft/LivingEntity]: Named entity VillagerEntityMCA['Sabine'/43, l='ServerLevel[Test Level]', x=-3034664.50, y=-59.00, z=10715049.50] died: Sabine died
+[23:44:31] [Server thread/INFO] [minecraft/GameTestServer]: [++++++_  +_+_++  ++_          ]
+[23:44:31] [Server thread/INFO] [minecraft/GameTestServer]: [++++++++++_+_+++++++_++++++++ ]
+[23:44:31] [Server thread/INFO] [minecraft/GameTestServer]: [++++++++++_+_++++++++++++++++ ]
+[23:44:31] [Server thread/INFO] [minecraft/GameTestServer]: [++++++++++_++++++++++++++++++ ]
+[23:44:31] [Server thread/INFO] [minecraft/GameTestServer]: [++++++++++_++++++++++++++++++ ]
+[23:44:31] [Server thread/INFO] [minecraft/GameTestServer]: [++++++++++_++++++++++++++++++ ]
+[23:44:31] [Server thread/INFO] [minecraft/GameTestServer]: [++++++++++_++++++++++++++++++ ]
+[23:44:31] [Server thread/INFO] [minecraft/GameTestServer]: [++++++++++_++++++++++++++++++ ]
+[23:44:31] [Server thread/INFO] [minecraft/GameTestServer]: [++++++++++_++++++++++++++++++ ]
+[23:44:31] [Server thread/INFO] [minecraft/GameTestServer]: [++++++++++_++++++++++++++++++ ]
+[23:44:31] [Server thread/INFO] [minecraft/GameTestServer]: [++++++++++_++++++++++++++++++ ]
+[23:44:31] [Server thread/INFO] [minecraft/GameTestRunner]: Running test batch 'mcamobcompat_rebuild:0' (1 tests)...
+[23:44:31] [Server thread/INFO] [minecraft/GameTestServer]: [+++++++++++++++++++++++++++++ ]
+[23:44:31] [Server thread/INFO] [minecraft/GameTestServer]: [++++++++++++++++++++++++++++++]
+[23:44:31] [Server thread/INFO] [minecraft/GameTestServer]: ========= 30 GAME TESTS COMPLETE IN 1.481 s ======================
+[23:44:31] [Server thread/INFO] [minecraft/GameTestServer]: All 30 required tests passed :)
+[23:44:31] [Server thread/INFO] [minecraft/GameTestServer]: ====================================================
+[23:44:31] [Server thread/INFO] [minecraft/MinecraftServer]: Stopping server
+[23:44:31] [Server thread/INFO] [minecraft/MinecraftServer]: Saving players
+[23:44:31] [Server thread/INFO] [minecraft/MinecraftServer]: Saving worlds
+[23:44:31] [Server thread/INFO] [minecraft/MinecraftServer]: Saving chunks for level 'ServerLevel[Test Level]'/minecraft:overworld
+[23:44:33] [Server thread/INFO] [minecraft/MinecraftServer]: Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_nether
+[23:44:33] [Server thread/INFO] [minecraft/MinecraftServer]: Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_end
+[23:44:33] [Server thread/INFO] [minecraft/MinecraftServer]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[23:44:33] [Server thread/INFO] [minecraft/MinecraftServer]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[23:44:33] [Server thread/INFO] [minecraft/MinecraftServer]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[23:44:33] [Server thread/INFO] [minecraft/MinecraftServer]: ThreadedAnvilChunkStorage: All dimensions are saved
+[23:44:33] [Server thread/INFO] [minecraft/GameTestServer]: Game test server shutting down
+GameTests: all 30 required tests passed.
+
+BUILD SUCCESSFUL in 15s
+9 actionable tasks: 2 executed, 7 up-to-date

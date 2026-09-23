@@ -23,9 +23,29 @@ a mob in `cattle` automatically makes it livestock. Horses are deliberately **no
 `livestock`: a player's prize horse is not a farm animal for chore purposes. If you want them there,
 add `#mcamobcompat:horse` to your own `livestock.json` — it is one line.
 
+## Behaviour tags
+
+Two more tags are not roles: they change what MCA villagers do.
+
+| Tag | Ships with | Meaning |
+|---|---|---|
+| `mcamobcompat:npc_threats` | `minecraft:creeper` | Mobs an MCA villager reacts to before it is hurt. Civilians run from one that is hunting them or anyone beside them, or that comes within half the alert range; MCA guards and archers fight it. A creeper's burning fuse makes everyone run, guards included. |
+| `mcamobcompat:player_only_mounts` | `swem:swem_horse` and six Alex's Mobs mounts | Mounts that accept a rider but only ever let a player steer. With `[mounts] npcRidingPolicy = REFUSE`, the default, an MCA villager ordered onto one is refused and the player is told why. |
+
+Adding a mob to `npc_threats` gives it the same treatment as a creeper that is not swelling: only a
+creeper has a fuse to read. Use it for mobs worth running from on sight, not every hostile mob —
+MCA already reacts to a mob that actually attacks.
+
+Add a mount to `player_only_mounts` when a villager put on it cannot steer it, so the mount ignores
+MCA's orders. Check
+first with `/mcamobcompat mounts inspect`, which reports who the mount lets steer it. This tag is a
+fact about the mob, so it applies even when that mod's module is switched off.
+
 ## Adding a mod
 
-Create `data/mcamobcompat/tags/entity_type/<role>.json` in your datapack:
+Create `data/mcamobcompat/tags/entity_type/<role>.json` in your datapack. The `mcamobcompat`
+namespace is what makes it extend this mod's tag: a file under your own pack's namespace would
+define a separate tag of the same name, which nothing reads.
 
 ```json
 {
@@ -64,22 +84,53 @@ this mod:
 - DragN's Livestock Overhaul has language keys and loot tables for `dragnlivestock:freight_wagon` and
   `dragnlivestock:o_undead_horse`, but **neither is a registered entity type**. Tagging them does
   nothing at all.
+- Icy's Better Horses registers its release 2.0 breeds under **`icys-better-horses`** -- with
+  hyphens -- although its mod id is `icys_better_horses`. The shipped `horse` tag lists them through
+  Icy's own `#icys-better-horses:breed_horses`.
+- Alex's Mobs registers well over a hundred entity types, including body parts and projectiles, and
+  several of its rideable animals can only be steered by a player. What each one is, and why only
+  four are shipped as mounts, is in [docs/ALEXS_MOBS_AUDIT.md](docs/ALEXS_MOBS_AUDIT.md).
 
 `/mcamobcompat classify` gives the roles of whatever you are looking at, which is the quickest way to
 check your pack worked. Both need permission level 2, and both update on `/reload`.
 
 ## Optional conventional aliases
 
-The shipped tags retain optional `#forge:cow`, `#forge:pig`, `#forge:sheep`, `#forge:chicken` and equine aliases for packs that still populate them. These are data identifiers, not Forge Java dependencies. NeoForge 1.21.1 does not define equivalent standard species tags, so do not mechanically rename them to `c:` or `neoforge:`. Explicit entity IDs and the `mcamobcompat` tags are the reliable extension points.
+The shipped tags keep optional Forge conventional aliases (`#forge:cow`, `#forge:pig`,
+`#forge:sheep`, `#forge:chicken`, `#forge:horses`, and so on) for packs that still populate them. These are data identifiers, not a Forge
+dependency: the tag files are the same on both builds. NeoForge 1.21.1 defines no equivalent standard
+species tags, so they are not renamed to `c:` or `neoforge:`. Explicit entity ids and the
+`mcamobcompat` tags are the reliable extension points. A datapack for Minecraft 1.21.1 declares
+`pack_format` 48.
 
-A file under `data/my_pack/tags/entity_type/cattle.json` defines `my_pack:cattle`; it does not extend `mcamobcompat:cattle` unless the latter explicitly includes it. Use the namespace/path above, and a pack metadata file with `pack_format: 48` for Minecraft 1.21.1 data packs.
+## Alex's Mobs predators and MCA villagers
+
+Alex's Mobs has its own tag, `alexsmobs:villagers`, which its predators use to choose villagers as
+prey. It names only `minecraft:villager` and `minecraft:wandering_trader`, so those predators leave
+MCA villagers alone. This mod deliberately does not change that: it would make MCA villagers prey. A
+pack that wants MCA villagers treated like vanilla ones adds
+`data/alexsmobs/tags/entity_type/villagers.json`:
+
+```json
+{
+  "replace": false,
+  "values": [
+    { "id": "mca:male_villager", "required": false },
+    { "id": "mca:female_villager", "required": false }
+  ]
+}
+```
+
+A few Alex's Mobs creatures pick their prey by class rather than by that tag, and already reach MCA
+villagers without it. The audit lists them.
 
 ## Turning a mod off instead
 
 If two mods are fighting over the same integration, `mcamobcompat-common.toml` has a per-mod switch
 under `[modules]`. Turning one off makes this addon completely blind to that mod's entities — they
-stop being classified at all — which is a blunter instrument than editing a tag, but sometimes the
-right one.
+stop being classified at all, and a tamed one is no longer a `pet` — which is a blunter instrument
+than editing a tag, but sometimes the right one. Two things still apply: the hunting chore spares an
+animal that has an owner whatever its roles, and `player_only_mounts` still refuses villagers.
 
 One exception worth knowing: turning off the `guardVillagers` module also turns off the block on the
 villager-to-guard conversion, which permanently destroys MCA villager data. See the README.
@@ -95,8 +146,24 @@ bundled list is the fallback used only before a proxy exists or while MCA is unr
 
 ## Operator note: hidden proxies
 
-Use `/mcamobcompat guards proxies` to inspect loaded pairs. A missing partner may be unloaded or in another dimension. Existing pairs survive module toggles and partial chunk unload; a recorded UUID blocks automatic replacement while its partner is unresolved.
+While `guardMcaInteraction` is on, every bridged guard is paired with a real, invisible MCA villager
+(the "proxy") that carries its MCA state. Every proxy carries the scoreboard tag
+`mcamobcompat_proxy`, so operators can select them:
 
-`/mcamobcompat guards rebuild` is destructive for healthy loaded pairs: it replaces the guard's MCA identity. It does not automatically repair unresolved/conflicting saved links. Diagnose and back up first; do not bulk-kill proxies as a routine recovery step.
+```
+/mcamobcompat guards proxies
+/kill @e[tag=mcamobcompat_proxy]
+/mcamobcompat guards rebuild
+```
 
-The recognition tag `mcamobcompat:mca_villagers` supplements the ten public semantic roles. Ordinary MCA villagers are excluded from proxy eligibility even if also tagged as guards. Tagging an unrelated mob as a guard does not grant it Guard Villagers movement methods.
+`guards proxies` lists every loaded proxy with its guard. A proxy whose guard is not loaded is
+reported as such and kept: its guard may only be in a chunk that is not loaded, so nothing deletes a
+proxy automatically.
+
+Killing a proxy by hand releases its link, and a living guard is given a new proxy within a second
+or two. The new proxy is a new villager to MCA, so the old one's memories, hearts and family-tree
+node are gone. Remove a proxy by hand only when its guard is known to be gone for good.
+
+`guards rebuild` replaces the proxy of every loaded bridged guard, whether or not it already had
+one. It is destructive for the same reason, so use it only after confirming with `guards proxies`
+that a link is actually broken.

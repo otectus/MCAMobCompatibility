@@ -10,10 +10,10 @@ import dev.otectus.mcamobcompat.util.ConfigAccess;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
-import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
 import java.util.List;
 import java.util.Set;
@@ -30,7 +30,7 @@ import java.util.Set;
  * <p><b>{@link LivingIncomingDamageEvent} is the primary hook, and it must stay that way.</b> The obvious
  * choice, {@link LivingChangeTargetEvent}, does not cover the case: MCA's hunting task holds its
  * quarry in a {@code private Animal target} field and drives {@code MemoryModuleType.ATTACK_TARGET}
- * itself. It never calls {@code Mob.setTarget}, which is the one thing Forge fires
+ * itself. It never calls {@code Mob.setTarget}, which is the one thing NeoForge fires
  * {@code LivingChangeTargetEvent} from -- so a target-change handler alone would never see an MCA
  * hunt at all. Cancelling {@code LivingIncomingDamageEvent} returns from {@code hurt()} before damage,
  * knockback, sound and hurt animation. The target-change handler below is kept as belt and braces
@@ -56,8 +56,6 @@ public final class ChoreSafetyHandler {
      */
     private static volatile Set<MobRole> cachedRoles;
     private static volatile List<? extends String> cachedNames;
-
-    public static void invalidateConfig() { cachedRoles = null; cachedNames = null; }
 
     private ChoreSafetyHandler() {
     }
@@ -155,6 +153,12 @@ public final class ChoreSafetyHandler {
         }
     }
 
+    /** Forgets the parsed option, so the next attack re-reads it. Called on config reload and stop. */
+    public static void invalidateConfig() {
+        cachedRoles = null;
+        cachedNames = null;
+    }
+
     /** The configured protected roles, parsed once per config change rather than once per attack. */
     private static Set<MobRole> protectedRoles() {
         List<? extends String> names = ConfigAccess.strings(
@@ -165,7 +169,7 @@ public final class ChoreSafetyHandler {
         }
         Set<MobRole> parsed = ChoreProtectionPolicy.parseRoles(names, unknown ->
                 McaMobCompat.LOGGER.warn("Ignoring '{}' in chores.protectedRoles: it is not a role. "
-                        + "Valid names are the tag paths under data/mcamobcompat/tags/entity_type/.", unknown));
+                        + "Valid names are the tag paths under data/mcamobcompat/tags/entity_types/.", unknown));
         cachedRoles = parsed;
         cachedNames = List.copyOf(names);
         return parsed;

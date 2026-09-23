@@ -1,10 +1,9 @@
 {
-  "recorded": "2026-09-14",
+  "recorded": "2026-09-22",
   "minecraft": "1.21.1",
   "java": 21,
   "gradle": "8.12",
   "moddevgradle": "2.0.141",
-  "forge_baseline": "7062152e3f1a370a9173be89a0bc11f7ed5b2f08",
   "artifacts": [
     {
       "name": "MCA",
@@ -41,7 +40,12 @@
           }
         ]
       },
-      "use": "runtime only; not compiled against or redistributed"
+      "use": "runtime only; not compiled against or redistributed",
+      "usedIn": [
+        "GameTests (every run)",
+        "production runtime probe 2.1",
+        "2.0 validation"
+      ]
     },
     {
       "name": "Guard Villagers",
@@ -78,7 +82,12 @@
           }
         ]
       },
-      "use": "runtime only; not compiled against or redistributed"
+      "use": "runtime only; not compiled against or redistributed",
+      "usedIn": [
+        "GameTests (every run)",
+        "production runtime probe 2.1",
+        "2.0 validation"
+      ]
     },
     {
       "name": "SWEM",
@@ -113,7 +122,12 @@
           }
         ]
       },
-      "use": "runtime only; not compiled against or redistributed"
+      "use": "runtime only; not compiled against or redistributed",
+      "usedIn": [
+        "GameTests (-PwithSwem)",
+        "docs/UPSTREAM.md",
+        "2.0 validation"
+      ]
     },
     {
       "name": "Player Animator",
@@ -142,7 +156,11 @@
           }
         ]
       },
-      "use": "runtime only; not compiled against or redistributed"
+      "use": "runtime only; not compiled against or redistributed",
+      "usedIn": [
+        "GameTests (-PwithSwem)",
+        "2.0 validation"
+      ]
     },
     {
       "name": "GeckoLib",
@@ -179,7 +197,11 @@
           }
         ]
       },
-      "use": "runtime only; not compiled against or redistributed"
+      "use": "runtime only; not compiled against or redistributed",
+      "usedIn": [
+        "GameTests (-PwithSwem, -PwithIcy116)",
+        "2.0 validation"
+      ]
     },
     {
       "name": "MCAQuests_1.21.1",
@@ -269,7 +291,10 @@
           }
         ]
       },
-      "use": "runtime only; not compiled against or redistributed"
+      "use": "runtime only; not compiled against or redistributed",
+      "usedIn": [
+        "2.0 validation only"
+      ]
     },
     {
       "name": "MCAConversations_1.21.1",
@@ -282,7 +307,7 @@
           "version": "1.6.3+1.21.1",
           "displayName": "MCA: Conversations",
           "authors": "otectus",
-          "description": "Deeper, less repetitive villager conversations for Minecraft Comes Alive: Reborn \u2014 heart-gated personal topics, conversation memory, gratitude, personalized lines, and village gossip."
+          "description": "Deeper, less repetitive villager conversations for Minecraft Comes Alive: Reborn — heart-gated personal topics, conversation memory, gratitude, personalized lines, and village gossip."
         }
       ],
       "dependencies": {
@@ -338,7 +363,10 @@
           }
         ]
       },
-      "use": "runtime only; not compiled against or redistributed"
+      "use": "runtime only; not compiled against or redistributed",
+      "usedIn": [
+        "2.0 validation only"
+      ]
     },
     {
       "name": "MCACrime_1.21.1",
@@ -386,7 +414,10 @@
           }
         ]
       },
-      "use": "runtime only; not compiled against or redistributed"
+      "use": "runtime only; not compiled against or redistributed",
+      "usedIn": [
+        "2.0 validation only"
+      ]
     },
     {
       "name": "MCAReputation_1.21.1",
@@ -448,26 +479,362 @@
           }
         ]
       },
-      "use": "runtime only; not compiled against or redistributed"
+      "use": "runtime only; not compiled against or redistributed",
+      "usedIn": [
+        "2.0 validation only"
+      ]
     },
     {
       "name": "NeoForge installer",
       "version": "21.1.248",
       "file": "neoforge-21.1.248-installer.jar",
       "sha256": "68eeab77059ba53df1812f1afa5bf530ab2566a3cdcd5f924aa6e71be42e410c",
-      "source": "https://maven.neoforged.net/releases/net/neoforged/neoforge/21.1.248/neoforge-21.1.248-installer.jar"
+      "source": "https://maven.neoforged.net/releases/net/neoforged/neoforge/21.1.248/neoforge-21.1.248-installer.jar",
+      "usedIn": [
+        "production runtime probe 2.1",
+        "2.0 validation"
+      ]
     },
     {
       "name": "NeoForge installer",
       "version": "21.1.249",
       "file": "neoforge-21.1.249-installer.jar",
       "sha256": "d88b448eab73cd65bdf1720844a4828262de30a15fc71bd04dd81acc61c5399a",
-      "source": "https://maven.neoforged.net/releases/net/neoforged/neoforge/21.1.249/neoforge-21.1.249-installer.jar"
+      "source": "https://maven.neoforged.net/releases/net/neoforged/neoforge/21.1.249/neoforge-21.1.249-installer.jar",
+      "usedIn": [
+        "2.0 validation only"
+      ]
+    },
+    {
+      "name": "Modonomicon",
+      "file": "modonomicon-1.21.1-neoforge-1.120.4.jar",
+      "sha256": "35d055e524c3491126ebe874984e8d77cb18460de4479d03a36d9f00404cc726",
+      "source": "Modrinth version jH6bsw4F",
+      "mods": [
+        {
+          "modId": "modonomicon",
+          "version": "1.120.4",
+          "displayName": "Modonomicon"
+        }
+      ],
+      "dependencies": {
+        "modonomicon": [
+          {
+            "modId": "neoforge",
+            "type": "required",
+            "versionRange": "[21.0.110-beta,)",
+            "side": "BOTH"
+          },
+          {
+            "modId": "jei",
+            "type": "optional",
+            "versionRange": "[19.8.2.0,)",
+            "side": "BOTH"
+          },
+          {
+            "modId": "patchouli",
+            "type": "optional",
+            "versionRange": "TODO",
+            "side": "BOTH"
+          }
+        ]
+      },
+      "use": "runtime only; not compiled against or redistributed",
+      "usedIn": [
+        "GameTests (-PwithIcy)"
+      ],
+      "note": "required by Icy's Better Horses 2.0"
+    },
+    {
+      "name": "Icy's Better Horses 2.0",
+      "file": "icys-better-horses-2.0.0-1.21.1-neo.jar",
+      "sha256": "5c81e11e03710a6d017d817f3f628fd070e94d767ec7ace5e6d6002f40a64653",
+      "source": "Modrinth version ZCRHabJE",
+      "mods": [
+        {
+          "modId": "icys_better_horses",
+          "version": "2.0.0",
+          "displayName": "Icy's Better Horses"
+        }
+      ],
+      "dependencies": {
+        "icys_better_horses": [
+          {
+            "modId": "neoforge",
+            "type": "required",
+            "versionRange": "[21.1,)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "minecraft",
+            "type": "required",
+            "versionRange": "[1.21,1.21.2)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "geckolib",
+            "type": "required",
+            "versionRange": "[4.7.5,)",
+            "ordering": "NONE",
+            "side": "CLIENT"
+          },
+          {
+            "modId": "modonomicon",
+            "type": "required",
+            "versionRange": "[1.120.4,)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "cloth_config",
+            "type": "optional",
+            "versionRange": "[15.0.140,)",
+            "ordering": "NONE",
+            "side": "CLIENT"
+          }
+        ]
+      },
+      "use": "runtime only; not compiled against or redistributed",
+      "usedIn": [
+        "GameTests (-PwithIcy)"
+      ]
+    },
+    {
+      "name": "Icy's Better Horses 1.1.6",
+      "file": "icys-better-horses-1.1.6.jar",
+      "sha256": "48f7bc41d7f679fc0d0be1fc80ef266225130736a139db579d28f417aeaf3b55",
+      "source": "Modrinth version LxLexnee",
+      "mods": [
+        {
+          "modId": "icys_better_horses",
+          "version": "1.1.6",
+          "displayName": "Icy's Better Horses"
+        }
+      ],
+      "dependencies": {
+        "icys_better_horses": [
+          {
+            "modId": "neoforge",
+            "type": "required",
+            "versionRange": "[21.1,)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "minecraft",
+            "type": "required",
+            "versionRange": "[1.21,1.21.2)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "geckolib",
+            "type": "required",
+            "versionRange": "[4.7.5,)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "patchouli",
+            "type": "optional",
+            "versionRange": "[1.21.1-87,)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          }
+        ]
+      },
+      "use": "runtime only; not compiled against or redistributed",
+      "usedIn": [
+        "GameTests (-PwithIcy116)"
+      ],
+      "note": "tolerated older line, bound by the same member names"
+    },
+    {
+      "name": "Citadel (Unofficial Port)",
+      "file": "citadel-1.21.1-2.7.6.jar",
+      "sha256": "9e12468c49e5a95b7adbf22b3b4d05bc55565989b89c40b985cd73bdfe63c3c2",
+      "source": "Modrinth version mIylVpkN",
+      "mods": [
+        {
+          "modId": "citadel",
+          "version": "2.7.6",
+          "displayName": "Citadel"
+        }
+      ],
+      "dependencies": {
+        "citadel": [
+          {
+            "modId": "neoforge",
+            "type": "required",
+            "versionRange": "[4,)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          },
+          {
+            "modId": "minecraft",
+            "type": "required",
+            "versionRange": "[1.21, 1.22)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          }
+        ]
+      },
+      "use": "runtime only; not compiled against or redistributed",
+      "usedIn": [
+        "GameTests (-PwithAlex)",
+        "docs/ALEXS_MOBS_AUDIT.md"
+      ],
+      "note": "Modrinth project XjY0RcQj; required by the Raguto port"
+    },
+    {
+      "name": "Alex's Mobs (Unofficial Port, Raguto)",
+      "file": "alexsmobs-1.22.17.jar",
+      "sha256": "6e502855f79e4c9f2a11d560a9b88a3ab295aa378c44b0f0a0dd95f95d0301a6",
+      "source": "Modrinth version KSgki4uc",
+      "mods": [
+        {
+          "modId": "alexsmobs",
+          "version": "1.22.17",
+          "displayName": "Alex's Mobs"
+        }
+      ],
+      "dependencies": {
+        "alexsmobs": [
+          {
+            "modId": "citadel",
+            "versionRange": "[2.6.0,)",
+            "ordering": "AFTER",
+            "side": "BOTH"
+          },
+          {
+            "modId": "neoforge",
+            "versionRange": "[21.1.0,)",
+            "ordering": "NONE",
+            "side": "BOTH"
+          }
+        ]
+      },
+      "use": "runtime only; not compiled against or redistributed",
+      "usedIn": [
+        "GameTests (-PwithAlex)",
+        "docs/ALEXS_MOBS_AUDIT.md"
+      ],
+      "note": "Modrinth project EmNhnNnt"
+    },
+    {
+      "name": "CodxLib",
+      "file": "codxlib-1.6.1-neoforge+1.21.1.jar",
+      "sha256": "15d9052888ad8b0db4719eb1aa4a409b892a4f9314e68169ad1848bbe1e1db52",
+      "source": "Modrinth version MMcDASmX",
+      "mods": [
+        {
+          "modId": "codxlib",
+          "version": "1.6.1",
+          "displayName": "CodxLib"
+        }
+      ],
+      "dependencies": {
+        "codxlib": [
+          {
+            "modId": "minecraft",
+            "type": "required",
+            "versionRange": "1.21.1",
+            "side": "BOTH"
+          },
+          {
+            "modId": "neoforge",
+            "type": "required",
+            "versionRange": "[1,)",
+            "side": "BOTH"
+          }
+        ]
+      },
+      "use": "runtime only; not compiled against or redistributed",
+      "usedIn": [
+        "GameTests (-PwithAlexContinued)",
+        "docs/ALEXS_MOBS_AUDIT.md"
+      ],
+      "note": "required by Alex's Mobs Continued"
+    },
+    {
+      "name": "Alex's Mobs Continued",
+      "file": "alexsmobs-2.2.2-neoforge+1.21.1.jar",
+      "sha256": "240a96f8b098892e5374bdfedaced89f5fb8f7c9b79527534d397c5b7b1673d5",
+      "source": "Modrinth version ThZbQpga",
+      "mods": [
+        {
+          "modId": "alexsmobs",
+          "version": "2.2.2",
+          "displayName": "Alex's Mobs Continued"
+        }
+      ],
+      "dependencies": {
+        "alexsmobs": [
+          {
+            "modId": "codxlib",
+            "type": "required",
+            "versionRange": "[1.6.0,)",
+            "side": "BOTH"
+          },
+          {
+            "modId": "minecraft",
+            "type": "required",
+            "versionRange": "[1.21.1]",
+            "side": "BOTH"
+          },
+          {
+            "modId": "neoforge",
+            "type": "required",
+            "versionRange": "[1,)",
+            "side": "BOTH"
+          }
+        ]
+      },
+      "use": "runtime only; not compiled against or redistributed",
+      "usedIn": [
+        "GameTests (-PwithAlexContinued)",
+        "docs/ALEXS_MOBS_AUDIT.md"
+      ],
+      "note": "Modrinth project kYIaHHfw"
+    },
+    {
+      "name": "Golems Kill Creepers",
+      "file": "golemskillcreepers-neoforge-1.0.0+1.21.1.jar",
+      "sha256": "513ec85aae722d82eed77b8248d06c5bad2c961f04edd43d4b98667b9c370ca3",
+      "source": "Modrinth version UQOAkjDc",
+      "mods": [
+        {
+          "modId": "golemskillcreepers",
+          "version": "1.0.0+1.21.1",
+          "displayName": "GolemsKillCreepers"
+        }
+      ],
+      "dependencies": {
+        "golemskillcreepers": [
+          {
+            "modId": "minecraft",
+            "versionRange": "[1.21.1]"
+          },
+          {
+            "modId": "neoforge",
+            "versionRange": "[21.1.195,)"
+          }
+        ]
+      },
+      "use": "runtime only; not compiled against or redistributed",
+      "usedIn": [
+        "GameTests (-PwithGolems)"
+      ]
     }
   ],
   "unverified_optional_targets": [
     "Genetic Animals (eanimod)",
     "DragN Livestock Overhaul (dragnlivestock)"
   ],
-  "upstream_issue": "MCAReputation 0.5.0 reports API v2; Quests 1.6.4 and Crime 0.7.2 require API v1 and disable their reputation integration."
+  "upstream_issue": "MCAReputation 0.5.0 reports API v2; Quests 1.6.4 and Crime 0.7.2 require API v1 and disable their reputation integration.",
+  "release": "0.2.1+1.21.1",
+  "neoforge": "21.1.248",
+  "history": "2.0+1.21.1 was ported from Forge source commit 7062152e3f1a370a9173be89a0bc11f7ed5b2f08 and validated on 2026-09-14; artifacts used only then are marked in usedIn. 0.2.1+1.21.1 was validated on 2026-09-22 while numbered 2.1+1.21.1, and usedIn entries naming 2.1 are those runs."
 }

@@ -1,10 +1,11 @@
 package dev.otectus.mcamobcompat.network;
 
 import dev.otectus.mcamobcompat.McaMobCompat;
+import dev.otectus.mcamobcompat.bridge.GuardBridge;
 import dev.otectus.mcamobcompat.bridge.GuardProxy;
 import dev.otectus.mcamobcompat.integration.ModIntegrations;
 import dev.otectus.mcamobcompat.mca.McaEntities;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
@@ -14,88 +15,213 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.WeakHashMap;
 
-/** Minimal required protocol: exact identities and server-owned presentation/interaction policy. */
+/**
+ * Tells each client exactly which MCA villagers are hidden proxies, and which guard each stands for.
+ *
+ * <p>The client cannot see the persistent data that makes a proxy a proxy. Before this existed it
+ * guessed, from four synced flags and from which bridged guard was nearest -- which hid a real
+ * villager that an operator had made invisible, and drew the wrong guard in a portrait whenever two
+ * guards stood close together. The server now says so outright: one message per pair, carrying both
+ * UUIDs and both runtime entity ids, and the client matches on both, so a reused entity id or a
+ * stale entry can never select the wrong entity.
+ *
+ * <p>Sent when a player starts tracking either half of a pair, when a pair is created or re-linked,
+ * and on the pair's one-second heartbeat (which also carries new runtime ids after a dimension
+ * change). A removal is sent when the player stops tracking the proxy or the proxy is discarded.
+ * The client keeps a small bounded cache per level and drops it on logout.
+ *
+ * <p>The payload is versioned and required on both sides, as the mod already is. Nothing here names
+ * a client-only class: the receiving side is {@code client.ClientProxyPairs}, reached only on a
+ * physical client.
+ */
 @EventBusSubscriber(modid = McaMobCompat.MOD_ID)
 public final class ProxyPairs {
-    private static final Map<Level, LinkedHashMap<UUID, Pair>> CLIENT = new WeakHashMap<>();
-    private ProxyPairs() {}
 
+    /** Bumped whenever the message shape changes; mismatched sides refuse to connect. */
+    public static final String PROTOCOL = "1";
+
+    /** Upper bound on the client cache per level, so a pathological server cannot grow it forever. */
+    private static final int CLIENT_CACHE_LIMIT = 4096;
+
+    /** Client side: proxy UUID to its pair, per client level. */
+    private static final Map<Level, LinkedHashMap<UUID, Pair>> CLIENT = new WeakHashMap<>();
+
+    private ProxyPairs() {
+    }
+
+    /** One pair, as the server describes it. {@code remove} retracts an earlier message. */
     public record Pair(UUID proxy, int proxyId, UUID guard, int guardId, boolean enabled, boolean remove)
             implements CustomPacketPayload {
+
         public static final Type<Pair> TYPE = new Type<>(McaMobCompat.id("proxy_pair"));
-        public static final StreamCodec<RegistryFriendlyByteBuf, Pair> CODEC = StreamCodec.of(
-                (buf, p) -> { buf.writeUUID(p.proxy); buf.writeVarInt(p.proxyId); buf.writeUUID(p.guard);
-                    buf.writeVarInt(p.guardId); buf.writeBoolean(p.enabled); buf.writeBoolean(p.remove); },
-                buf -> new Pair(buf.readUUID(), buf.readVarInt(), buf.readUUID(), buf.readVarInt(), buf.readBoolean(), buf.readBoolean()));
-        @Override public Type<Pair> type() { return TYPE; }
+
+        public static final StreamCodec<FriendlyByteBuf, Pair> CODEC =
+                StreamCodec.of((buffer, pair) -> pair.encode(buffer), Pair::decode);
+
+        @Override
+        public Type<Pair> type() {
+            return TYPE;
+        }
+
+        public void encode(FriendlyByteBuf buffer) {
+            buffer.writeUUID(proxy);
+            buffer.writeVarInt(proxyId);
+            buffer.writeUUID(guard);
+            buffer.writeVarInt(guardId);
+            buffer.writeBoolean(enabled);
+            buffer.writeBoolean(remove);
+        }
+
+        public static Pair decode(FriendlyByteBuf buffer) {
+            return new Pair(buffer.readUUID(), buffer.readVarInt(), buffer.readUUID(), buffer.readVarInt(),
+                    buffer.readBoolean(), buffer.readBoolean());
+        }
     }
 
-    @SubscribeEvent
+    /** Registers the message, on the mod bus. Handled on the main thread, NeoForge's default. */
     public static void register(RegisterPayloadHandlersEvent event) {
-        // Required, versioned negotiation rejects absent/incompatible installations at login.
-        event.registrar("1").playToClient(Pair.TYPE, Pair.CODEC, (pair, context) -> {
-            Level level = context.player().level();
-            if (!level.isClientSide) return;
-            var pairs = CLIENT.computeIfAbsent(level, ignored -> new LinkedHashMap<>());
-            if (pair.remove) { pairs.remove(pair.proxy); return; }
-            pairs.put(pair.proxy, pair);
-            while (pairs.size() > 4096) pairs.remove(pairs.keySet().iterator().next());
-            Entity proxy = level.getEntity(pair.proxyId);
-            if (proxy instanceof Villager villager && proxy.getUUID().equals(pair.proxy) && McaEntities.isMcaVillager(proxy))
-                GuardProxy.hide(villager);
-        });
+        event.registrar(PROTOCOL).playToClient(Pair.TYPE, Pair.CODEC, ProxyPairs::receive);
     }
 
-    public static void clearClient() { CLIENT.clear(); }
-    public static boolean isProxy(Entity entity) {
-        return entity != null && McaEntities.isMcaVillager(entity) && pair(entity) != null;
+    private static void receive(Pair pair, IPayloadContext context) {
+        if (FMLEnvironment.dist.isClient()) {
+            dev.otectus.mcamobcompat.client.ClientProxyPairs.accept(pair);
+        }
     }
-    private static Pair pair(Entity proxy) {
-        var pairs = CLIENT.get(proxy.level());
-        Pair p = pairs == null ? null : pairs.get(proxy.getUUID());
-        return p != null && p.proxyId == proxy.getId() ? p : null;
+
+    // ---------------------------------------------------------------- client-side cache (common types)
+
+    /** Stores or retracts a pair for this client level. Called by the client receiver only. */
+    public static void store(Level level, Pair pair) {
+        if (level == null || pair == null) {
+            return;
+        }
+        LinkedHashMap<UUID, Pair> pairs = CLIENT.computeIfAbsent(level, ignored -> new LinkedHashMap<>());
+        if (pair.remove()) {
+            Pair existing = pairs.get(pair.proxy());
+            if (existing != null && existing.proxyId() == pair.proxyId()) {
+                pairs.remove(pair.proxy());
+            }
+            return;
+        }
+        pairs.remove(pair.proxy());
+        pairs.put(pair.proxy(), pair);
+        while (pairs.size() > CLIENT_CACHE_LIMIT) {
+            pairs.remove(pairs.keySet().iterator().next());
+        }
     }
-    public static Mob guardOf(Entity proxy) {
-        Pair p = pair(proxy);
-        if (p == null) return null;
-        Entity entity = proxy.level().getEntity(p.guardId);
-        return entity instanceof Mob mob && mob.getUUID().equals(p.guard) && !McaEntities.isMcaVillager(mob) ? mob : null;
+
+    /** Drops every client pair. Called on logout. */
+    public static void clearClient() {
+        CLIENT.clear();
     }
-    public static boolean routesGuard(Entity guard) {
-        var pairs = CLIENT.get(guard.level());
-        return pairs != null && pairs.values().stream().anyMatch(p -> p.enabled && p.guard.equals(guard.getUUID()) && p.guardId == guard.getId());
+
+    private static Pair clientPair(Entity proxy) {
+        Map<UUID, Pair> pairs = CLIENT.get(proxy.level());
+        Pair pair = pairs == null ? null : pairs.get(proxy.getUUID());
+        return pair != null && pair.proxyId() == proxy.getId() ? pair : null;
     }
+
+    /** Client side: whether the server has paired this exact MCA villager as a proxy. */
+    public static boolean isClientProxy(Entity entity) {
+        return entity != null && McaEntities.isMcaVillager(entity) && clientPair(entity) != null;
+    }
+
+    /** Client side: the guard the server paired with this proxy, matched by UUID and runtime id. */
+    public static Mob clientGuardOf(Entity proxy) {
+        Pair pair = proxy == null ? null : clientPair(proxy);
+        if (pair == null) {
+            return null;
+        }
+        Entity guard = proxy.level().getEntity(pair.guardId());
+        return guard instanceof Mob mob && mob.getUUID().equals(pair.guard()) && !McaEntities.isMcaVillager(mob)
+                ? mob : null;
+    }
+
+    /** Client side: whether the server says a plain click on this guard is routed to its proxy. */
+    public static boolean clientRoutesGuard(Entity guard) {
+        Map<UUID, Pair> pairs = guard == null ? null : CLIENT.get(guard.level());
+        if (pairs == null) {
+            return false;
+        }
+        for (Pair pair : pairs.values()) {
+            if (pair.enabled() && pair.guardId() == guard.getId() && pair.guard().equals(guard.getUUID())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Client side, for diagnostics: how many pairs the client knows in this level. */
+    public static int clientPairCount(Level level) {
+        Map<UUID, Pair> pairs = CLIENT.get(level);
+        return pairs == null ? 0 : pairs.size();
+    }
+
+    // ---------------------------------------------------------------- server side
+
+    private static Pair describe(Mob guard, Villager proxy, boolean remove) {
+        boolean enabled = GuardBridge.isBridgedGuard(guard) && ModIntegrations.guardVillagers().opensMcaInteraction();
+        return new Pair(proxy.getUUID(), proxy.getId(), guard.getUUID(), guard.getId(), enabled, remove);
+    }
+
+    /** Sends this pair to every player tracking either half of it. Server side; no-op otherwise. */
     public static void broadcast(Mob guard, Villager proxy) {
-        if (guard.level().isClientSide || guard.level() != proxy.level()) return;
-        PacketDistributor.sendToPlayersTrackingEntity(guard, packet(guard, proxy, false));
-        PacketDistributor.sendToPlayersTrackingEntity(proxy, packet(guard, proxy, false));
+        if (guard == null || proxy == null || guard.level().isClientSide || guard.level() != proxy.level()) {
+            return;
+        }
+        Pair pair = describe(guard, proxy, false);
+        PacketDistributor.sendToPlayersTrackingEntity(guard, pair);
+        PacketDistributor.sendToPlayersTrackingEntity(proxy, pair);
     }
-    private static Pair packet(Mob guard, Villager proxy, boolean remove) {
-        return new Pair(proxy.getUUID(), proxy.getId(), guard.getUUID(), guard.getId(),
-                ModIntegrations.guardVillagers().opensMcaInteraction() && ModIntegrations.guardVillagers().bridgesGuards(), remove);
+
+    /** Retracts this pair from every player tracking the proxy. */
+    public static void broadcastRemoval(Mob guard, Villager proxy) {
+        if (guard == null || proxy == null || proxy.level().isClientSide) {
+            return;
+        }
+        PacketDistributor.sendToPlayersTrackingEntity(proxy, describe(guard, proxy, true));
     }
+
     @SubscribeEvent
-    public static void startTracking(PlayerEvent.StartTracking event) {
-        if (!(event.getEntity() instanceof ServerPlayer player) || !(event.getTarget() instanceof Mob target)) return;
-        Mob guard = GuardProxy.isProxy(target) ? GuardProxy.guardOf(target) : target;
-        Villager proxy = guard == null ? null : GuardProxy.proxyOf(guard);
-        if (proxy != null && proxy.level() == guard.level()) PacketDistributor.sendToPlayer(player, packet(guard, proxy, false));
+    public static void onStartTracking(PlayerEvent.StartTracking event) {
+        if (!(event.getEntity() instanceof ServerPlayer player) || !(event.getTarget() instanceof Mob target)) {
+            return;
+        }
+        Mob guard;
+        Villager proxy;
+        if (GuardProxy.isProxy(target)) {
+            proxy = (Villager) target;
+            guard = GuardProxy.guardOf(target);
+        } else {
+            guard = target;
+            proxy = GuardBridge.isBridgedGuard(target) ? GuardProxy.proxyOf(target) : null;
+        }
+        if (guard != null && proxy != null && guard.level() == proxy.level()) {
+            PacketDistributor.sendToPlayer(player, describe(guard, proxy, false));
+        }
     }
+
     @SubscribeEvent
-    public static void stopTracking(PlayerEvent.StopTracking event) {
-        if (!GuardProxy.isProxy(event.getTarget())) return;
-        if (!(event.getEntity() instanceof ServerPlayer player) || !(event.getTarget() instanceof Mob target)) return;
-        Mob guard = GuardProxy.isProxy(target) ? GuardProxy.guardOf(target) : target;
-        Villager proxy = guard == null ? null : GuardProxy.proxyOf(guard);
-        if (proxy != null) PacketDistributor.sendToPlayer(player, packet(guard, proxy, true));
+    public static void onStopTracking(PlayerEvent.StopTracking event) {
+        if (!(event.getEntity() instanceof ServerPlayer player) || !(event.getTarget() instanceof Villager target)
+                || !GuardProxy.isProxy(target)) {
+            return;
+        }
+        Mob guard = GuardProxy.guardOf(target);
+        if (guard != null) {
+            PacketDistributor.sendToPlayer(player, describe(guard, target, true));
+        }
     }
 }

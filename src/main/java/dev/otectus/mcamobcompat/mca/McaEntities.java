@@ -28,8 +28,8 @@ import java.util.Set;
  */
 public final class McaEntities {
 
-    public static final ResourceLocation MALE_VILLAGER = ResourceLocation.fromNamespaceAndPath(ModIds.MCA, "male_villager");
-    public static final ResourceLocation FEMALE_VILLAGER = ResourceLocation.fromNamespaceAndPath(ModIds.MCA, "female_villager");
+    public static final ResourceLocation MALE_VILLAGER = McaMobCompat.location(ModIds.MCA, "male_villager");
+    public static final ResourceLocation FEMALE_VILLAGER = McaMobCompat.location(ModIds.MCA, "female_villager");
 
     /**
      * The authoritative set of MCA villager types, as a Java constant.
@@ -51,7 +51,7 @@ public final class McaEntities {
      * fork or an addon that adds villager types. Purely additive to {@link #VILLAGER_IDS}.
      */
     public static final ResourceLocation ADDITIONAL_VILLAGERS_ID =
-            ResourceLocation.fromNamespaceAndPath(McaMobCompat.MOD_ID, "mca_villagers");
+            McaMobCompat.id("mca_villagers");
 
     /**
      * Built on first use, not in the class initialiser: {@code TagKey.create} touches

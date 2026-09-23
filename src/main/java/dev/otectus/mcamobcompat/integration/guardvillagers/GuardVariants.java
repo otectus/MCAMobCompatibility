@@ -1,5 +1,6 @@
 package dev.otectus.mcamobcompat.integration.guardvillagers;
 
+import dev.otectus.mcamobcompat.McaMobCompat;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Locale;
@@ -28,7 +29,7 @@ public final class GuardVariants {
             Set.of("desert", "savanna", "swamp", "jungle", "taiga", "snow", "plains");
 
     /** What everything else becomes. */
-    public static final ResourceLocation DEFAULT_TYPE = ResourceLocation.fromNamespaceAndPath("minecraft", "plains");
+    public static final ResourceLocation DEFAULT_TYPE = McaMobCompat.location("minecraft", "plains");
 
     private GuardVariants() {
     }
@@ -40,7 +41,7 @@ public final class GuardVariants {
         }
         String normalised = variant.trim().toLowerCase(Locale.ROOT);
         return VANILLA_TYPES.contains(normalised)
-                ? ResourceLocation.fromNamespaceAndPath("minecraft", normalised)
+                ? McaMobCompat.location("minecraft", normalised)
                 : DEFAULT_TYPE;
     }
 }

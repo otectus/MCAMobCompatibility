@@ -1,5 +1,6 @@
 package dev.otectus.mcamobcompat.bridge;
 
+import dev.otectus.mcamobcompat.McaMobCompat;
 import dev.otectus.mcamobcompat.api.GuardGender;
 import dev.otectus.mcamobcompat.api.GuardIdentity;
 import dev.otectus.mcamobcompat.api.event.GuardHeartsChangedEvent;
@@ -9,11 +10,12 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
-import net.neoforged.neoforge.common.NeoForge;
 
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -25,10 +27,15 @@ import java.util.UUID;
  *
  * <p><b>Proxy first, store second.</b> Once a guard has its hidden MCA proxy villager, MCA owns the
  * real name, personality and hearts -- a player who gifted the proxy changed MCA's memories, not
- * ours -- so every read prefers the live proxy and falls back to the stored roll only when the
- * proxy is unloaded, absent, or the reflective binding is unavailable. The store keeps its own copy
- * up to date regardless, so an identity is never nameless and a sibling addon asking about a guard
- * in an unloaded chunk still gets an answer.
+ * ours -- so every read prefers the live proxy and falls back to the stored values only when the
+ * proxy is unloaded, absent, or the reflective binding is unavailable.
+ *
+ * <p><b>Hearts are counted exactly once.</b> The store keeps two ledgers per player: the balance
+ * (MCA's last reported value once the player is migrated, the pre-proxy base before) and the
+ * pending delta that MCA has not taken yet. A change made through {@link #modHearts} is queued as
+ * one pending delta and flushed straight away when both the proxy and the player are loaded, or on
+ * the pair's one-second heartbeat later. A delta is cleared only after MCA accepted it, so a
+ * failed write is retried rather than lost, and never applied twice.
  */
 final class GuardIdentityView implements GuardIdentity {
 
@@ -75,16 +82,29 @@ final class GuardIdentityView implements GuardIdentity {
         return entry.gender();
     }
 
+    /**
+     * The personality id, lower-case and unnamespaced, as the {@link GuardIdentity} contract says.
+     * MCA 7.7 reports {@code mca:confident}; the namespace is dropped for MCA's own personalities
+     * and kept for any other, so a custom one is still distinguishable.
+     */
     @Override
     public String personality() {
         Mob proxy = loadedProxy();
         if (proxy != null) {
             Optional<String> live = McaBinding.personality(proxy);
             if (live.isPresent()) {
-                return live.get().toLowerCase(Locale.ROOT);
+                return plain(live.get());
             }
         }
-        return entry.personality();
+        return plain(entry.personality());
+    }
+
+    private static String plain(String personality) {
+        if (personality == null) {
+            return "";
+        }
+        String lower = personality.toLowerCase(Locale.ROOT);
+        return lower.startsWith("mca:") ? lower.substring(4) : lower;
     }
 
     @Override
@@ -99,13 +119,14 @@ final class GuardIdentityView implements GuardIdentity {
 
     @Override
     public int hearts(UUID player) {
-        if (player == null) return 0;
+        if (player == null) {
+            return 0;
+        }
         Mob proxy = loadedProxy();
         if (proxy != null) {
             OptionalInt live = McaBinding.hearts(proxy, player);
             if (live.isPresent()) {
                 int legacy = entry.heartsMigrated(player) ? 0 : entry.hearts(player);
-                if (entry.heartsMigrated(player)) data.snapshotHearts(entry, player, live.getAsInt());
                 return GuardIdentityData.bounded((long) live.getAsInt() + legacy + entry.pendingDelta(player));
             }
         }
@@ -114,39 +135,77 @@ final class GuardIdentityView implements GuardIdentity {
 
     @Override
     public void modHearts(UUID player, int delta) {
-        if (player == null || delta == 0 || data.isReadOnly()) return;
-        if (server != null && !server.isSameThread()) throw new IllegalStateException("Hearts must change on the server thread");
+        if (player == null || delta == 0 || data.isReadOnly()) {
+            return;
+        }
+        if (server != null && !server.isSameThread()) {
+            throw new IllegalStateException("Guard hearts must change on the server thread");
+        }
         int before = hearts(player);
         int after = GuardIdentityData.bounded((long) before + delta);
-        long actual = (long) after - before;
-        data.addPendingHearts(entry, player, GuardIdentityData.bounded(actual));
+        if (after == before) {
+            return;
+        }
+        data.addPendingHearts(entry, player, GuardIdentityData.bounded((long) after - before));
         flush(player);
-        Mob guard = GuardIdentityStore.resolveLoaded(server, entry.uuid());
-        NeoForge.EVENT_BUS.post(new GuardHeartsChangedEvent(this, guard, player, before, hearts(player)));
+
+        // Nullable on purpose: hearts are keyed on a UUID and can move while the guard is in an
+        // unloaded chunk or a level nobody is in. Resolving the mob is a convenience for listeners,
+        // never a precondition for the change.
+        // Only with a live server: the event is for listeners in a running game, and a store
+        // driven without one (a unit test, an offline tool) has nobody to tell.
+        if (server != null) {
+            Mob guard = GuardIdentityStore.resolveLoaded(server, entry.uuid());
+            McaMobCompat.post(new GuardHeartsChangedEvent(this, guard, player, before, hearts(player)));
+        }
     }
 
-    /** Runs on the pair heartbeat, so reconnect does not require another earned delta. */
+    /**
+     * The heartbeat: hands MCA every queued delta it can take now, and records what MCA reports.
+     *
+     * <p>Runs once a second for every loaded pair, so a player who reconnects gets their queued
+     * hearts applied without having to earn another change first. MCA-originated changes (a gift,
+     * a chat) update the snapshot here without a {@link GuardHeartsChangedEvent}: that event is the
+     * bridge API's, and MCA announces its own.
+     */
     void synchronize() {
         Mob proxy = loadedProxy();
-        if (proxy == null || data.isReadOnly()) return;
-        java.util.Set<UUID> players = new java.util.HashSet<>(entry.knownPlayers());
+        if (proxy == null || data.isReadOnly()) {
+            return;
+        }
+        Set<UUID> players = new HashSet<>(entry.knownPlayers());
         players.addAll(entry.pendingHeartPlayers());
         players.addAll(McaBinding.heartSnapshot(proxy).keySet());
-        for (UUID player : players) flush(player);
-        if (proxy.hasCustomName()) data.rename(entry, proxy.getCustomName().getString());
+        for (UUID player : players) {
+            flush(player);
+        }
+        if (proxy.hasCustomName()) {
+            data.rename(entry, proxy.getCustomName().getString());
+        }
         McaBinding.personality(proxy).ifPresent(value -> data.snapshotPersonality(entry, value));
     }
 
+    /** Applies whatever this player has outstanding, if MCA can take it now. */
     private void flush(UUID player) {
         Mob proxy = loadedProxy();
-        ServerPlayer target = server == null ? null : server.getPlayerList().getPlayer(player);
-        if (proxy == null) return;
-        long outstanding = (long) (entry.heartsMigrated(player) ? 0 : entry.hearts(player)) + entry.pendingDelta(player);
-        if (target != null && McaBinding.modHearts(proxy, target, outstanding)) {
-            data.markHeartsMigrated(entry, player);
-            data.clearPendingHearts(entry, player);
+        if (proxy == null || player == null || data.isReadOnly()) {
+            return;
         }
-        if (entry.heartsMigrated(player)) McaBinding.hearts(proxy, player).ifPresent(value -> data.snapshotHearts(entry, player, value));
+        long legacy = entry.heartsMigrated(player) ? 0L : entry.hearts(player);
+        long outstanding = legacy + entry.pendingDelta(player);
+        if (outstanding == 0L) {
+            // Nothing to hand over: the player is migrated by definition, with no write to MCA.
+            data.markHeartsMigrated(entry, player);
+        } else {
+            ServerPlayer target = server == null ? null : server.getPlayerList().getPlayer(player);
+            if (target != null && McaBinding.modHearts(proxy, target, outstanding)) {
+                data.markHeartsMigrated(entry, player);
+                data.clearPendingHearts(entry, player);
+            }
+        }
+        if (entry.heartsMigrated(player)) {
+            McaBinding.hearts(proxy, player).ifPresent(value -> data.snapshotHearts(entry, player, value));
+        }
     }
 
     @Override

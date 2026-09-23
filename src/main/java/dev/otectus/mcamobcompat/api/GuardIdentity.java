@@ -63,7 +63,7 @@ public interface GuardIdentity {
 
     /**
      * Adds to a player's hearts, negative to subtract, and fires
-     * {@link dev.otectus.mcamobcompat.api.event.GuardHeartsChangedEvent} on the Forge bus.
+     * {@link dev.otectus.mcamobcompat.api.event.GuardHeartsChangedEvent} on the game event bus.
      *
      * <p>Call on the server thread. A delta of zero does nothing and fires nothing. Values are not
      * clamped: the caller owns its own scale.

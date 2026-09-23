@@ -31,7 +31,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 class TagFileValidityTest {
 
     private static final Path TAGS =
-            Paths.get(System.getProperty("mcamobcompat.projectDir", "."), "src", "main", "resources", "data", "mcamobcompat", "tags", "entity_type");
+            Paths.get(System.getProperty("mcamobcompat.projectDir", "."), "src", "main", "resources", "data",
+                    "mcamobcompat", "tags", "entity_type");
 
     /**
      * Namespaces whose entries may be listed as a bare string.

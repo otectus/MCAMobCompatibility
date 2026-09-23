@@ -18,11 +18,15 @@ neoForge {
     runs {
         client { client(); gameDirectory = file('run-client') }
         server { server(); gameDirectory = file('run-server'); programArgument '--nogui' }
+        // `gradlew runGameTestServer` runs every GameTest in the mcamobcompat namespace against the
+        // real MCA and Guard Villagers. -PwithSwem, -PwithIcy, -PwithAlex (or -PwithAlexContinued)
+        // and -PwithGolems add those mods and enable their own test namespaces; -PwithIcy116 loads
+        // Icy's Better Horses 1.1.6 instead of 2.0, with the same suite.
         gameTestServer {
             type = 'gameTestServer'
             gameDirectory = file('run-gametest')
             sourceSet = sourceSets.gameTest
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.hasProperty('withSwem') ? 'mcamobcompat,mcamobcompat_swem' : project.mod_id
+            systemProperty 'neoforge.enabledGameTestNamespaces', gameTestNamespaces()
         }
     }
     mods {
@@ -31,6 +35,16 @@ neoForge {
     }
     unitTest { enable(); testedMod = mods."${mod_id}" }
 }
+/** The GameTest namespaces to enable: the core suite, plus one per optional mod flag. */
+def gameTestNamespaces() {
+    def namespaces = [mod_id]
+    if (project.hasProperty('withSwem')) namespaces << 'mcamobcompat_swem'
+    if (project.hasProperty('withIcy') || project.hasProperty('withIcy116')) namespaces << 'mcamobcompat_icy'
+    if (project.hasProperty('withAlex') || project.hasProperty('withAlexContinued')) namespaces << 'mcamobcompat_alex'
+    if (project.hasProperty('withGolems')) namespaces << 'mcamobcompat_golems'
+    return namespaces.join(',')
+}
+
 neoForge.addModdingDependenciesTo(sourceSets.gameTest)
 neoForge.addModdingDependenciesTo(sourceSets.runtimeProbe)
 repositories {
@@ -48,13 +62,36 @@ configurations {
 dependencies {
     localRuntime("net.conczin.mca:mca-neoforge:${mca_version}") { transitive = false }
     testRuntimeOnly("net.conczin.mca:mca-neoforge:${mca_version}") { transitive = false }
-    if (project.hasProperty('withGuards')) {
-        localRuntime("maven.modrinth:guard-villagers:${guard_version_id}") { transitive = false }
+    // Guard Villagers is on every dev run and GameTest, as on Forge: every safety-critical behaviour
+    // is about it. (-PwithGuards is accepted and changes nothing, for older command lines.)
+    localRuntime("maven.modrinth:guard-villagers:${guard_version_id}") { transitive = false }
+
+    // Optional mods and their libraries, for dev runs and GameTests only, one flag per mod. Pinned
+    // in gradle.properties; runtime-only so that nothing can ever compile against them.
+    if (project.hasProperty('withSwem') || project.hasProperty('withIcy116')) {
+        localRuntime("software.bernie.geckolib:geckolib-neoforge-1.21.1:${dev_geckolib_version}") { transitive = false }
     }
     if (project.hasProperty('withSwem')) {
-        localRuntime('curse.maven:swem-582697:8557159') { transitive = false }
-        localRuntime('curse.maven:player-animator-658587:7389814') { transitive = false }
-        localRuntime('software.bernie.geckolib:geckolib-neoforge-1.21.1:4.7.5.1') { transitive = false }
+        localRuntime("curse.maven:swem-582697:${dev_swem_file}") { transitive = false }
+        localRuntime("curse.maven:player-animator-658587:${dev_playeranimator_file}") { transitive = false }
+    }
+    if (project.hasProperty('withIcy')) {
+        localRuntime("maven.modrinth:modonomicon:${dev_modonomicon_version}") { transitive = false }
+        localRuntime("maven.modrinth:icys-better-horses:${dev_icys_better_horses_version}") { transitive = false }
+    }
+    if (project.hasProperty('withIcy116')) {
+        localRuntime("maven.modrinth:icys-better-horses:${dev_icys_better_horses_116_version}") { transitive = false }
+    }
+    if (project.hasProperty('withAlex')) {
+        localRuntime("maven.modrinth:XjY0RcQj:${dev_citadel_port_version}") { transitive = false }
+        localRuntime("maven.modrinth:EmNhnNnt:${dev_alexsmobs_version}") { transitive = false }
+    }
+    if (project.hasProperty('withAlexContinued')) {
+        localRuntime("maven.modrinth:codxlib:${dev_codxlib_version}") { transitive = false }
+        localRuntime("maven.modrinth:alexs-mobs-continued:${dev_alexsmobs_continued_version}") { transitive = false }
+    }
+    if (project.hasProperty('withGolems')) {
+        localRuntime("maven.modrinth:golemskillcreepers:${dev_golemskillcreepers_version}") { transitive = false }
     }
     runtimeProbeImplementation sourceSets.main.output
     gameTestImplementation sourceSets.main.output
@@ -77,15 +114,24 @@ tasks.register('checkJarContents') {
     doLast {
         def forbidden = ['tallestegg/guardvillagers/', 'com/alaharranhonor/swem/',
                          'mokiyoki/enhancedanimals/', 'com/dragn0007/dragnlivestock/',
+                         'icy/betterhorses/', 'com/github/alexthe666/', 'codx/codxlib/',
+                         'dev/terminalmc/golemskillcreepers/',
                          'neoforge/net/mca/', 'neoforge/net/conczin/mca/', 'forge/net/mca/', 'net/mca/', 'forge/net/conczin/mca/',
-                         'net/conczin/mca/', 'dev/architectury/']
+                         'net/conczin/mca/', 'dev/architectury/',
+                         // The GameTest mod is its own source set and must never reach this jar.
+                         'dev/otectus/mcamobcompat/gametest/']
         // Slash form is a real class reference; dotted form is a Class.forName name. Only the
         // allowlisted class may carry the dotted form, and only that exact entry -- no prefixes.
         def forbiddenBytes = ['forge/net/mca', 'net/conczin/mca', 'net/mca/',
                               'tallestegg/guardvillagers', 'com/alaharranhonor/swem',
                               'mokiyoki/enhancedanimals', 'com/dragn0007/dragnlivestock', 'com/dragn0007',
-                              'dev/architectury', 'tallestegg.guardvillagers', 'com.alaharranhonor.swem',
-                              'mokiyoki.enhancedanimals', 'com.dragn0007', 'dev.architectury']
+                              'icy/betterhorses', 'com/github/alexthe666', 'codx/codxlib',
+                              'dev/terminalmc/golemskillcreepers', 'dev/architectury',
+                              // Optional mods' dotted names have no exemption, even in McaBinding.
+                              'tallestegg.guardvillagers', 'com.alaharranhonor.swem',
+                              'mokiyoki.enhancedanimals', 'com.dragn0007', 'icy.betterhorses',
+                              'com.github.alexthe666', 'codx.codxlib', 'dev.terminalmc.golemskillcreepers',
+                              'dev.architectury']
         def forbiddenNames = ['forge.net.mca', 'net.conczin.mca', 'net.mca.']
         def reflectionAllowlist = ['dev/otectus/mcamobcompat/mca/McaBinding.class'] as Set
 
@@ -149,7 +195,8 @@ tasks.register('verifyProductionJar') {
             def text = zip.getInputStream(meta).getText('UTF-8')
             if (text.contains('$' + '{') || !text.contains(project.version.toString()) || !text.contains('neoforge'))
                 throw new GradleException('Invalid or unexpanded metadata')
-            ['cattle','guard','horse','humanoid_npc','livestock','mca_villagers','mount','pet','pig','poultry','sheep'].each {
+            ['cattle', 'guard', 'horse', 'humanoid_npc', 'livestock', 'mca_villagers', 'mount', 'npc_threats',
+             'pet', 'pig', 'player_only_mounts', 'poultry', 'sheep'].each {
                 if (zip.getEntry("data/mcamobcompat/tags/entity_type/${it}.json") == null)
                     throw new GradleException("Missing entity tag ${it}")
             }
@@ -201,6 +248,27 @@ tasks.register('installMod') {
 
 
 tasks.named('check') { dependsOn 'checkJarContents', 'verifyProductionJar' }
+tasks.named('build') { dependsOn 'checkJarContents', 'verifyProductionJar' }
+
+// A GameTest server that fails to start -- a missing dependency, a mixin error -- still exits 0,
+// which would pass for a green run. So the run is judged by the server's own summary line instead.
+tasks.matching { it.name == 'runGameTestServer' }.configureEach {
+    doLast {
+        def log = file('run-gametest/logs/latest.log')
+        if (!log.exists()) {
+            throw new GradleException("No GameTest log at ${log}; the server did not start.")
+        }
+        def text = log.getText('UTF-8')
+        def passed = text =~ /All (\d+) required tests passed/
+        if (!passed.find()) {
+            def failed = text =~ /(\d+) required tests failed/
+            throw new GradleException(failed.find()
+                    ? "${failed.group(1)} required GameTest(s) failed; see ${log}."
+                    : "The GameTest server never reported a result (did it fail to load?); see ${log}.")
+        }
+        logger.lifecycle("GameTests: all ${passed.group(1)} required tests passed.")
+    }
+}
 
 // Optional, separately packaged validation driver. Never included by build, jar, or installMod.
 tasks.register('runtimeProbeJar', Jar) {

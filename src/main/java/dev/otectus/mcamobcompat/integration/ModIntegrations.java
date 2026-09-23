@@ -1,9 +1,11 @@
 package dev.otectus.mcamobcompat.integration;
 
 import dev.otectus.mcamobcompat.McaMobCompat;
+import dev.otectus.mcamobcompat.integration.alexsmobs.AlexsMobsModule;
 import dev.otectus.mcamobcompat.integration.dragnlivestock.DragnLivestockModule;
 import dev.otectus.mcamobcompat.integration.geneticanimals.GeneticAnimalsModule;
 import dev.otectus.mcamobcompat.integration.guardvillagers.GuardVillagersModule;
+import dev.otectus.mcamobcompat.integration.icysbetterhorses.IcysBetterHorsesModule;
 import dev.otectus.mcamobcompat.integration.swem.SwemModule;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
@@ -24,9 +26,11 @@ public final class ModIntegrations {
     private static final SwemModule SWEM = new SwemModule();
     private static final GeneticAnimalsModule GENETIC_ANIMALS = new GeneticAnimalsModule();
     private static final DragnLivestockModule DRAGN_LIVESTOCK = new DragnLivestockModule();
+    private static final IcysBetterHorsesModule ICYS_BETTER_HORSES = new IcysBetterHorsesModule();
+    private static final AlexsMobsModule ALEXS_MOBS = new AlexsMobsModule();
 
     private static final List<IntegrationModule> MODULES =
-            List.of(GUARD_VILLAGERS, SWEM, GENETIC_ANIMALS, DRAGN_LIVESTOCK);
+            List.of(GUARD_VILLAGERS, SWEM, GENETIC_ANIMALS, DRAGN_LIVESTOCK, ICYS_BETTER_HORSES, ALEXS_MOBS);
 
     private static final Map<String, IntegrationModule> BY_NAMESPACE = new HashMap<>();
 
@@ -102,5 +106,13 @@ public final class ModIntegrations {
 
     public static DragnLivestockModule dragnLivestock() {
         return DRAGN_LIVESTOCK;
+    }
+
+    public static IcysBetterHorsesModule icysBetterHorses() {
+        return ICYS_BETTER_HORSES;
+    }
+
+    public static AlexsMobsModule alexsMobs() {
+        return ALEXS_MOBS;
     }
 }

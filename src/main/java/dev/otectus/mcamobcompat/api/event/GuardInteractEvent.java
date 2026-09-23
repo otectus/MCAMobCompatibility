@@ -4,11 +4,11 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.bus.api.ICancellableEvent;
 import net.neoforged.bus.api.Event;
+import net.neoforged.bus.api.ICancellableEvent;
 
 /**
- * Fired on the Forge bus when a player right-clicks a bridged guard, before the guard's own mod
+ * Fired on the NeoForge bus when a player right-clicks a bridged guard, before the guard's own mod
  * sees the click.
  *
  * <p>This is how a sibling addon puts its own screen in front of a guard -- a conversation, a quest

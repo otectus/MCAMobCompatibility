@@ -1,5 +1,112 @@
 # Changelog
 
+## 0.2.1+1.21.1
+
+Recruiting that no longer makes a villager vanish, villagers that see a creeper coming, mounts that
+refuse riders they cannot carry, and support for Icy's Better Horses, Alex's Mobs and Golems Kill
+Creepers.
+
+Released together with the Forge 1.20.1 build, with the same features, configuration, commands and
+datapack tags on both, and one version number: this build, released as 2.0, is renumbered 0.2.1 to
+follow the Forge build's 0.2.0. `scripts/parity.py` holds the two repositories to that.
+
+### Upgrade notes
+
+- **Install it on the server and on every client, at the same version**, as before: the required
+  `mcamobcompat:proxy_pair` payload (protocol `1`) is unchanged, and a client without it is refused.
+- **No save migration.** The guard identity store stays at schema version 3.
+- **The version number goes down, from 2.0 to 0.2.1, and 0.2.1 is the newer build.** The jar is
+  `mcamobcompat-neoforge-0.2.1+1.21.1.jar`. Remove the 2.0 jar from the mods folder.
+- **Wider dependency ranges.** MCA is accepted across 7.7 (`[7.7,8)`) rather than exactly
+  `7.7.36-beta.3+1.21.1`, and every optional mod at any version. 2.0 required Guard Villagers to be
+  exactly 2.4.12 and refused to load beside any other release. Members an untested release lacks are
+  skipped one feature at a time, with one warning each.
+- **MCA's "Ride Horse" order no longer seats a villager on a SWEM horse**, nor on an Icy's Better
+  Horses horse that belongs to a player. On a SWEM horse the villager could not steer, so the horse
+  ignored MCA's orders. Set `[mounts] npcRidingPolicy = "ALLOW_INERT"` to put villagers back on SWEM horses anyway.
+- **New config keys arrive with their defaults**: `[threats]`, `[mounts]`, `[icys_better_horses]` and
+  `[alexs_mobs]` in `mcamobcompat-server.toml`, and `icysBetterHorses` and `alexsMobs` under
+  `[modules]` in `mcamobcompat-common.toml`.
+- **MCA's Follow order is handed to Guard Villagers exactly, and Guard Villagers decides.** Its own
+  `followHero` option, on by default, lets a guard follow only a player with Hero of the Village.
+
+### Fixed
+
+- **Recruiting an MCA villager no longer makes it vanish for the player who recruited it.** Guard
+  Villagers runs its conversion, including discarding the villager, on the client as well as the
+  server. 2.0 blocked it on the server but returned early on the client before cancelling, so the
+  recruiting player's own client discarded the villager while the server, and every other player,
+  kept it. The block now cancels on both sides before any side check. The runtime probe reproduces
+  the fault on the 2.0 jar (the villager is removed as `DISCARDED` on the recruiting client only) and
+  shows 0.2.1 keeping it present and rendered on both clients (`docs/VALIDATION.md`).
+- **A recruit that cannot happen says why.** A child, a villager already holding something, an
+  existing guard, and a missing `mca:guard` profession each get their own message, and nothing
+  changes. A recruit rebuilds the villager's MCA brain, so the new guard behaves as one at once.
+
+### Added
+
+- **Creeper awareness.** MCA on its own only notices a creeper lit with flint and steel. MCA villagers
+  now see the mobs in the new `mcamobcompat:npc_threats` tag, which ships with `minecraft:creeper`:
+  civilians run from one that is hunting them or whose fuse is burning, and MCA guards and archers
+  fight one that is not about to explode. A burning fuse close by makes everyone run, guards included,
+  and a charged creeper counts from twice as far. All of it goes through MCA's own panic and guard
+  behaviour, by writing the brain memories MCA itself reads; no creeper, golem or gamerule is changed,
+  so Golems Kill Creepers works exactly as before. New `[threats]` options: `creeperAwareness`,
+  `creeperAlertRange`, `swellingFleeRange`, `guardsEngageCreepers` and `dismountToFlee`.
+- **A mount policy.** A mount in the new `mcamobcompat:player_only_mounts` tag, or one an integration
+  says is not a villager's to take, refuses an MCA villager, and the player who gave the order is told
+  why. `[mounts] npcRidingPolicy` chooses between `REFUSE`, the default, and `ALLOW_INERT`.
+- **Icy's Better Horses.** Release 2.0's fifteen breeds (`icys-better-horses:*_horse`, which extend
+  vanilla `Horse`) are horses and mounts, through Icy's own `#icys-better-horses:breed_horses` tag.
+  Icy's horse owners count as owners, through `MobCompatibilityAPI.getOwner` and the hunting chore's
+  protection, and a horse that belongs to a player refuses a villager rider. Icy's keeps other
+  players off an owned horse but does not check villagers, so this mod applies the same rule to them.
+  Icy 2.0 itself lets only players ride its horses; release 1.1.6 is supported too, and there a
+  hitched horse is refused as well. Nothing of Icy's is written. New option
+  `[icys_better_horses] recognizeOwnership`.
+- **Alex's Mobs.** Its elephant, grizzly bear, komodo dragon and tusklin are mounts, and every tamed
+  animal of any mod with an owner, horses aside, is now a `pet`, so the hunting chore spares it. Its six
+  player-steered mounts refuse a villager that anything tries to seat on them; MCA's own order never
+  picks them. Both builds for NeoForge 1.21.1 -- Raguto's unofficial port 1.22.17 and Alex's Mobs
+  Continued 2.2.2 -- were audited type by type from their jars and match the 1.20.1 audit; see
+  `docs/ALEXS_MOBS_AUDIT.md`. New option `[alexs_mobs] recognizeAnimals`.
+- **Diagnostics.** `/mcamobcompat mounts inspect` shows a mount's roles, owner, saddle, who steers
+  it, whether a villager could, and the policy's decision. `/mcamobcompat threats inspect` shows every
+  threat an MCA villager can see, its response to each, and -- with Golems Kill Creepers installed --
+  that mod's two gamerules.
+- **MCA's brain memories are reached by registry id** (`mca:player_following_memory`,
+  `mca:nearest_guard_enemy`), through vanilla `Brain`, with no reflection at all.
+
+### Changed: brought in from the Forge build
+
+The Forge build moved on after the port; these now apply to both builds.
+
+- **The proxy's collision box is nested inside its guard's.** Arrows, tridents, snowballs, melee and a
+  player's pick all meet the guard first, with vanilla's own hit code, potion effects and piercing
+  included. This replaces 2.0's per-projectile removal of proxy bounds.
+- **A proxy that is really gone releases its link**, so an operator's `/kill` or a relayed death lets
+  its guard get a new one; a guard key the store has already released no longer blocks creation.
+- **A guard removed as killed without a death event is still settled**, with the last damage it took.
+- **Damage that bypasses invulnerability reaches a proxy**, which is how an operator removes one.
+- **One click is routed once per tick**, whichever of the two interaction packets carries it.
+- **The client end of the pairing lives in `client/ClientProxyPairs`**; the payload is sent again when a
+  pair's runtime ids change, and every piece of per-server state is cleared when a server stops.
+- **Guards are alerted by one bounded service** shared by village defence and creeper awareness.
+
+### Build and verification
+
+- **GameTests**: the core suite (29 tests) runs against the real MCA 7.7 and Guard Villagers on every
+  `runGameTestServer`; `-PwithSwem`, `-PwithIcy`, `-PwithAlex` and `-PwithGolems` add those mods and
+  their suites, `-PwithAlexContinued` and `-PwithIcy116` swap in the other builds. The task now fails
+  unless the server reports every required test passed.
+- **Both jar gates** cover the new optional mods and tags.
+- **The runtime probe** now recruits a villager on real clients and checks it from the recruiting
+  client, the server and a second client watching. `scripts/validation/launch_client.py` serves both
+  loaders' installer profiles.
+- **`scripts/parity.py`** checks this repository against the Forge one.
+- `docs/VALIDATION.md` records what was run and what it showed; `docs/DEPENDENCIES.json` records every
+  jar tested, with its SHA-256.
+
 ## 2.0+1.21.1 — NeoForge port
 
 - Ported the complete production source, public events, configuration and data paths to NeoForge 1.21.1/Java 21/ModDevGradle. Added required versioned pairing payloads and production JAR gates.

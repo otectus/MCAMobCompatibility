@@ -5,8 +5,9 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.otectus.mcamobcompat.McaMobCompat;
-import dev.otectus.mcamobcompat.api.MobCompatibilityAPI;
+import dev.otectus.mcamobcompat.McaMobCompatConfig;
 import dev.otectus.mcamobcompat.api.GuardIdentity;
+import dev.otectus.mcamobcompat.api.MobCompatibilityAPI;
 import dev.otectus.mcamobcompat.api.MobRole;
 import dev.otectus.mcamobcompat.bridge.GuardBridge;
 import dev.otectus.mcamobcompat.bridge.GuardIdentityData;
@@ -18,6 +19,13 @@ import dev.otectus.mcamobcompat.integration.IntegrationModule;
 import dev.otectus.mcamobcompat.integration.ModIntegrations;
 import dev.otectus.mcamobcompat.mca.McaBinding;
 import dev.otectus.mcamobcompat.mca.McaEntities;
+import dev.otectus.mcamobcompat.mca.McaMemories;
+import dev.otectus.mcamobcompat.mount.MountDecision;
+import dev.otectus.mcamobcompat.mount.MountPolicy;
+import dev.otectus.mcamobcompat.mount.NpcRidingPolicy;
+import dev.otectus.mcamobcompat.threat.ThreatAssessor;
+import dev.otectus.mcamobcompat.threat.ThreatPolicy;
+import dev.otectus.mcamobcompat.util.ConfigAccess;
 import dev.otectus.mcamobcompat.util.ModIds;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -27,23 +35,25 @@ import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.Brain;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.server.level.ServerLevel;
-import net.neoforged.neoforge.event.RegisterCommandsEvent;
-
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -107,6 +117,18 @@ public final class McaMobCompatCommand {
                                 .then(Commands.argument("days", IntegerArgumentType.integer(0))
                                         .executes(context -> purge(context.getSource(),
                                                 IntegerArgumentType.getInteger(context, "days"))))))
+                .then(Commands.literal("mounts")
+                        .then(Commands.literal("inspect")
+                                .executes(context -> mountsLookedAt(context.getSource()))
+                                .then(Commands.argument("target", EntityArgument.entity())
+                                        .executes(context -> mounts(context.getSource(),
+                                                EntityArgument.getEntity(context, "target"))))))
+                .then(Commands.literal("threats")
+                        .then(Commands.literal("inspect")
+                                .executes(context -> threatsLookedAt(context.getSource()))
+                                .then(Commands.argument("target", EntityArgument.entity())
+                                        .executes(context -> threats(context.getSource(),
+                                                EntityArgument.getEntity(context, "target"))))))
                 .then(Commands.literal("mca")
                         .executes(context -> mcaBinding(context.getSource())))
                 .then(Commands.literal("dump")
@@ -195,36 +217,124 @@ public final class McaMobCompatCommand {
             MobCompatibilityAPI.getOwner(entity).ifPresent(owner ->
                     line(source, ChatFormatting.WHITE, "  owner: " + owner));
             if (roles.contains(MobRole.MOUNT)) {
-                reportMountState(source, entity);
+                reportMount(source, entity);
             }
         }
         return targets.size();
     }
 
     /**
-     * The three vanilla reads that tell the two mount failure modes apart.
+     * What an MCA villager put on this mount would do, and why.
      *
-     * <p>MCA mounts a villager on player command, and its candidate filter needs a saddled,
-     * unoccupied mount. No saddle means MCA never mounts the villager at all. A saddle plus a null
-     * controlling passenger means the villager does mount and the mount then stays inert, because
-     * the mount's own {@code getControllingPassenger()} refuses to hand steering to anything but a
-     * player -- which is what SWEM does, and which nothing here can reach without a mixin.
-     *
-     * <p>All three are vanilla accessors, so this names no foreign class.
+     * <p>Recognition, then the facts MCA's own "Ride Horse" order checks (a saddle, an owner, who is
+     * steering), then whether a villager could steer it at all, and what this mod's mount policy
+     * would decide. All reads are vanilla or this mod's own, so no foreign class is named.
      */
-    private static void reportMountState(CommandSourceStack source, Entity entity) {
+    private static void reportMount(CommandSourceStack source, Entity entity) {
         if (entity instanceof AbstractHorse horse) {
             line(source, horse.isSaddled() ? ChatFormatting.GREEN : ChatFormatting.YELLOW,
                     "  saddled: " + horse.isSaddled());
         }
-        // The owner line above only prints when there is one; for a mount the absence is itself a fact.
+        // The owner line in classify only prints when there is one; for a mount the absence is a fact.
         if (MobCompatibilityAPI.getOwner(entity).isEmpty()) {
             line(source, ChatFormatting.YELLOW, "  owner: none");
         }
         LivingEntity controller = entity.getControllingPassenger();
         line(source, controller == null ? ChatFormatting.YELLOW : ChatFormatting.GREEN,
-                "  controllingPassenger: "
-                        + (controller == null ? "none" : controller.getName().getString()));
+                "  controllingPassenger: " + (controller == null ? "none" : controller.getName().getString()));
+        line(source, MountPolicy.playerOnly(entity) ? ChatFormatting.YELLOW : ChatFormatting.WHITE,
+                "  villager control: " + MountPolicy.npcControl(entity));
+        MountDecision decision = MountPolicy.decideForAnyVillager(entity);
+        line(source, decision.allowed() ? ChatFormatting.GREEN : ChatFormatting.YELLOW,
+                "  an MCA villager would be: " + (decision.allowed() ? "allowed"
+                        : "refused (" + Component.translatable(decision.reasonKey(),
+                        Component.literal("a villager"), entity.getName()).getString() + ")"));
+        NpcRidingPolicy policy = ConfigAccess.enumValue(McaMobCompatConfig.SERVER.npcRidingPolicy, NpcRidingPolicy.REFUSE);
+        line(source, ChatFormatting.GRAY, "  mounts.npcRidingPolicy: " + policy);
+    }
+
+    private static int mountsLookedAt(CommandSourceStack source) throws CommandSyntaxException {
+        Entity target = lookedAt(source.getPlayerOrException());
+        if (target == null) {
+            line(source, ChatFormatting.RED, "Not looking at an entity. Aim at one, or pass a target selector.");
+            return 0;
+        }
+        return mounts(source, target);
+    }
+
+    private static int mounts(CommandSourceStack source, Entity target) {
+        line(source, ChatFormatting.GOLD, target.getName().getString() + " ("
+                + EntityType.getKey(target.getType()) + ")");
+        Set<MobRole> roles = MobCompatibilityAPI.getRoles(target);
+        line(source, ChatFormatting.WHITE, "  roles: " + (roles.isEmpty() ? "none" : describe(roles)));
+        MobCompatibilityAPI.getOwner(target).ifPresent(owner -> line(source, ChatFormatting.WHITE, "  owner: " + owner));
+        reportMount(source, target);
+        return 1;
+    }
+
+    private static int threatsLookedAt(CommandSourceStack source) throws CommandSyntaxException {
+        Entity target = lookedAt(source.getPlayerOrException());
+        if (target == null) {
+            line(source, ChatFormatting.RED, "Not looking at an entity. Aim at one, or pass a target selector.");
+            return 0;
+        }
+        return threats(source, target);
+    }
+
+    /**
+     * What an MCA villager currently makes of the threats around it, and which of MCA's memories
+     * the reaction was written to. Also reports Golems Kill Creepers' two gamerules when that mod is
+     * present, to show they are exactly as the operator set them.
+     */
+    private static int threats(CommandSourceStack source, Entity target) {
+        if (!(target instanceof Villager villager) || !McaEntities.isMcaVillager(villager)) {
+            line(source, ChatFormatting.RED, target.getName().getString() + " is not an MCA villager.");
+            return 0;
+        }
+        line(source, ChatFormatting.GOLD, villager.getName().getString() + " -- threat awareness");
+        boolean enabled = ConfigAccess.bool(McaMobCompatConfig.SERVER.creeperAwareness, true);
+        line(source, enabled ? ChatFormatting.GREEN : ChatFormatting.YELLOW, "  threats.creeperAwareness: " + enabled);
+        if (GuardProxy.isProxy(villager)) {
+            line(source, ChatFormatting.GRAY, "  a hidden guard proxy: never reacts on its own");
+        }
+        ThreatPolicy.Settings settings = ThreatAssessor.settings();
+        List<LivingEntity> nearby = ThreatAssessor.nearbyThreats(source.getLevel(), villager, settings.alertRange());
+        if (nearby.isEmpty()) {
+            line(source, ChatFormatting.GRAY, "  no tagged threat within " + (int) settings.alertRange() + " blocks");
+        }
+        for (LivingEntity threat : nearby) {
+            ThreatAssessor.Assessment assessment = ThreatAssessor.assess(villager, threat, settings);
+            ThreatPolicy.Facts facts = assessment.facts();
+            line(source, ChatFormatting.WHITE, String.format(java.util.Locale.ROOT,
+                    "  %s at %.1f: %s (visible %s, fuse %s, charged %s, hunting %s, combatant %s)",
+                    threat.getName().getString(), facts.distance(), assessment.response(), facts.visible(),
+                    facts.fuseLit(), facts.powered(), facts.hunting(), facts.combatant()));
+        }
+        Brain<?> brain = villager.getBrain();
+        if (McaMemories.registers(villager, MemoryModuleType.NEAREST_HOSTILE)) {
+            line(source, ChatFormatting.WHITE, "  nearest hostile: "
+                    + brain.getMemory(MemoryModuleType.NEAREST_HOSTILE).map(e -> e.getName().getString()).orElse("none"));
+        }
+        if (McaMemories.registers(villager, MemoryModuleType.WALK_TARGET)) {
+            line(source, ChatFormatting.WHITE, "  walking to: "
+                    + brain.getMemory(MemoryModuleType.WALK_TARGET).map(w -> w.getTarget().currentBlockPosition().toShortString())
+                    .orElse("nowhere"));
+        }
+        line(source, ChatFormatting.WHITE, "  MCA guard enemy: "
+                + McaMemories.guardEnemy(villager).map(e -> e.getName().getString()).orElse("none"));
+        if (ModList.get().isLoaded(ModIds.GOLEMS_KILL_CREEPERS)) {
+            GameRules rules = source.getLevel().getGameRules();
+            GameRules.visitGameRuleTypes(new GameRules.GameRuleTypeVisitor() {
+                @Override
+                public <T extends GameRules.Value<T>> void visit(GameRules.Key<T> key, GameRules.Type<T> type) {
+                    if (key.getId().equals("doIronGolemsAttackCreepers") || key.getId().equals("doIronGolemsInstakillCreepers")) {
+                        line(source, ChatFormatting.GRAY, "  Golems Kill Creepers " + key.getId() + " = "
+                                + rules.getRule(key).serialize() + " (never changed by this mod)");
+                    }
+                }
+            });
+        }
+        return 1;
     }
 
     private static int guardsStatus(CommandSourceStack source) {
@@ -240,12 +350,23 @@ public final class McaMobCompatCommand {
 
         GuardIdentityData data = GuardIdentityStore.get(source.getServer());
         line(source, ChatFormatting.WHITE, "  " + data.size() + " identity(ies) stored, "
-                + data.deceasedCount() + " deceased, " + data.quarantinedCount() + " conflicting (quarantined)."
-                + (data.isReadOnly() ? " Unsupported schema: read-only." : ""));
+                + data.deceasedCount() + " deceased.");
+        if (data.isReadOnly()) {
+            line(source, ChatFormatting.RED, "  The identity file uses a newer schema than this version understands. "
+                    + "It is preserved read-only: nothing is created, changed or saved over it.");
+        }
+        if (data.quarantinedCount() > 0) {
+            line(source, ChatFormatting.RED, "  " + data.quarantinedCount() + " identity(ies) quarantined: their saved "
+                    + "guard or proxy UUIDs conflict. Preserved as-is and never relinked automatically.");
+        }
+        if (data.rejectedCount() > 0) {
+            line(source, ChatFormatting.YELLOW, "  " + data.rejectedCount() + " unreadable record(s) preserved verbatim.");
+        }
 
         ProxyCensus census = census(source);
         line(source, ChatFormatting.WHITE, "  " + census.proxies + " proxy(ies) loaded, "
-                + census.orphans + " orphaned, " + census.guardsWithout + " guard(s) without one.");
+                + census.orphans + " with their guard not loaded (kept, never deleted automatically), "
+                + census.guardsWithout + " guard(s) without one.");
         return data.size();
     }
 
@@ -283,8 +404,9 @@ public final class McaMobCompatCommand {
     /**
      * Every loaded proxy, its guard, and every bridged guard still waiting for one.
      *
-     * <p>The orphan list is the one that matters: a proxy whose guard is gone holds MCA state for an
-     * NPC nobody can reach, and it is what {@code guards rebuild} exists to clear up.
+     * <p>A proxy whose guard is not loaded is listed and kept. Its guard may simply be in a chunk
+     * that is not loaded, so nothing deletes such a proxy automatically; an operator who knows the
+     * guard is gone can remove it by hand.
      */
     private static int proxies(CommandSourceStack source) {
         line(source, ChatFormatting.GOLD, "MCA proxies");
@@ -297,14 +419,12 @@ public final class McaMobCompatCommand {
                     line(source, guard == null ? ChatFormatting.RED : ChatFormatting.GREEN,
                             "  " + entity.getName().getString() + " (" + entity.getUUID() + ") in "
                                     + level.dimension().location() + " -> "
-                                    + (guard == null ? "UNRESOLVED: guard may be unloaded" : guard.getUUID()));
+                                    + (guard == null ? "guard not loaded (kept)" : guard.getUUID()));
                 } else if (GuardBridge.isBridgedGuard(entity)
                         && GuardProxy.proxyOf((Mob) entity) == null) {
                     found++;
                     line(source, ChatFormatting.YELLOW, "  guard " + entity.getUUID() + " in "
-                            + level.dimension().location() + (entity.getPersistentData().hasUUID(GuardProxy.KEY_PROXY)
-                            || GuardIdentityStore.proxyUuid(source.getServer(), entity.getUUID()).isPresent()
-                            ? " has an unresolved proxy UUID (unloaded or conflicting)" : " is awaiting proxy creation"));
+                            + level.dimension().location() + " has no proxy");
                 }
             }
         }
@@ -323,9 +443,8 @@ public final class McaMobCompatCommand {
      * alternative is guards nobody can talk to.
      */
     private static int rebuild(CommandSourceStack source) {
-        if (GuardIdentityStore.get(source.getServer()).isReadOnly()) {
-            line(source, ChatFormatting.RED, "Identity schema is read-only; rebuild refused."); return 0;
-        }
+        line(source, ChatFormatting.RED, "Rebuilding: every loaded guard's proxy is replaced by a new MCA "
+                + "villager. The old ones' memories, hearts and family-tree nodes are gone.");
         int rebuilt = 0;
         for (ServerLevel level : source.getServer().getAllLevels()) {
             List<Entity> guards = new ArrayList<>();
@@ -342,6 +461,8 @@ public final class McaMobCompatCommand {
                 if (existing != null) {
                     GuardProxy.discard(existing);
                 }
+                // The grace period protects chunk loading, not an operator's explicit rebuild.
+                guard.tickCount = Math.max(guard.tickCount, GuardProxy.CREATE_GRACE_TICKS);
                 if (GuardProxy.create(level, guard) != null) {
                     rebuilt++;
                 }
@@ -395,7 +516,8 @@ public final class McaMobCompatCommand {
         if (proxy != null) {
             line(source, ChatFormatting.WHITE, "  live MCA name: "
                     + (proxy.hasCustomName() ? proxy.getCustomName().getString() : "unnamed"));
-            line(source, ChatFormatting.WHITE, "  live profession: " + BuiltInRegistries.VILLAGER_PROFESSION.getKey(proxy.getVillagerData().getProfession()));
+            line(source, ChatFormatting.WHITE, "  live profession: "
+                    + BuiltInRegistries.VILLAGER_PROFESSION.getKey(proxy.getVillagerData().getProfession()));
         }
         if (source.getEntity() instanceof ServerPlayer player) {
             line(source, ChatFormatting.WHITE,
@@ -406,7 +528,6 @@ public final class McaMobCompatCommand {
 
     private static int purge(CommandSourceStack source, int days) {
         GuardIdentityData data = GuardIdentityStore.get(source.getServer());
-        if (data.isReadOnly()) { line(source, ChatFormatting.RED, "Identity schema is read-only; purge refused."); return 0; }
         long now = source.getLevel().getGameTime();
         int removed = data.purgeDeceased(now, days * TICKS_PER_DAY);
         line(source, ChatFormatting.WHITE, "Purged " + removed + " deceased guard identity(ies) older than "
@@ -436,9 +557,11 @@ public final class McaMobCompatCommand {
         line(source, root.isPresent() ? ChatFormatting.GREEN : ChatFormatting.YELLOW,
                 "  package root: " + root.orElse("not found -- chore features are disabled"));
         for (String binding : McaBinding.describeBindings()) {
-            line(source, binding.endsWith("ok") ? ChatFormatting.GREEN : ChatFormatting.YELLOW,
-                    "    " + binding);
+            line(source, binding.endsWith("ok") || binding.contains("(MCA 7.") ? ChatFormatting.GREEN
+                    : ChatFormatting.YELLOW, "    " + binding);
         }
+        McaBinding.failures().forEach((member, reason) ->
+                line(source, ChatFormatting.YELLOW, "    ! " + member + ": " + reason));
         return McaBinding.isAvailable() ? 1 : 0;
     }
 

@@ -1,27 +1,171 @@
-# MCA: Mob Compatibility — NeoForge 1.21.1
+# MCA: Mob Compatibility - NeoForge 1.21.1 Mod
 
-Read [MODMAP.md](MODMAP.md), [docs/PORTING.md](docs/PORTING.md), and [docs/VALIDATION.md](docs/VALIDATION.md) before changing the port. The original Forge research is archived in `MCA_MOB_COMPATIBILITY.md`; its loader/runtime claims are superseded.
+## Orientation
+Registration inventory and package layout live in `MODMAP.md` (hand-maintained here:
+`.mcmod-tools/modmap.py` understands only Forge build files and reports this project's loader and
+mappings as unknown). Read that instead of crawling `src/`.
+`docs/PORTING.md` records how the NeoForge build differs from the Forge one, and why.
+
+This mod registers **no** blocks, items, or entities. It is a classification/compat layer that
+teaches MCA Reborn to recognise modded animals, mounts, livestock and guards.
+
+## Quick Reference
+- **Mod ID**: `mcamobcompat`
+- **Package**: `dev.otectus.mcamobcompat`
+- **MC / Loader / Java**: see `gradle.properties`; Java 21 toolchain and ModDevGradle, set in `build.gradle`
+- **Mappings**: official
+
+Version numbers live only in `gradle.properties`; `processResources` expands them into
+`neoforge.mods.toml`. Never hard-code one elsewhere, this file included.
 
 ## Build
+- `./gradlew compileJava` - compile only, the normal iteration loop
+- `./gradlew build` - full build; runs `checkJarContents` and `verifyProductionJar` (no reobfuscation on
+  NeoForge), output `build/libs/mcamobcompat-neoforge-<version>+1.21.1.jar`
+- `./gradlew check` - JUnit tests, including `NoOptionalModStaticLinkTest`
+- `./gradlew installMod -PmodsDir=<dir>` - copy the verified jar into a mods folder
+  (falls back to `$MCAMOBCOMPAT_MODS_DIR`)
+- `./gradlew runGameTestServer` - GameTests on a real server with MCA 7.7 and Guard Villagers;
+  `-PwithSwem`, `-PwithIcy`, `-PwithAlex`, `-PwithGolems` add those mods and their suites, and
+  `-PwithAlexContinued` / `-PwithIcy116` swap in Alex's Mobs Continued / Icy's Better Horses 1.1.6. Fails unless `run-gametest/logs/latest.log` reports every required
+  test passed, because the server exits cleanly even when mod loading fails.
+- `./gradlew runtimeProbeJar` - the opt-in production validation driver, never shipped
+- `python3 scripts/parity.py` - checks this repository against the Forge one (see below)
 
-- Java 21, Gradle 8.12, ModDevGradle 2.0.141, NeoForge 21.1.248; exact dependency settings in `gradle.properties`.
-- `./gradlew build` runs unit tests and both production artifact gates. `./gradlew runGameTestServer -PwithGuards -PwithSwem` runs registered integration tests with the actual optional mods.
-- Third-party dependencies stay runtime-only. No local `libs/` JAR is needed to compile.
-- `runtimeProbeJar` is a separate opt-in driver for disposable test worlds; it does not belong in a playing instance or the main JAR.
+## Structure
+```
+.api            public extension surface: MobCompatibilityAPI, ClassificationProvider, MobRole, GuardIdentity
+.api.event      NeoForge-bus events for the bridge: GuardInteractEvent, GuardIdentityCreatedEvent, GuardHeartsChangedEvent
+.bridge         bridged-guard identity store and lifecycle: GuardIdentityData, GuardIdentityStore, GuardIdentityView, GuardNames,
+                GuardInteractions (the crouch gesture), GuardProxy (hidden MCA villager lifecycle), GuardProxySync (per-tick mirroring)
+.classification caches, provider registry, tag-driven classifier, TamedMountProvider, OwnedAnimalProvider
+.client         Dist.CLIENT only: ClientProxyPairs (the client's exact proxy pairs) and ProxyRenderHandler
+                (cancels a proxy's render; inside a screen draws its paired guard in its place)
+.command        /mcamobcompat command
+.event          NeoForge-bus handlers: reload, conversion guard and recruit, guard defense and GuardAlerts, chore safety,
+                GuardBridgeHandler (the interaction router), GuardProxyHandler (proxy lifecycle and redirects),
+                GuardDamageRelayHandler (hurt/death relay), ProxySpawnHandler, ProxyShapeHandler, MountPolicyHandler,
+                ServerLifecycleHandler (clears static state on server stop)
+.integration    one IntegrationModule subclass per optional mod, in a per-mod subpackage; guardvillagers also holds
+                GuardReflection and GuardVariants, icysbetterhorses holds IcyReflection (both by-name method handles)
+.mca            McaEntities (knows MCA entity ids), McaBinding (reflective layer), McaMemories (MCA memories by registry id)
+.mount          MountPolicy and its decision, refusal and policy types
+.network        ProxyPairs: the mcamobcompat:proxy_pair payload (registrar version "1") and its one message
+.threat         ThreatPolicy (pure decision), ThreatAssessor, ThreatHandler (creeper awareness)
+.util           ConfigAccess, ModIds
+```
+The `client` package exists solely to control rendering of hidden proxy villagers. There is still no
+client config spec and nothing else runs client-side. GameTests live in a separate `gameTest` source
+set and test mod, `mcamobcompat_tests`, one `@GameTestHolder` namespace per optional mod.
 
-## Invariants
+## Key Dependencies
+- MCA Reborn and every optional mod - **runtime only**, for dev runs and GameTests. Never compile
+  deps. Pinned in `gradle.properties` (Modrinth version ids; CurseForge file ids for SWEM and Player
+  Animator) and fetched on demand; no local `libs/` is needed and nothing is remapped, since NeoForge
+  1.21.1 runs on official names.
 
-- Keep mod ID/package/public API stable. No new registered entities/items/blocks, mixins, access transformers, shaded optional mod classes, or edits to another mod's config.
-- Only `mca/McaBinding.class` may contain dotted MCA class names. Never widen the exact allowlist to nested classes/packages. No optional mod class may be statically linked. Guard Villagers access uses exact methods of its verified runtime guard, after checking the entity namespace.
-- Tags use `data/mcamobcompat/tags/entity_type/`. Optional `forge:` aliases are data identifiers; do not blindly rewrite them to nonexistent conventional species tags.
-- COMMON module toggles and SERVER gameplay defaults are preserved. Config/tag reload invalidates caches; dynamic providers cannot bypass a disabled module.
-- Guard UUID and proxy UUID are different, durable identities. Use central resolve/adopt/create with its grace period; never replace an unresolved stored UUID. Never destroy an identity merely because its owner is unloaded.
-- The guard owns combat health and inventory; its real MCA proxy owns relationships and MCA interaction state. Initialization/link commit is transactional, including family-tree rollback after rejection. Quarantined saved links cannot be replaced automatically.
-- Client proxy identity comes from the explicit UUID/ID pairing payload, not flag heuristics or nearest-entity searches. Keep client rendering code physically client-only and restore poses in `finally`.
-- Final damage relays are scoped to a single pair. Confirm death after cancellation/totem handling; do not revive dead proxies or repeat rejected synthetic deaths. Native projectile collision remains responsible for effects/attribution/pickup.
-- Follow uses MCA's registered player-following memory, with a saved UUID for restart; opening another player's screen must not steal an existing follow order.
-- Schema 3 keeps MCA snapshots and pending deltas separate. Pending deltas need `long` even though balances are bounded `int`. Apply/clear only on successful MCA writes; synchronize on the heartbeat. Preserve legacy/future/malformed records as documented.
+## Conventions
+- No `DeferredRegister`. Mod bus is used only for `FMLCommonSetupEvent`, the three `ModConfigEvent`s
+  and `RegisterPayloadHandlersEvent`, via manual `addListener` calls in `McaMobCompat`'s injected
+  constructor `(IEventBus, ModContainer)`.
+- NeoForge-bus handlers are `@EventBusSubscriber` classes with static `@SubscribeEvent` methods.
+- Config is `ModConfigSpec` with two specs in `McaMobCompatConfig`: COMMON (module toggles) and
+  SERVER (all gameplay tuning, so it is world-owned). Add gameplay options to SERVER. Current
+  `[guard_villagers]` options: `blockGuardConversion`, `protectMcaVillagers`,
+  `preventGuardFriendlyFire`, `retaliateAgainstPlayers`, `guardHelpRange`, `maxGuardsAlerted`,
+  `treatGuardsAsMcaGuards` (bridges a guard to an MCA identity at all), `guardMcaInteraction`
+  (plain click opens MCA's own screen through the hidden proxy; crouch opens Guard Villagers'
+  inventory; off means stock gestures and no proxy), `recruitMcaVillagersAsGuards` (crouch-click
+  with a weapon recruits an MCA villager as a guard in place instead of blocking the conversion),
+  `guardShowNameTag`. Other sections: `[chores]` (hunting restraint, five options), `[threats]`
+  (creeper awareness, five options), `[mounts] npcRidingPolicy`, and the per-mod recognitions
+  `[swem]`, `[genetic_animals]`, `[dragn_livestock]`, `[icys_better_horses]`, `[alexs_mobs]`.
+- GameTests never call `ModConfigSpec.ConfigValue.set()`: it writes the file, and the file
+  watcher's reload races later reads. They use `ConfigAccess.override(value, replacement, body)`,
+  a thread-local override every `ConfigAccess` read honours.
+- Classification data is datapack tags under `data/mcamobcompat/tags/entity_type/` (singular on
+  1.21.1); see `DATAPACK.md`. The tag files are byte-identical to the Forge build's.
+  Reload is vanilla `TagsUpdatedEvent`, consumed by `ClassificationReloadHandler` to invalidate caches.
+  There is no custom reload listener.
+- This mod is required on both sides: the `mcamobcompat:proxy_pair` payload is registered as
+  required, so a client without it is refused at login.
+- Bridged-guard identities are stored in `SavedData` in the overworld's `DimensionDataStorage` under
+  the key `mcamobcompat_guard_identities` (schema version 3, migrated automatically from 1 and 2,
+  with each version-2 record kept under `LegacyV2`). Hearts are two ledgers: `Hearts`, the last MCA
+  snapshot, and `PendingHearts`, deltas not yet applied to MCA; never add a delta to both. A newer
+  schema loads read-only; conflicting links are quarantined, never relinked.
+  The store is world-scoped (one per world, not per dimension) because a guard UUID is global and
+  must survive portal travel.
+- **Hidden-proxy architecture.** Every bridged guard that should open MCA's own screen is paired
+  with a real, hidden `mca:*_villager` given profession `mca:guard`: invisible, `NoAI`, silent,
+  weightless, and pinned to the guard's position every tick by `GuardProxySync`. The guard keeps its
+  own model, combat AI and Guard Villagers inventory; the proxy carries MCA's name, personality,
+  memories/hearts, family tree and residency, and receives every MCA interaction. The link is
+  persistent-data on both sides — `mcamobcompat:proxy` on the guard, `mcamobcompat:guard` on the
+  proxy — plus a scoreboard tag `mcamobcompat_proxy` on every proxy for operator selectors. Proxies
+  are created only through `GuardProxy.create`, from the guard's own tick (with a grace period),
+  never on `EntityJoinLevelEvent`, to avoid spawning a duplicate on chunk load. Creation goes
+  through `EventHooks.finalizeMobSpawn` and is rolled back, family-tree node included, if
+  anything rejects it. **Nothing deletes a proxy on a timer**: an unresolved partner may only be
+  unloaded. The proxy's hitbox is nested inside the guard's (`ProxyShapeHandler`, which carries the eye height over
+  explicitly, since on 1.21.1 it is part of `EntityDimensions`), so hits land on the guard natively; guard death is relayed only once confirmed at the end of the server tick.
+- MCA's brain memories are reached by registry id through vanilla `Brain` (`McaMemories`:
+  `mca:player_following_memory`, `mca:nearest_guard_enemy`), never by reflection. Check
+  `McaMemories.registers` before any access: `Brain.getMemory` throws for an unregistered memory.
+- Creeper awareness writes only memories MCA already reads (`NEAREST_HOSTILE`, `WALK_TARGET`,
+  `mca:nearest_guard_enemy`); it adds no goal or task, and never touches golems, creepers or gamerules.
+- Mount refusals go through `MountPolicy`: the `player_only_mounts` tag plus `MountRefusal`s that
+  integrations register. `MountPolicyHandler` cancels `EntityMountEvent` under `REFUSE`.
+- Guard Villagers has no API. Its guard is driven only by reflection **by method name** on the
+  guard's runtime class, in `GuardReflection` (`setFollowing`, `setPatrolling`, `setPatrolPos`,
+  `setOwnerId`, and `getGuardVariant` on 1.20.1 or `getVariant` on 1.21.1, each bound by its whole
+  signature) — never by naming its class, so both `checkJarContents` and
+  `NoOptionalModStaticLinkTest` stay green. This is safe only because those are Guard Villagers' own
+  member names, not ones inherited from Minecraft (which are SRG-mangled on Forge).
+- The client knows exactly which entity is a proxy: the server sends each pair over the
+  `mcamobcompat:proxy_pair` channel (`network/ProxyPairs`) on start tracking, on link and removal,
+  and when runtime ids change. `ClientProxyPairs` keeps a bounded per-level map keyed by UUID and
+  runtime id. On the client `GuardProxy.isProxy` and `nearbyGuardOf` answer from that map; there is
+  no flag heuristic. `ProxyRenderHandler` cancels a paired proxy's render always, but when a
+  `Screen` frame is on the render call's stack it draws the paired guard in the proxy's place,
+  copying the proxy's rotation fields onto the guard for that one call and restoring them in a
+  `finally`, so MCAConversations' dialogue frame and MCAQuests' quest menu show the guard.
+- Guard Villagers' conversion runs on **both** logical sides, so `ConversionGuardHandler` must cancel
+  before any client-side early return. Moving the client return above the cancel makes the
+  recruiting player's villager invisible -- which is exactly what 2.0 shipped, and what the runtime
+  probe's recruit scenario reproduces.
+- Forge-to-NeoForge event mapping used throughout: `LivingTickEvent` -> `EntityTickEvent.Pre`;
+  `LivingAttackEvent` -> `LivingIncomingDamageEvent`; Forge's `LivingDamageEvent` -> `LivingDamageEvent.Post`
+  to observe the final amount, `.Pre` to set it; `LivingHurtEvent` -> `LivingDamageEvent.Pre`;
+  `ServerTickEvent` END -> `ServerTickEvent.Post`; `ProjectileImpactEvent` `SKIP_ENTITY` -> `setCanceled(true)`.
+- **No mixins and no access transformers**, deliberately.
+- **Never import a class from MCA or an optional mod.** Detect with `ModList.get().isLoaded(...)`
+  during `FMLCommonSetupEvent.enqueueWork`; refer to their content by registry-id string or `TagKey`.
+  `checkJarContents` and `NoOptionalModStaticLinkTest` fail the build if this rule is broken.
+  **Exception:** `mca/McaBinding` may name MCA classes only as dot-form string literals for reflection (e.g. `Class.forName("forge.net.conczin.mca.entity.VillagerEntityMCA")`). It is the single allowlisted entry in both build-time guards, matched exactly by class file name so it cannot widen silently. The no-static-import rule itself is unchanged.
+  The bridge never references a Guard Villagers class; it detects the module and config option via
+  `ModIntegrations` and reaches guard-only state through `GuardReflection` by method name. Icy's
+  Better Horses is reached the same way, through `IcyReflection` and its own `bh_*` member names.
+  Alex's Mobs needs no reflection at all.
 
-## Verification
+## Parity with the Forge build
+This mod ships from two repositories: this NeoForge 1.21.1 one and the Forge 1.20.1 original at
+`../../MCAMobCompatibility` (branch `main`). They are one mod: same
+version, features, config keys and defaults, commands, tags, lang keys, API and tests, differing only
+where the loader or Minecraft version forces it.
+- Make every behaviour change on **both** sides, then run `python3 scripts/parity.py` (identical in
+  both repositories). It fails when a file exists on one side only, when a loader-neutral file is no
+  longer byte-identical, or when a loader-specific file changed on one side only. After porting a
+  change to both, `python3 scripts/parity.py --write` records it in `parity-manifest.txt` (identical
+  in both).
+- Keep files loader-neutral wherever possible: vanilla `BuiltInRegistries`/`Registries` rather than
+  loader registries, `McaMobCompat.location(ns, path)` and `McaMobCompat.id(path)` rather than a
+  `ResourceLocation` constructor, and `McaMobCompat.post(event)` to post this mod's events.
+- `src/runtimeProbe` is an opt-in production validation driver (`runtimeProbeJar`), never in the
+  release jar; `scripts/validation/launch_client.py` launches an installer-created client for it and
+  `scripts/validation/run_scenario.py` runs one production scenario (two clients, single player,
+  minimal, missing mod); both are the same scripts on both loaders.
 
-Keep validation claims narrower than the evidence. Reproduce a failure with the actual target JAR, and record any upstream incompatibility separately. In particular, installed Quests/Crime versions may reject MCAReputation API v2. Preserve isolated logs/screenshots under `docs/validation`; do not commit third-party runtimes or generated worlds.
+## Terminology
+- `MobRole` is the semantic role enum; named to avoid colliding with vanilla `MobCategory`
+  (the spawn-group enum). Its constants double as the datapack tag names.

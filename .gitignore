@@ -41,3 +41,4 @@ run-gametest/
 
 # Checked-in validation evidence; runtime worlds/JARs remain excluded.
 !docs/validation/*.log
+!docs/validation/**/*.log
