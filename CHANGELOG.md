@@ -16,12 +16,24 @@ guard itself never noticed.
   every ten seconds while the guard is outside every village, so MCA: Crime (which charges a deed to
   the victim's home village) and MCA: Reputation name one community for an assault on a bridged guard.
   Three new binding lines (`getResidency`, `seekHome`, `getHomeVillage`) appear in the diagnostics.
-- **Crime's effects reach the guard.** `mcacrime:restrained`, `mcacrime:sand_blinded` and
-  `mcacrime:wounded` are copied from the proxy onto the guard once a second and removed with it, and a
-  restrained proxy holds its guard in place and clears its follow and patrol orders. Reached by
-  registry id only; an install without MCA: Crime does nothing. Custody itself stays on the proxy.
-- `GuardProxySyncTargetTest` pins the target-agreement rules, and the Forge/NeoForge parity manifest is
-  re-recorded with the new files (`python3 scripts/parity.py --write`).
+- **Crime's effects reach the guard.** `mcacrime:restrained` and `mcacrime:sand_blinded`, the two
+  effects MCA: Crime registers, are copied from the proxy onto the guard once a second and removed with
+  it, and a restrained proxy holds its guard in place and clears its follow and patrol orders. Reached
+  by registry id only; an install without MCA: Crime does nothing. Custody itself stays on the proxy.
+  The server log says once at start which of the two the installed MCA: Crime registers, and warns if
+  it registers only one. (An earlier draft of this release also listed a `wounded` effect, which no
+  MCA: Crime build registers; it was never mirrored and is gone from the list.)
+- **The MCA binding is probed against every supported MCA build.** `McaBindingProbeTest` replays
+  `McaBinding` against each build in `mca_probe_versions`, each in its own class loader: on Forge the
+  six-build fleet every family add-on probes, on NeoForge five 1.21.1 builds from 7.7.0 to
+  7.7.36-beta.3. A member MCA renames in another supported release now fails `check` instead of
+  quietly disabling a feature on a server. The family-tree members that spawn rollback reflects at call
+  time (`father`, `mother`, `children`) are checked too.
+- `GuardProxySyncTargetTest` pins the target-agreement rules, `ProxyEffectsContractTest` pins the
+  mirrored effect ids to the ones MCA: Crime registers, a `mcamobcompat_crime` GameTest suite
+  (`-PwithCrime -PcrimeJar=<path>`) checks against a real MCA: Crime jar that both effects on a proxy
+  reach its guard and that `restrained` leaves with the proxy's, and the Forge/NeoForge parity
+  manifest is re-recorded with the new files (`python3 scripts/parity.py --write`).
 
 ## 0.2.1
 

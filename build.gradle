@@ -101,6 +101,7 @@ def gameTestNamespaces() {
     if (project.hasProperty('withIcy')) namespaces << 'mcamobcompat_icy'
     if (project.hasProperty('withAlex')) namespaces << 'mcamobcompat_alex'
     if (project.hasProperty('withGolems')) namespaces << 'mcamobcompat_golems'
+    if (project.hasProperty('withCrime')) namespaces << 'mcamobcompat_crime'
     return namespaces.join(',')
 }
 
@@ -137,6 +138,20 @@ def devModsDir = layout.buildDirectory.dir('devmods')
 def mcaDevVersion = project.hasProperty('mcaDev77') ? mca_version_77 : mca_version
 configurations {
     devModSource { transitive = false }
+}
+
+// Every MCA build McaBindingProbeTest replays the binding against, one configuration each (see
+// mca_probe_versions in gradle.properties; the family-wide list every sibling add-on probes). Raw
+// production jars, deliberately not remapped: MCA's own member names are unobfuscated and Minecraft
+// class names are official in a production jar, which is all McaBinding names. transitive=false keeps
+// MCA's dependency graph out of the build.
+ext.mcaProbeVersions = (project.findProperty('mcaProbeVersions') ?: mca_probe_versions)
+        .toString().split(',').collect { it.trim() }.findAll { !it.isEmpty() }
+mcaProbeVersions.eachWithIndex { version, i ->
+    configurations.create("mcaProbe${i}") {
+        canBeConsumed = false
+        transitive = false
+    }
 }
 
 /** Rewrites every SRG member name (m_123_ / f_123_) in one class file's constant pool. */
@@ -274,7 +289,7 @@ dependencies {
 
     // Optional mods and their libraries, for dev runs and GameTests only, one flag per mod. Pinned
     // in gradle.properties; runtime-only so that nothing can ever compile against them.
-    if (project.hasProperty('withSwem') || project.hasProperty('withIcy')) {
+    if (project.hasProperty('withSwem') || project.hasProperty('withIcy') || project.hasProperty('withCrime')) {
         devModSource "maven.modrinth:geckolib:${dev_geckolib_version}"
     }
     if (project.hasProperty('withSwem')) {
@@ -291,8 +306,22 @@ dependencies {
     if (project.hasProperty('withGolems')) {
         devModSource "maven.modrinth:golemskillcreepers:${dev_golemskillcreepers_version}"
     }
+    // MCA: Crime is not on Modrinth in the version the effect mirror targets, so -PwithCrime takes a
+    // built jar: -PcrimeJar=<path to mcacrime-<version>.jar> (its Forge 1.20.1 release jar). It runs the
+    // mcamobcompat_crime suite, which checks that Crime's effects on a hidden proxy reach the guard.
+    if (project.hasProperty('withCrime')) {
+        def crimeJar = file(project.findProperty('crimeJar') ?: '')
+        if (!crimeJar.isFile()) {
+            throw new GradleException("-PwithCrime needs -PcrimeJar=<path to a built MCA: Crime jar>; got '${crimeJar}'.")
+        }
+        devModSource files(crimeJar)
+    }
     runtimeOnly files({ configurations.devModSource.files.collect { File source ->
         devModsDir.get().file(source.name.replaceAll(/\.jar$/, '-dev.jar')).asFile } }).builtBy('remapDevMods')
+
+    mcaProbeVersions.eachWithIndex { version, i ->
+        add("mcaProbe${i}", "maven.modrinth:minecraft-comes-alive-reborn:${version}")
+    }
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
@@ -318,6 +347,19 @@ test {
     useJUnitPlatform()
     // The file-reading tests resolve paths against this, so they work from any working directory.
     systemProperty 'mcamobcompat.projectDir', projectDir.absolutePath
+    // The MCA jars travel as paths, not a classpath: McaBindingProbeTest opens each in its own
+    // URLClassLoader behind a parent that hides the remapped dev MCA this classpath carries. Declared
+    // as inputs so a fleet change re-runs the suite; the property itself is set in doFirst, not at
+    // configuration time, so the repositories are not frozen before every dependency is registered.
+    inputs.files(mcaProbeVersions.indices.collect { i -> configurations.getByName("mcaProbe${i}") })
+            .withPropertyName('mcaProbeJars')
+    doFirst {
+        systemProperty 'mcamobcompat.probe.jars', mcaProbeVersions.indices
+                .collect { i -> configurations.getByName("mcaProbe${i}").files }
+                .flatten()
+                .findAll { it.name.contains('minecraft-comes-alive') }
+                .join(File.pathSeparator)
+    }
 }
 
 // Expand metadata placeholders into mods.toml / pack.mcmeta at build time.

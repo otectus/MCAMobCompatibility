@@ -47,9 +47,10 @@ import java.util.function.Function;
  * {@code Personality}; 7.7 ({@code forge.net.conczin.mca}) turned it into a registry type with
  * {@code getId()} and a static {@code get(ResourceLocation)}. Both shapes are handled here, and an
  * identifier MCA does not know is refused rather than guessed at, so a live personality is never
- * overwritten with something MCA would not have picked. Likewise {@code FamilyTreeNode} gained
- * {@code probablyGenerated()} in 7.7; spawn rollback removes the proxy's own node on either line and
- * cleans up generated parents only where MCA can say which ones those are.
+ * overwritten with something MCA would not have picked. Spawn rollback removes the proxy's own
+ * family-tree node, and cleans up generated parents only where MCA can say which ones those are
+ * ({@code FamilyTreeNode#probablyGenerated()}, present on every build in the probe fleet, 7.6.20
+ * included); on a build without it only the proxy's own node goes.
  *
  * <p>Brain <em>memories</em> are not reflected at all: they are vanilla {@code MemoryModuleType}s
  * registered under MCA's namespace, so {@link McaMemories} reaches them by registry id. That is the
@@ -140,13 +141,22 @@ public final class McaBinding {
             return;
         }
         resolved = true;
+        bindAgainst(McaBinding.class.getClassLoader());
+    }
 
-        Optional<String> root = probeRoot(McaBinding::loadVillagerClass);
+    /**
+     * Binds every member against the MCA that {@code loader} can see. {@link #resolve} hands it this
+     * class's own loader; {@code McaBindingProbeTest} hands it one loader per build in the family's
+     * MCA probe fleet, after {@link #resetForProbe()}, so the members bound here are exactly the ones
+     * that test checks against every supported MCA release.
+     */
+    static synchronized void bindAgainst(ClassLoader loader) {
+        Optional<String> root = probeRoot(candidate -> loadVillagerClass(candidate, loader));
         if (root.isEmpty()) {
             return;
         }
         packageRoot = root.get();
-        villagerClass = loadVillagerClass(packageRoot).orElse(null);
+        villagerClass = loadVillagerClass(packageRoot, loader).orElse(null);
         if (villagerClass == null) {
             return;
         }
@@ -154,8 +164,7 @@ public final class McaBinding {
         // The family tree is needed only to undo a proxy spawn that another mod rejected, and it
         // lives beside the villager rather than under it, so it is the one second class name here.
         try {
-            Class<?> family = Class.forName(packageRoot + FAMILY_TREE_CLASS, false,
-                    McaBinding.class.getClassLoader());
+            Class<?> family = Class.forName(packageRoot + FAMILY_TREE_CLASS, false, loader);
             familyGet = family.getMethod("get", ServerLevel.class);
             familyLookup = family.getMethod("getOrEmpty", UUID.class);
             familyRemove = family.getMethod("remove", UUID.class);
@@ -733,13 +742,43 @@ public final class McaBinding {
         return Optional.empty();
     }
 
-    private static Optional<Class<?>> loadVillagerClass(String root) {
+    private static Optional<Class<?>> loadVillagerClass(String root, ClassLoader loader) {
         try {
-            return Optional.of(Class.forName(root + VILLAGER_CLASS, false,
-                    McaBinding.class.getClassLoader()));
+            return Optional.of(Class.forName(root + VILLAGER_CLASS, false, loader));
         } catch (ClassNotFoundException | LinkageError t) {
             return Optional.empty();
         }
+    }
+
+    /**
+     * Forgets every binding, so {@code McaBindingProbeTest} can bind one MCA build after another in
+     * one JVM and then leave the unresolved state the rest of the unit suite expects. Test-only: the
+     * game binds once, from common setup, and never unbinds.
+     */
+    static synchronized void resetForProbe() {
+        resolved = false;
+        packageRoot = null;
+        villagerClass = null;
+        getVillagerBrain = null;
+        getCurrentJob = null;
+        abandonJob = null;
+        getPersonality = null;
+        setPersonality = null;
+        getMemories = null;
+        getMemoriesForPlayer = null;
+        getMoveState = null;
+        getResidency = null;
+        seekHome = null;
+        getHomeVillage = null;
+        getHearts = null;
+        modHearts = null;
+        setHearts = null;
+        personalityId = null;
+        personalityLookup = null;
+        familyGet = null;
+        familyLookup = null;
+        familyRemove = null;
+        FAILURES.clear();
     }
 
     /** Registry-id gate first -- cheap, and authoritative -- then the bound class. */

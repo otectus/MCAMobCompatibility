@@ -25,8 +25,10 @@ and `pack.mcmeta`. Never hard-code one elsewhere, this file included.
   (falls back to `$MCAMOBCOMPAT_MODS_DIR`)
 - `./gradlew runGameTestServer` - GameTests on a real server with MCA 7.6 and Guard Villagers;
   `-PmcaDev77` switches to MCA 7.7, and `-PwithSwem`, `-PwithIcy`, `-PwithAlex`, `-PwithGolems` add
-  those mods and their suites. Fails unless `run-gametest/logs/latest.log` reports every required
-  test passed, because the server exits cleanly even when mod loading fails.
+  those mods and their suites. `-PwithCrime -PcrimeJar=<path>` loads a built MCA: Crime jar and runs
+  the `mcamobcompat_crime` suite (Crime's effects on a proxy reach the guard). Fails unless
+  `run-gametest/logs/latest.log` reports every required test passed, because the server exits
+  cleanly even when mod loading fails.
 - `./gradlew runtimeProbeJar` - the opt-in production validation driver, reobfuscated, never shipped
 - `python3 scripts/parity.py` - checks this repository against the NeoForge one (see below)
 
@@ -177,11 +179,17 @@ the verified companion tuple per release is kept once, in `MCAReputation/docs/FA
   and read-only for us: `[0.7.5,0.9)` by decision, so its 0.8 line (the one that adds `api.v1`) can
   launch beside us while the binding stubs whatever it cannot resolve.
 - **This mod names no sibling type at all.** It meets the family through the hidden `mca:guard` proxy
-  (MCA: Crime and MCA: Reputation see an ordinary MCA guard), mirrors Crime's `restrained`,
-  `sand_blinded` and `wounded` effects onto the visible guard by registry id, and gives the proxy the
-  guard's home village so both ledgers name one community. The siblings vendor each other's API jars;
-  there is nothing here for them to vendor.
+  (MCA: Crime and MCA: Reputation see an ordinary MCA guard), mirrors Crime's `mcacrime:restrained` and
+  `mcacrime:sand_blinded` effects onto the visible guard by registry id (`bridge/ProxyEffects.MIRRORED`,
+  a contract recorded in `FAMILY_COMPATIBILITY.md` and pinned by `ProxyEffectsContractTest`), and gives
+  the proxy the guard's home village so both ledgers name one community. The siblings vendor each
+  other's API jars; there is nothing here for them to vendor.
 - **One MCA probe fleet** in every `gradle.properties`: `7.6.20`, `7.6.26`, `7.7.0-beta.2`,
-  `7.7.1-alpha.2`, `7.7.1-beta.1`, `7.7.1-beta.2` (all `+1.20.1`), the MobCompat GameTests run on `7.6.20` and `7.7.1-alpha.2`.
+  `7.7.1-alpha.2`, `7.7.1-beta.1`, `7.7.1-beta.2` (all `+1.20.1`), replayed against `mca/McaBinding` by
+  `McaBindingProbeTest`; the MobCompat GameTests run on `7.6.20` and `7.7.1-alpha.2`.
+- **Load order runs from provider to consumer**: MCA, then MCA: Reputation, then MCA: Quests, MCA:
+  Conversations, MCA: Crime and MCA: Mob Compatibility, then Ultima Kingdoms. Declare a companion you
+  read at setup `AFTER` and one that consumes you `BEFORE`; two mods that each declare the other `AFTER`
+  are a cycle Forge refuses to start with (MCA: Crime and Ultima Kingdoms were, until 2026-09-28).
 - **MCA: Reputation's capability strings are drift-checked** by every consumer at startup, and the
   `1.21.1 Ports/` NeoForge trees mirror every change made here.

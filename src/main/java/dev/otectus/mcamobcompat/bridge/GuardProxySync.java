@@ -100,6 +100,11 @@ public final class GuardProxySync {
         }
     }
 
+    /** Logs, once per server start, which MCA: Crime effects will be mirrored onto bridged guards. */
+    public static void logMirroredEffects() {
+        ProxyEffects.logResolution();
+    }
+
     /** Drops all transient state. Called when the server stops. */
     public static void clear() {
         ProxyEffects.clear();

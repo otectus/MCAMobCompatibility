@@ -10,6 +10,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.npc.Villager;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,12 +21,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * Mirrors the visible consequences of MCA: Crime's law onto a bridged guard (0.2.2).
  *
  * <p>Every sibling addon acts on the villager it can see, and for a bridged guard that is the hidden
- * proxy: MCA: Crime cuffs it, blinds it with a sand bottle, wounds it -- and the Guard Villagers guard
- * standing in the same spot keeps patrolling as though nothing happened. So the three Crime effects
- * are copied from the proxy onto the guard once a second, and taken off again when the proxy loses
- * them, while a restrained proxy holds its guard in place every tick. Effects are reached by registry
- * id only, never by a Crime class name (the rule every optional-mod integration here keeps), so an
- * install without MCA: Crime resolves nothing and does nothing.
+ * proxy: MCA: Crime cuffs it or blinds it with a sand bottle -- and the Guard Villagers guard standing
+ * in the same spot keeps patrolling as though nothing happened. So the Crime effects in
+ * {@link #MIRRORED} are copied from the proxy onto the guard once a second, and taken off again when
+ * the proxy loses them, while a restrained proxy holds its guard in place every tick. Effects are
+ * reached by registry id only, never by a Crime class name (the rule every optional-mod integration
+ * here keeps), so an install without MCA: Crime resolves nothing and does nothing.
  *
  * <p>Only effects this class put on the guard are ever taken off it: a sand bottle thrown at the
  * guard itself lands on the guard natively and is left alone. Custody itself stays on the proxy --
@@ -33,11 +34,15 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 final class ProxyEffects {
 
-    /** The MCA: Crime effects worth mirroring, by registry id. Absent ids resolve to nothing. */
+    /**
+     * The MCA: Crime effects worth mirroring, by registry id: exactly the effects MCA: Crime registers
+     * ({@code effect/CrimeEffects} in 0.7.5). This list is a cross-mod contract, recorded in
+     * {@code MCAReputation/docs/FAMILY_COMPATIBILITY.md} and pinned by {@code ProxyEffectsContractTest};
+     * add an id here only after the Crime build it targets registers it. Absent ids resolve to nothing.
+     */
     static final List<ResourceLocation> MIRRORED = List.of(
             McaMobCompat.location("mcacrime", "restrained"),
-            McaMobCompat.location("mcacrime", "sand_blinded"),
-            McaMobCompat.location("mcacrime", "wounded"));
+            McaMobCompat.location("mcacrime", "sand_blinded"));
 
     private static final ResourceLocation RESTRAINED = MIRRORED.get(0);
 
@@ -106,5 +111,29 @@ final class ProxyEffects {
     static void clear() {
         APPLIED.clear();
         HELD.clear();
+    }
+
+    /**
+     * Says once, at server start, which mirrored ids the installed MCA: Crime registers, so an operator
+     * sees drift between {@link #MIRRORED} and the Crime build in the log instead of a guard that
+     * silently ignores a cuff. With no Crime effect registered at all (MCA: Crime absent) it logs at
+     * debug level only.
+     */
+    static void logResolution() {
+        List<ResourceLocation> resolved = new ArrayList<>();
+        List<ResourceLocation> missing = new ArrayList<>();
+        for (ResourceLocation id : MIRRORED) {
+            (BuiltInRegistries.MOB_EFFECT.containsKey(id) ? resolved : missing).add(id);
+        }
+        if (resolved.isEmpty()) {
+            McaMobCompat.debug("No MCA: Crime effect is registered; nothing will be mirrored onto bridged "
+                    + "guards ({}).", MIRRORED);
+        } else if (missing.isEmpty()) {
+            McaMobCompat.LOGGER.info("Mirroring MCA: Crime effects onto bridged guards: {}.", resolved);
+        } else {
+            McaMobCompat.LOGGER.warn("MCA: Crime is installed but does not register {}; only {} will be "
+                    + "mirrored onto bridged guards. This build of MCA: Mob Compatibility expects a "
+                    + "different MCA: Crime.", missing, resolved);
+        }
     }
 }
