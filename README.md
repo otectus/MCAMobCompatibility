@@ -159,6 +159,7 @@ server-authoritative.
 - **`guard_villagers.retaliateAgainstPlayers`** (boolean, default: off) — Also alert guards when a player attacks an MCA villager. Off by default: MCA has its own reputation and guard response for player misbehaviour, and turning a village hostile is a large consequence to add silently.
 - **`guard_villagers.guardHelpRange`** (integer, default: 32, range: 1 to 128) — How far, in blocks, to look for guards to alert.
 - **`guard_villagers.maxGuardsAlerted`** (integer, default: 8, range: 1 to 64) — Cap on how many guards a single attack alerts, so a large village does not turn one zombie into a full-village pathfinding storm.
+- **`guard_villagers.followAddonTargets`** (boolean, default: on) — Push an attack target that another MCA addon set on a guard's hidden stand-in up to the guard itself, so MCA: Crime's lawful pursuit of a wanted player actually engages the guard. Off, such a target is reverted to the guard's own on the next tick and bridged guards never enforce Crime's law. Player targets only; other targets are always pushed up, except an MCA villager while `preventGuardFriendlyFire` is on.
 - **`guard_villagers.guardShowNameTag`** (boolean, default: on) — Show a bridged guard's rolled name permanently above its head. Turning it off only stops new guards gaining one; an existing nameplate is never taken away.
 
 **Chore safety options:**

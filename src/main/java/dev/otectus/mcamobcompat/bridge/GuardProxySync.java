@@ -3,13 +3,16 @@ package dev.otectus.mcamobcompat.bridge;
 import dev.otectus.mcamobcompat.integration.ModIntegrations;
 import dev.otectus.mcamobcompat.integration.guardvillagers.GuardReflection;
 import dev.otectus.mcamobcompat.mca.McaBinding;
+import dev.otectus.mcamobcompat.mca.McaEntities;
 import dev.otectus.mcamobcompat.mca.McaMemories;
 import dev.otectus.mcamobcompat.network.ProxyPairs;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.npc.Villager;
 
@@ -31,7 +34,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * pathing it, and the proxy has no AI and cannot walk; so the state is translated into Guard
  * Villagers' own follow and patrol flags, and any path MCA gives the proxy is replayed onto the
  * guard's navigation and then cancelled. That is what makes MCA's Follow button, and MCACrime's
- * escort, actually move the guard.
+ * escort, actually move the guard. Targets travel both ways for the same reason: MCACrime orders a
+ * guard to close on a wanted player through {@code setTarget} on the villager it can see, which is the
+ * proxy, and a NoAI proxy cannot act on it -- see {@link #mirrorTargets}.
  *
  * <p>An existing pair keeps being hidden and pinned even when the bridge options are turned off:
  * switching an option must never expose a hidden villager. Only the upward mirroring stops.
@@ -40,6 +45,9 @@ public final class GuardProxySync {
 
     /** How often the slow half runs. One second: unnoticeable to a player, cheap for a village. */
     private static final int SLOW_INTERVAL = 20;
+
+    /** How often a homeless proxy asks MCA for a village again: a village search, so not every second. */
+    private static final int HOMING_INTERVAL = SLOW_INTERVAL * 10;
 
     /** Speed the guard is given when it is replaying a path MCA laid for the proxy. */
     private static final double RELAY_SPEED = 1.0D;
@@ -63,6 +71,12 @@ public final class GuardProxySync {
     /** The pairing last sent to clients, so it is only re-sent when something in it changed. */
     private static final Map<UUID, String> LAST_PAIRING = new ConcurrentHashMap<>();
 
+    /** The target (entity id) last agreed between the pair, so the side that changed it can be told. */
+    private static final Map<UUID, Integer> LAST_TARGET = new ConcurrentHashMap<>();
+
+    /** The agreed value for "no target". */
+    private static final int NO_TARGET = -1;
+
     private GuardProxySync() {
     }
 
@@ -76,20 +90,24 @@ public final class GuardProxySync {
     /** Forgets a guard's transient state, so the maps cannot outlive the world's guards. */
     public static void forget(Mob guard) {
         if (guard != null) {
+            ProxyEffects.forget(guard);
             UUID id = guard.getUUID();
             LAST_INTERACTION.remove(id);
             LAST_NAME.remove(id);
             LAST_MOVE.remove(id);
             LAST_PAIRING.remove(id);
+            LAST_TARGET.remove(id);
         }
     }
 
     /** Drops all transient state. Called when the server stops. */
     public static void clear() {
+        ProxyEffects.clear();
         LAST_INTERACTION.clear();
         LAST_NAME.clear();
         LAST_MOVE.clear();
         LAST_PAIRING.clear();
+        LAST_TARGET.clear();
     }
 
     /** One tick of the pair. Server side; both entities are alive, linked and in the same level. */
@@ -101,17 +119,17 @@ public final class GuardProxySync {
         }
         pin(guard, proxy);
 
-        // So MCA and its addons see the same enemy the guard does -- MCACrime reads getTarget() to
-        // decide whether a villager was defending itself. Only on change: every setTarget posts an
-        // event.
-        if (proxy.getTarget() != guard.getTarget()) {
-            proxy.setTarget(guard.getTarget());
-        }
-
         boolean mirroring = GuardBridge.isBridgedGuard(guard)
                 && ModIntegrations.guardVillagers().opensMcaInteraction();
+        mirrorTargets(guard, proxy, mirroring);
         if (mirroring) {
             relayNavigation(guard, proxy);
+        }
+        ProxyEffects.tick(guard, proxy, proxy.tickCount % SLOW_INTERVAL == 0);
+
+        if (proxy.tickCount % HOMING_INTERVAL == 0 && !McaBinding.hasHomeVillage(proxy)) {
+            // The guard may have been made outside any village and walked into one since.
+            McaBinding.seekHome(proxy);
         }
 
         if (proxy.tickCount % SLOW_INTERVAL == 0) {
@@ -123,6 +141,66 @@ public final class GuardProxySync {
             GuardIdentityStore.synchronize(guard);
             sendPairingIfChanged(guard, proxy);
         }
+    }
+
+    /**
+     * Keeps one target across the pair, in both directions.
+     *
+     * <p>Downward is the older rule: MCA and its addons read the proxy's target to decide whether a
+     * villager was defending itself (MCACrime does), so the guard's enemy becomes the proxy's.
+     * Upward is what lets an addon's order reach the entity that can act on it. MCACrime makes a guard
+     * pursue a wanted player by calling {@code setTarget} on the villager it selected as a responder,
+     * and for a bridged guard that villager is the proxy: NoAI, unable to move, and until 0.2.2 wiped
+     * back to the guard's own target on the very next tick, so Guard Villagers guards never enforced
+     * Crime's law while Crime believed a responder was assigned.
+     *
+     * <p>Whichever side changed since the last agreed target wins, exactly as {@link #reconcileNames}
+     * decides names. The guard wins a tie, because it is the one in combat. An order is pushed up only
+     * while the bridge is mirroring at all, and a <em>player</em> target only under
+     * {@code followAddonTargets}, because a guard turning on a player is a consequence Guard Villagers'
+     * own player policy exists to control. An MCA villager is never pushed up while friendly-fire
+     * prevention is on: that handler would cancel it again next tick and the pair would churn events.
+     */
+    static void mirrorTargets(Mob guard, Villager proxy, boolean mirroring) {
+        LivingEntity guardTarget = guard.getTarget();
+        LivingEntity proxyTarget = proxy.getTarget();
+        UUID key = guard.getUUID();
+        if (guardTarget == proxyTarget) {
+            LAST_TARGET.put(key, targetId(guardTarget));
+            return;
+        }
+        int agreed = LAST_TARGET.getOrDefault(key, NO_TARGET);
+        boolean guardChanged = targetId(guardTarget) != agreed;
+        boolean proxyChanged = targetId(proxyTarget) != agreed;
+        if (proxyChanged && !guardChanged && mirroring && acceptsOrder(proxyTarget)) {
+            guard.setTarget(proxyTarget);
+        } else {
+            // Only on change: every setTarget posts an event.
+            proxy.setTarget(guardTarget);
+        }
+        LAST_TARGET.put(key, targetId(guard.getTarget()));
+    }
+
+    /** The pure half of the upward rule, pinned by GuardProxySyncTargetTest. */
+    static boolean acceptsOrder(boolean playerTarget, boolean mcaVillagerTarget,
+                                boolean followAddonTargets, boolean preventsFriendlyFire) {
+        if (playerTarget) {
+            return followAddonTargets;
+        }
+        return !(mcaVillagerTarget && preventsFriendlyFire);
+    }
+
+    private static boolean acceptsOrder(LivingEntity target) {
+        if (target == null) {
+            return true; // clearing an order is always allowed
+        }
+        return acceptsOrder(target instanceof Player, McaEntities.isMcaVillager(target),
+                ModIntegrations.guardVillagers().followsAddonTargets(),
+                ModIntegrations.guardVillagers().preventsFriendlyFire());
+    }
+
+    private static int targetId(LivingEntity target) {
+        return target == null ? NO_TARGET : target.getId();
     }
 
     /** Puts the proxy exactly where the guard is, facing where it faces, and keeps it hidden. */

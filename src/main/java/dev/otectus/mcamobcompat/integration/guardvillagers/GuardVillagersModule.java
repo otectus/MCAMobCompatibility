@@ -95,6 +95,14 @@ public final class GuardVillagersModule extends IntegrationModule {
         return isActive() && safeBoolean(McaMobCompatConfig.SERVER.recruitMcaVillagersAsGuards, true);
     }
 
+    /**
+     * Whether an attack target that another MCA addon set on a guard's hidden proxy is pushed up to the
+     * guard itself, so MCACrime's lawful pursuit of a wanted player actually engages the guard.
+     */
+    public boolean followsAddonTargets() {
+        return isActive() && safeBoolean(McaMobCompatConfig.SERVER.followAddonTargets, true);
+    }
+
     /** Whether a newly identified guard gets its name shown permanently above its head. */
     public boolean showsNameTag() {
         return isActive() && safeBoolean(McaMobCompatConfig.SERVER.guardShowNameTag, true);

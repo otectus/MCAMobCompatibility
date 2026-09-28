@@ -103,6 +103,7 @@ public final class McaMobCompatConfig {
         public final ForgeConfigSpec.BooleanValue guardMcaInteraction;
         public final ForgeConfigSpec.BooleanValue recruitMcaVillagersAsGuards;
         public final ForgeConfigSpec.BooleanValue guardShowNameTag;
+        public final ForgeConfigSpec.BooleanValue followAddonTargets;
 
         public final ForgeConfigSpec.BooleanValue protectOwnedAnimals;
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> protectedRoles;
@@ -203,6 +204,17 @@ public final class McaMobCompatConfig {
                             "one, because a nameplate already set is a player-visible fact we do not",
                             "quietly take away.")
                     .define("guardShowNameTag", true);
+            followAddonTargets = builder
+                    .comment("Push an attack target that another MCA addon set on a guard's hidden",
+                            "stand-in up to the guard itself. MCA: Crime makes a guard pursue a wanted",
+                            "player by setting a target on the villager it selected as a responder,",
+                            "and for a bridged guard that villager is the stand-in, which cannot move.",
+                            "On, the real guard takes the order; off, a target set on the stand-in is",
+                            "reverted to the guard's own on the next tick and bridged guards never",
+                            "enforce Crime's law. Applies to player targets only; any other target is",
+                            "always pushed up, except an MCA villager while 'preventGuardFriendlyFire'",
+                            "is on.")
+                    .define("followAddonTargets", true);
             builder.pop();
 
             builder.comment("Which animals an MCA villager's hunting chore must leave alone.",

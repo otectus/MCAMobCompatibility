@@ -75,7 +75,8 @@ set and test mod, `mcamobcompat_tests`, one `@GameTestHolder` namespace per opti
   (plain click opens MCA's own screen through the hidden proxy; crouch opens Guard Villagers'
   inventory; off means stock gestures and no proxy), `recruitMcaVillagersAsGuards` (crouch-click
   with a weapon recruits an MCA villager as a guard in place instead of blocking the conversion),
-  `guardShowNameTag`. Other sections: `[chores]` (hunting restraint, five options), `[threats]`
+  `guardShowNameTag`, `followAddonTargets` (an attack target an addon set on the hidden proxy is
+  pushed up to the guard; how MCA: Crime's pursuit reaches a bridged guard). Other sections: `[chores]` (hunting restraint, five options), `[threats]`
   (creeper awareness, five options), `[mounts] npcRidingPolicy`, and the per-mod recognitions
   `[swem]`, `[genetic_animals]`, `[dragn_livestock]`, `[icys_better_horses]`, `[alexs_mobs]`.
 - GameTests never call `ForgeConfigSpec.ConfigValue.set()`: it writes the file, and the file
@@ -161,3 +162,26 @@ where the loader or Minecraft version forces it.
 ## Terminology
 - `MobRole` is the semantic role enum; named to avoid colliding with vanilla `MobCategory`
   (the spawn-group enum). Its constants double as the datapack tag names.
+
+## Family compatibility
+
+MCA: Reputation, MCA: Quests, MCA: Crime, MCA: Conversations and MCA: Mob Compatibility are one family of
+MCA Reborn add-ons, and Ultima Kingdoms consumes their APIs. The rules below hold in every repository;
+the verified companion tuple per release is kept once, in `MCAReputation/docs/FAMILY_COMPATIBILITY.md`.
+
+- **MCA Reborn is the only mandatory dependency** (`[7.6,8)`), bound by name across its four package
+  roots. Architectury is never declared mandatory: MCA 7.7 dropped it and this code names no Architectury type.
+- **Companion ranges carry a lower bound only** (`[x.y,)`). Forge enforces an optional range whenever
+  the mod is present, and every companion binding already probes the other mod and degrades, so an
+  upper bound would only ever refuse a launch. The one exception is Townstead, which is third-party
+  and read-only for us: `[0.7.5,0.9)` by decision, so its 0.8 line (the one that adds `api.v1`) can
+  launch beside us while the binding stubs whatever it cannot resolve.
+- **This mod names no sibling type at all.** It meets the family through the hidden `mca:guard` proxy
+  (MCA: Crime and MCA: Reputation see an ordinary MCA guard), mirrors Crime's `restrained`,
+  `sand_blinded` and `wounded` effects onto the visible guard by registry id, and gives the proxy the
+  guard's home village so both ledgers name one community. The siblings vendor each other's API jars;
+  there is nothing here for them to vendor.
+- **One MCA probe fleet** in every `gradle.properties`: `7.6.20`, `7.6.26`, `7.7.0-beta.2`,
+  `7.7.1-alpha.2`, `7.7.1-beta.1`, `7.7.1-beta.2` (all `+1.20.1`), the MobCompat GameTests run on `7.6.20` and `7.7.1-alpha.2`.
+- **MCA: Reputation's capability strings are drift-checked** by every consumer at startup, and the
+  `1.21.1 Ports/` NeoForge trees mirror every change made here.

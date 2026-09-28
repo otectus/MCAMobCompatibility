@@ -106,6 +106,11 @@ public final class McaBinding {
     /** {@code VillagerBrain#getMoveState()}, whose enum constants are MOVE, STAY and FOLLOW. */
     private static volatile Method getMoveState;
 
+    /** Residency: how a proxy gets a home village, so the addons that key a deed to one find it. */
+    private static volatile Method getResidency;
+    private static volatile Method seekHome;
+    private static volatile Method getHomeVillage;
+
     /** {@code Memories#getHearts()}, {@code #modHearts(int)} and {@code #setHearts(int)}. */
     private static volatile Method getHearts;
     private static volatile Method modHearts;
@@ -217,6 +222,17 @@ public final class McaBinding {
         if (getMoveState != null && !getMoveState.getReturnType().isEnum()) {
             warnMissing("getMoveState", new NoSuchMethodException("getMoveState is not an enum"));
             getMoveState = null;
+        }
+
+        // Residency, the same way: its type is the accessor's return type, so one MCA name to keep in
+        // step. seekHome() is how MCA itself gives a villager a home village (0.2.2); without it a
+        // proxy had none, MCA: Crime charged an assault on it to no community, and MCA: Reputation had
+        // to fall back to the nearest village by position.
+        getResidency = findMethod(villagerClass, "getResidency", 0);
+        if (getResidency != null) {
+            Class<?> residencyClass = getResidency.getReturnType();
+            seekHome = typed(residencyClass, "seekHome", void.class);
+            getHomeVillage = typed(residencyClass, "getHomeVillage", Optional.class);
         }
 
         // Same trick as the brain class itself: the memories type is the return type of the
@@ -603,6 +619,53 @@ public final class McaBinding {
         }
     }
 
+    /**
+     * Asks MCA to give this villager a home village the way it would any other -- the nearest one
+     * whose border reaches it -- and says whether the call could be made. Residency is what every
+     * sibling addon keys a deed to: MCA: Reputation and MCA: Crime both resolve a victim's community
+     * from it, so a proxy without one was a villager nobody's ledger could charge for.
+     */
+    public static boolean seekHome(Entity entity) {
+        Method seek = seekHome;
+        Method accessor = getResidency;
+        if (seek == null || accessor == null || !isBoundVillager(entity)) {
+            return false;
+        }
+        try {
+            Object residency = accessor.invoke(entity);
+            if (residency == null) {
+                return false;
+            }
+            seek.invoke(residency);
+            return true;
+        } catch (Throwable t) {
+            seekHome = null;
+            retire("seekHome", t);
+            return false;
+        }
+    }
+
+    /** Whether MCA records a home village for this villager; false when unbound or unknown. */
+    public static boolean hasHomeVillage(Entity entity) {
+        Method home = getHomeVillage;
+        Method accessor = getResidency;
+        if (home == null || accessor == null || !isBoundVillager(entity)) {
+            return false;
+        }
+        try {
+            Object residency = accessor.invoke(entity);
+            if (residency == null) {
+                return false;
+            }
+            Object value = home.invoke(residency);
+            return value instanceof Optional<?> optional && optional.isPresent();
+        } catch (Throwable t) {
+            getHomeVillage = null;
+            retire("getHomeVillage", t);
+            return false;
+        }
+    }
+
     /** The brain of a bound MCA villager, but only when {@code member} bound too. Null otherwise. */
     private static Object boundBrain(Entity entity, Method member) {
         return member == null || !isBoundVillager(entity) ? null : brainOf(entity);
@@ -623,13 +686,16 @@ public final class McaBinding {
         lines.add("getHearts: " + state(getHearts != null));
         lines.add("modHearts: " + state(modHearts != null));
         lines.add("setHearts: " + state(setHearts != null));
+        lines.add("getResidency: " + state(getResidency != null));
+        lines.add("seekHome: " + state(seekHome != null));
+        lines.add("getHomeVillage: " + state(getHomeVillage != null));
         lines.add("personality shape: " + personalityShape());
         lines.add("FamilyTree rollback: " + state(canRollbackSpawn()));
         return lines;
     }
 
     /** How many lines {@link #describeBindings} always returns, bound or not. */
-    public static final int BINDING_LINES = 14;
+    public static final int BINDING_LINES = 17;
 
     /** Members that failed to bind or were retired this session, with the reason. */
     public static Map<String, String> failures() {
