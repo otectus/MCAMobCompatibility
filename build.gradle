@@ -42,6 +42,7 @@ def gameTestNamespaces() {
     if (project.hasProperty('withIcy') || project.hasProperty('withIcy116')) namespaces << 'mcamobcompat_icy'
     if (project.hasProperty('withAlex') || project.hasProperty('withAlexContinued')) namespaces << 'mcamobcompat_alex'
     if (project.hasProperty('withGolems')) namespaces << 'mcamobcompat_golems'
+    if (project.hasProperty('withCrime')) namespaces << 'mcamobcompat_crime'
     return namespaces.join(',')
 }
 
@@ -58,6 +59,15 @@ configurations {
     runtimeClasspath.extendsFrom localRuntime
     gameTestImplementation.extendsFrom implementation
     gameTestRuntimeOnly.extendsFrom localRuntime
+}
+// Every MCA build McaBindingProbeTest replays the binding against, one configuration each (see
+// mca_probe_versions in gradle.properties). Production NeoForge jars are mojmap like this dev runtime,
+// so MCA's declarations read exactly as McaBinding names them. transitive=false keeps MCA's dependency
+// graph out of the build.
+ext.mcaProbeVersions = (project.findProperty('mcaProbeVersions') ?: mca_probe_versions)
+        .toString().split(',').collect { it.trim() }.findAll { !it.isEmpty() }
+mcaProbeVersions.eachWithIndex { version, i ->
+    configurations.create("mcaProbe${i}") { canBeConsumed = false; transitive = false }
 }
 dependencies {
     localRuntime("net.conczin.mca:mca-neoforge:${mca_version}") { transitive = false }
@@ -93,12 +103,40 @@ dependencies {
     if (project.hasProperty('withGolems')) {
         localRuntime("maven.modrinth:golemskillcreepers:${dev_golemskillcreepers_version}") { transitive = false }
     }
+    // -PwithCrime -PcrimeJar=<path to a built NeoForge 1.21.1 MCA: Crime jar> runs the mcamobcompat_crime
+    // suite: Crime's effects on a hidden proxy reach the guard. Crime is not a dependency of this mod.
+    if (project.hasProperty('withCrime')) {
+        def crimeJar = file(project.findProperty('crimeJar') ?: '')
+        if (!crimeJar.isFile()) {
+            throw new GradleException("-PwithCrime needs -PcrimeJar=<path to a built MCA: Crime jar>; got '${crimeJar}'.")
+        }
+        localRuntime files(crimeJar)
+    }
     runtimeProbeImplementation sourceSets.main.output
     gameTestImplementation sourceSets.main.output
+    // A plain version is an MCA Maven build; a Modrinth version id (no dots) is a build only Modrinth has.
+    mcaProbeVersions.eachWithIndex { version, i ->
+        add("mcaProbe${i}", version.contains('.') ? "net.conczin.mca:mca-neoforge:${version}"
+                : "maven.modrinth:minecraft-comes-alive-reborn:${version}")
+    }
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
-test { useJUnitPlatform(); systemProperty 'mcamobcompat.projectDir', projectDir.absolutePath }
+test {
+    useJUnitPlatform()
+    systemProperty 'mcamobcompat.projectDir', projectDir.absolutePath
+    // The MCA jars travel as paths, not a classpath: McaBindingProbeTest opens each in its own
+    // URLClassLoader behind a parent that hides the MCA this unit-test runtime already loads. Declared
+    // as inputs so a fleet change re-runs the suite; the property is set in doFirst, at execution time.
+    inputs.files(mcaProbeVersions.indices.collect { i -> configurations.getByName("mcaProbe${i}") })
+            .withPropertyName('mcaProbeJars')
+    doFirst {
+        systemProperty 'mcamobcompat.probe.jars', mcaProbeVersions.indices
+                .collect { i -> configurations.getByName("mcaProbe${i}").files }
+                .flatten()
+                .join(File.pathSeparator)
+    }
+}
 tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8'; options.release = 21 }
 tasks.named('processResources', ProcessResources) {
     def props = ['minecraft_version_range', 'neoforge_version_range', 'loader_version_range',

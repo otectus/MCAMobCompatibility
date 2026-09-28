@@ -27,7 +27,9 @@ Version numbers live only in `gradle.properties`; `processResources` expands the
   (falls back to `$MCAMOBCOMPAT_MODS_DIR`)
 - `./gradlew runGameTestServer` - GameTests on a real server with MCA 7.7 and Guard Villagers;
   `-PwithSwem`, `-PwithIcy`, `-PwithAlex`, `-PwithGolems` add those mods and their suites, and
-  `-PwithAlexContinued` / `-PwithIcy116` swap in Alex's Mobs Continued / Icy's Better Horses 1.1.6. Fails unless `run-gametest/logs/latest.log` reports every required
+  `-PwithAlexContinued` / `-PwithIcy116` swap in Alex's Mobs Continued / Icy's Better Horses 1.1.6.
+  `-PwithCrime -PcrimeJar=<path>` loads a built NeoForge MCA: Crime jar and runs the
+  `mcamobcompat_crime` suite. Fails unless `run-gametest/logs/latest.log` reports every required
   test passed, because the server exits cleanly even when mod loading fails.
 - `./gradlew runtimeProbeJar` - the opt-in production validation driver, never shipped
 - `python3 scripts/parity.py` - checks this repository against the Forge one (see below)

@@ -19,6 +19,7 @@ public final class McaMobCompatTests {
     public static final String ICY = "mcamobcompat_icy";
     public static final String ALEX = "mcamobcompat_alex";
     public static final String GOLEMS = "mcamobcompat_golems";
+    public static final String CRIME = "mcamobcompat_crime";
 
     /** The one template: a 16x8x16 air box; each test lays its own floor. */
     public static final String EMPTY = "empty";
