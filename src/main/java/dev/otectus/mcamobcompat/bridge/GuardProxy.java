@@ -325,6 +325,10 @@ public final class GuardProxy {
 
         // Committed only now that the villager really exists in the world.
         data.markSeeded(entry);
+        // A home village, the way MCA gives any villager one, so a deed against this guard has a
+        // community to be charged to. Retried from the slow tick while the guard is outside every
+        // village; nothing is invented when none is near.
+        McaBinding.seekHome(proxy);
         guard.getPersistentData().putUUID(KEY_PROXY, proxy.getUUID());
         GuardIdentityStore.link(level.getServer(), guard.getUUID(), proxy.getUUID());
         copyNameToGuard(guard, proxy);

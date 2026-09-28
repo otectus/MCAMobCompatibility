@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.2.2 (unreleased)
+
+Bridged guards under the sibling add-ons' law. Every MCA add-on acts on the villager it can see, and
+for a bridged Guard Villagers guard that is the hidden MCA proxy; three gaps in the pairing meant the
+guard itself never noticed.
+
+- **Targets travel both ways.** `GuardProxySync` mirrored the guard's target onto the proxy and
+  nothing back, so an order another add-on gave the proxy (MCA: Crime's `setTarget` on the responder
+  it picked to pursue a wanted player) lasted one tick and the guard never moved. Whichever side
+  changed since the last agreed target now wins, the guard winning a tie; a player target is pushed up
+  only under the new `[guard_villagers] followAddonTargets` (default on), and an MCA villager never
+  while `preventGuardFriendlyFire` is on, so the friendly-fire handler and this cannot churn.
+- **A proxy has a home village.** MCA's own `Residency.seekHome()` is asked at creation and retried
+  every ten seconds while the guard is outside every village, so MCA: Crime (which charges a deed to
+  the victim's home village) and MCA: Reputation name one community for an assault on a bridged guard.
+  Three new binding lines (`getResidency`, `seekHome`, `getHomeVillage`) appear in the diagnostics.
+- **Crime's effects reach the guard.** `mcacrime:restrained`, `mcacrime:sand_blinded` and
+  `mcacrime:wounded` are copied from the proxy onto the guard once a second and removed with it, and a
+  restrained proxy holds its guard in place and clears its follow and patrol orders. Reached by
+  registry id only; an install without MCA: Crime does nothing. Custody itself stays on the proxy.
+- `GuardProxySyncTargetTest` pins the target-agreement rules, and the Forge/NeoForge parity manifest is
+  re-recorded with the new files (`python3 scripts/parity.py --write`).
+
 ## 0.2.1+1.21.1
 
 Recruiting that no longer makes a villager vanish, villagers that see a creeper coming, mounts that

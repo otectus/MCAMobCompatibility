@@ -77,7 +77,8 @@ set and test mod, `mcamobcompat_tests`, one `@GameTestHolder` namespace per opti
   (plain click opens MCA's own screen through the hidden proxy; crouch opens Guard Villagers'
   inventory; off means stock gestures and no proxy), `recruitMcaVillagersAsGuards` (crouch-click
   with a weapon recruits an MCA villager as a guard in place instead of blocking the conversion),
-  `guardShowNameTag`. Other sections: `[chores]` (hunting restraint, five options), `[threats]`
+  `guardShowNameTag`, `followAddonTargets` (an attack target an addon set on the hidden proxy is
+  pushed up to the guard; how MCA: Crime's pursuit reaches a bridged guard). Other sections: `[chores]` (hunting restraint, five options), `[threats]`
   (creeper awareness, five options), `[mounts] npcRidingPolicy`, and the per-mod recognitions
   `[swem]`, `[genetic_animals]`, `[dragn_livestock]`, `[icys_better_horses]`, `[alexs_mobs]`.
 - GameTests never call `ModConfigSpec.ConfigValue.set()`: it writes the file, and the file
