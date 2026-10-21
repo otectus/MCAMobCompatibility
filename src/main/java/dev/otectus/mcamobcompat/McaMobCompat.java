@@ -2,11 +2,15 @@ package dev.otectus.mcamobcompat;
 
 import com.mojang.logging.LogUtils;
 import dev.otectus.mcamobcompat.api.MobCompatibilityAPI;
+import dev.otectus.mcamobcompat.character.NativeCharacterAdapter;
+import dev.otectus.mcamobcompat.character.NativeCharacterAdapters;
 import dev.otectus.mcamobcompat.classification.ClassificationCache;
 import dev.otectus.mcamobcompat.classification.OwnedAnimalProvider;
 import dev.otectus.mcamobcompat.classification.TamedMountProvider;
 import dev.otectus.mcamobcompat.event.ChoreSafetyHandler;
+import dev.otectus.mcamobcompat.hook.Hooks;
 import dev.otectus.mcamobcompat.integration.ModIntegrations;
+import dev.otectus.mcamobcompat.integration.recruits.RecruitsEvents;
 import dev.otectus.mcamobcompat.mca.McaBinding;
 import dev.otectus.mcamobcompat.network.ProxyPairs;
 import dev.otectus.mcamobcompat.util.ConfigAccess;
@@ -84,6 +88,7 @@ public final class McaMobCompat {
     public McaMobCompat() {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, McaMobCompatConfig.COMMON_SPEC);
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, McaMobCompatConfig.SERVER_SPEC);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, McaMobCompatConfig.CLIENT_SPEC);
 
         final IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         modBus.addListener(this::onCommonSetup);
@@ -111,6 +116,7 @@ public final class McaMobCompat {
     private static void onConfigChanged(Object spec) {
         if (spec == McaMobCompatConfig.COMMON_SPEC || spec == McaMobCompatConfig.SERVER_SPEC) {
             ClassificationCache.invalidate();
+            NativeCharacterAdapters.invalidate();
             ChoreSafetyHandler.invalidateConfig();
         }
     }
@@ -128,6 +134,43 @@ public final class McaMobCompat {
                             .map(container -> container.getModInfo().getVersion().toString())
                             .orElse("absent"),
                     McaBinding.describeBindings());
+
+            // The native-character adapters, and the hooks the riskier transitions depend on. A hook
+            // that did not land on an installed mod is said out loud: its protection is missing.
+            if (ModIntegrations.recruits().isActive() || ModIntegrations.workers().isActive()) {
+                RecruitsEvents.register();
+            }
+            for (NativeCharacterAdapter adapter : NativeCharacterAdapters.all()) {
+                if (adapter.platformProblem().isPresent()) {
+                    // Said whether or not the mod is installed: this platform has no build of it to support.
+                    LOGGER.info("Character adapter {}: {}", adapter.id(), adapter.platformProblem().get());
+                } else if (adapter.module().isPresent()) {
+                    LOGGER.info("Character adapter {}: {}{}", adapter.id(), adapter.isActive() ? "active" : "switched off",
+                            adapter.bindingProblem().map(problem -> " -- binding incomplete: " + problem).orElse(""));
+                }
+            }
+            // A hook lands as its target class loads; load MCA's editor request now, so the report below
+            // is the truth rather than "not yet".
+            McaBinding.loadEditorRequestClass();
+            LOGGER.info("Hooks: {}", Hooks.describe());
+            if (ModIntegrations.recruits().isActive()) {
+                for (String hook : new String[]{Hooks.RECRUITS_CREATE_RECRUIT, Hooks.RECRUITS_CREATE_NOBLE}) {
+                    if (!Hooks.armed(hook)) {
+                        LOGGER.warn("Villager Recruits is installed but this build of it does not take the {} hook: "
+                                + "MCA villagers are NOT protected from that conversion. See "
+                                + "/mcamobcompat characters adapters.", hook);
+                    }
+                }
+            }
+            if (ModIntegrations.recruits().isActive() && !Hooks.armed(Hooks.RECRUITS_HIRE_FROM_VILLAGER)) {
+                LOGGER.error("Villager Recruits is installed but this build of it does not take this mod's conversion "
+                        + "hooks. MCA villagers are NOT protected from Recruits' noble hire, and enlistment through "
+                        + "it is unavailable. See /mcamobcompat characters adapters.");
+            }
+            if (!Hooks.armed(Hooks.MCA_EDITOR_SAVE)) {
+                LOGGER.warn("MCA's editor-save hook did not land on this MCA build; MCA's editor is refused on "
+                        + "bridged characters rather than left unchecked.");
+            }
 
             // A tamed horse is a mount whatever mod it came from -- a fact about the animal rather
             // than about its type, so no tag can carry it. Registered unconditionally because it is

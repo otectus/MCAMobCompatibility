@@ -1,13 +1,19 @@
 package dev.otectus.mcamobcompat.event;
 
 import dev.otectus.mcamobcompat.McaMobCompat;
+import dev.otectus.mcamobcompat.McaMobCompatConfig;
 import dev.otectus.mcamobcompat.bridge.GuardProxy;
+import dev.otectus.mcamobcompat.character.CharacterTransitions;
+import dev.otectus.mcamobcompat.character.GuardRecruitmentMode;
 import dev.otectus.mcamobcompat.integration.ModIntegrations;
+import dev.otectus.mcamobcompat.integration.guardvillagers.GuardVillagersAdapter;
 import dev.otectus.mcamobcompat.integration.guardvillagers.GuardVillagersModule;
 import dev.otectus.mcamobcompat.mca.McaEntities;
+import dev.otectus.mcamobcompat.util.ConfigAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -40,10 +46,20 @@ import net.minecraftforge.fml.common.Mod;
  *
  * <p><b>Recruiting instead of blocking.</b> With {@code recruitMcaVillagersAsGuards} on, the same
  * gesture does the thing the player was clearly trying to do -- it makes the villager a guard --
- * without destroying anything: the profession becomes {@code mca:guard} <em>in place</em>, so the
- * name, family tree, marriage, children, genetics and inventory are all still there afterwards, and
- * the weapon moves from the player's hand into the villager's. The cancel happens first either way,
- * so Guard Villagers' own {@code NORMAL} handler never sees the click.
+ * without destroying anything, in one of two ways, by {@code guardRecruitmentMode}:
+ * <ul>
+ *   <li><b>{@code NATIVE_GUARD}</b> (0.3.0's default): the villager becomes a real Guard Villagers
+ *       guard -- Guard Villagers' own combat, patrol, food and inventory -- and stays the same MCA
+ *       person behind it, through {@link CharacterTransitions#enlistGuard}: a new guard is made and
+ *       registered first, then the villager is hidden as its identity, keeping its UUID, face,
+ *       family, hearts and possessions; the weapon goes to the guard. Needs the guard bridge and its
+ *       MCA interaction on; otherwise the gesture falls back to the next mode.</li>
+ *   <li><b>{@code MCA_PROFESSION}</b> (0.2's behaviour): the profession becomes {@code mca:guard}
+ *       <em>in place</em> and MCA's own guard AI drives the villager, the weapon moving from the
+ *       player's hand into the villager's.</li>
+ * </ul>
+ * The cancel happens first either way, so Guard Villagers' own {@code NORMAL} handler never sees the
+ * click.
  *
  * <p><b>Why the block is deliberately wider than the conversion.</b> The last gate on the Guard
  * Villagers side is a profession check against its own config, which cannot be read without naming
@@ -103,12 +119,39 @@ public final class ConversionGuardHandler {
             return;
         }
         if (recruiting) {
+            if (nativeRecruit(player, event.getTarget())) {
+                return;
+            }
             recruit(player, event.getTarget());
             return;
         }
         player.displayClientMessage(Component.translatable("message.mcamobcompat.conversion_blocked"), true);
         McaMobCompat.debug("Blocked a guard conversion of {} by {}",
                 event.getTarget().getName().getString(), player.getName().getString());
+    }
+
+    /**
+     * The native mode: enlists the villager as a real Guard Villagers guard and answers true, or
+     * answers false to fall back to the MCA profession -- when the mode is not native, or the guard
+     * bridge the person would be hidden behind is switched off.
+     */
+    private static boolean nativeRecruit(Player player, Entity target) {
+        if (!(player instanceof ServerPlayer serverPlayer) || !(target instanceof Villager villager)
+                || ConfigAccess.enumValue(McaMobCompatConfig.SERVER.guardRecruitmentMode,
+                GuardRecruitmentMode.NATIVE_GUARD) != GuardRecruitmentMode.NATIVE_GUARD) {
+            return false;
+        }
+        String refusal = CharacterTransitions.eligibility(villager, GuardVillagersAdapter.INSTANCE);
+        if ("message.mcamobcompat.enlist.bridge_off".equals(refusal)) {
+            return false;
+        }
+        CharacterTransitions.Outcome outcome = refusal == null
+                ? CharacterTransitions.enlistGuard(serverPlayer, villager)
+                : new CharacterTransitions.Outcome(false, refusal, null);
+        CharacterTransitions.tell(serverPlayer, outcome, villager);
+        McaMobCompat.debug("{} tried to enlist {} as a Guard Villagers guard: {}", player.getName().getString(),
+                villager.getName().getString(), outcome.messageKey());
+        return true;
     }
 
     /** Why a recruit did or did not happen. Each has a message the player sees. */

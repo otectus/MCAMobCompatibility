@@ -68,10 +68,14 @@ final class GuardIdentityView implements GuardIdentity {
 
     @Override
     public GuardGender gender() {
-        // MCA fixes gender by entity type, which is why the proxy is spawned as one or the other
-        // and never has its genetics touched.
+        // MCA's genetics carry the person's gender -- MCA's editor can change it on either entity
+        // type -- so the genetics win; the entity type answers only when they cannot be read.
         Mob proxy = loadedProxy();
         if (proxy != null) {
+            Optional<String> genetic = McaBinding.gender(proxy);
+            if (genetic.isPresent() && ("MALE".equals(genetic.get()) || "FEMALE".equals(genetic.get()))) {
+                return "FEMALE".equals(genetic.get()) ? GuardGender.FEMALE : GuardGender.MALE;
+            }
             if (McaEntities.MALE_VILLAGER.equals(EntityType.getKey(proxy.getType()))) {
                 return GuardGender.MALE;
             }

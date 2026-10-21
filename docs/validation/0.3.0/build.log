@@ -1,0 +1,44 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.8/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Java: 17.0.20.1, JVM: 17.0.20.1+1 (Arch Linux), Arch: amd64
+dev run will include guardvillagers-1.20.1-1.6.19.jar
+
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :jar
+> Task :downloadMcpConfig
+> Task :extractSrg UP-TO-DATE
+> Task :createMcpToSrg UP-TO-DATE
+> Task :reobfJar
+> Task :jarJar SKIPPED
+> Task :reobfJarJar SKIPPED
+> Task :compileRuntimeProbeJava UP-TO-DATE
+> Task :processRuntimeProbeResources UP-TO-DATE
+> Task :runtimeProbeClasses UP-TO-DATE
+> Task :runtimeProbeJar
+> Task :reobfRuntimeProbeJar
+> Task :assemble
+> Task :compileTestJava UP-TO-DATE
+> Task :createSrgToMcp UP-TO-DATE
+> Task :remapDevMods UP-TO-DATE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test
+> Task :check
+
+> Task :checkJarContents
+checkJarContents: mcamobcompat-forge-0.3.0+1.20.1.jar is clean (no shaded MCA/optional-mod classes, no foreign package names outside the 5-class allowlist).
+
+> Task :verifyProductionJar
+Verified production jar: mcamobcompat-forge-0.3.0+1.20.1.jar
+
+> Task :verifyReobfJar
+mcamobcompat-forge-0.3.0+1.20.1.jar: reobfuscated (59 classes carry SRG member names).
+
+> Task :build
+
+BUILD SUCCESSFUL in 11s
+18 actionable tasks: 9 executed, 9 up-to-date

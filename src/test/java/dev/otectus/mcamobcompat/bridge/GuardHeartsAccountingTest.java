@@ -131,7 +131,7 @@ class GuardHeartsAccountingTest {
         ListTag records = new ListTag();
         records.add(broken);
         CompoundTag file = new CompoundTag();
-        file.putInt("Version", 3);
+        file.putInt("Version", GuardIdentityData.SCHEMA_VERSION);
         file.put("Guards", records);
         GuardIdentityData data = GuardIdentityData.load(file);
         assertEquals(1, data.rejectedCount());

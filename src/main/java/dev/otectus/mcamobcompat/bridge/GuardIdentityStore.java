@@ -4,11 +4,15 @@ import dev.otectus.mcamobcompat.McaMobCompat;
 import dev.otectus.mcamobcompat.api.GuardGender;
 import dev.otectus.mcamobcompat.api.GuardIdentity;
 import dev.otectus.mcamobcompat.api.event.GuardIdentityCreatedEvent;
+import dev.otectus.mcamobcompat.character.NativeCharacterAdapter;
+import dev.otectus.mcamobcompat.character.NativeCharacterAdapters;
 import dev.otectus.mcamobcompat.integration.ModIntegrations;
+import dev.otectus.mcamobcompat.integration.guardvillagers.GuardVillagersAdapter;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 
 import java.util.Optional;
@@ -18,11 +22,13 @@ import java.util.UUID;
  * The server-side door to {@link GuardIdentityData}: everything that needs a live mob or a server.
  *
  * <p>The store hangs off the <b>overworld</b>'s data storage, once per world rather than once per
- * dimension, because a guard's UUID does not change when it walks through a portal and its identity
+ * dimension, because an actor's UUID does not change when it walks through a portal and its record
  * must not either.
  *
- * <p>Every method is empty-or-no-op on the client and for an entity that is not a bridged guard, so
- * callers do not have to remember which side they are on.
+ * <p>Two faces. {@link #find} and {@link #getOrCreate} are the 0.2 guard API and answer for bridged
+ * guards only; {@link #record} and {@link #ensureRecord} serve every adapter's actors. Every method is
+ * empty-or-no-op on the client and for an entity that is not bridged, so callers do not have to
+ * remember which side they are on.
  */
 public final class GuardIdentityStore {
 
@@ -54,60 +60,97 @@ public final class GuardIdentityStore {
     }
 
     /**
-     * This guard's identity, creating it if it has none.
-     *
-     * <p>Idempotent, and the only place an identity is born. Creation rolls name, gender and
-     * personality from the guard's UUID (see {@link GuardNames}) and then persists them, so the
-     * result is stable across restarts even if the roster changes later. Those rolls are the seed
-     * the hidden MCA proxy is created from; once a proxy exists, MCA owns the live values and
-     * {@link GuardIdentityView} reads them from it instead.
-     *
-     * <p>A guard that already carries a custom name keeps it -- a player's name tag outranks our
-     * roll -- and a name changed since last time is adopted on the next pass, so renaming a guard
-     * renames its identity too.
+     * This guard's identity, creating it if it has none. The 0.2 guard API: see {@link #ensureRecord},
+     * which does the work for every adapter.
      */
     public static Optional<GuardIdentity> getOrCreate(Mob guard) {
         MinecraftServer server = serverFor(guard);
         if (server == null || !GuardBridge.isBridgedGuard(guard)) {
             return Optional.empty();
         }
+        GuardIdentityData.Entry entry = ensureRecord(guard);
+        return entry == null ? Optional.empty() : Optional.of(new GuardIdentityView(server, get(server), entry));
+    }
 
+    /** This actor's record, whatever adapter it belongs to, or null. Never creates. */
+    public static GuardIdentityData.Entry record(Mob actor) {
+        MinecraftServer server = serverFor(actor);
+        return server == null ? null : get(server).find(actor.getUUID());
+    }
+
+    /**
+     * This actor's record, creating it if it has none. Idempotent, and the only place a record for
+     * an adopted actor is born.
+     *
+     * <p>A guard's record rolls name, gender and personality from its UUID (see {@link GuardNames}) and
+     * persists them, exactly as in 0.2, so a guard keeps the name it already had; those rolls seed the
+     * hidden MCA villager once, and MCA owns the live values after that. A recruit or a worker keeps a
+     * real custom name if it has one; otherwise MCA names its new person when the person is created,
+     * through MCA's own initialisation, once.
+     *
+     * <p>A guard that already carries a custom name keeps it -- a player's name tag outranks our
+     * roll -- and a name changed since last time is adopted on the next pass.
+     */
+    public static GuardIdentityData.Entry ensureRecord(Mob actor) {
+        MinecraftServer server = serverFor(actor);
+        NativeCharacterAdapter adapter = NativeCharacterAdapters.bridging(actor);
+        if (server == null || adapter == null) {
+            return null;
+        }
+        if (actor.getPersistentData().getBoolean(dev.otectus.mcamobcompat.character.EnlistContext.KEY_ENLISTING)) {
+            // An enlistment is creating this actor; its record is the enlisted person's, not a new one.
+            return null;
+        }
         GuardIdentityData data = get(server);
-        UUID uuid = guard.getUUID();
+        UUID uuid = actor.getUUID();
         // A newer schema is preserved untouched, and a quarantined record is never replaced by a
         // fresh roll: both are for an operator to look at, not for this mod to paper over.
         if (data.isReadOnly() || data.isQuarantined(uuid)) {
-            return Optional.empty();
+            return null;
         }
+        boolean guard = adapter == GuardVillagersAdapter.INSTANCE;
+        String type = EntityType.getKey(actor.getType()).toString();
         GuardIdentityData.Entry existing = data.find(uuid);
         if (existing != null) {
-            if (guard.hasCustomName()) {
-                String custom = guard.getCustomName().getString();
-                if (!custom.isBlank() && !custom.equals(existing.name())) {
-                    data.rename(existing, custom);
-                }
+            Optional<String> custom = guard
+                    ? (actor.hasCustomName() ? Optional.of(actor.getCustomName().getString()) : Optional.empty())
+                    : adapter.meaningfulName(actor);
+            custom.filter(name -> !name.isBlank() && !name.equals(existing.name()))
+                    .ifPresent(name -> data.rename(existing, name));
+            data.assignActor(existing, adapter.id().toString(), type);
+            if (guard) {
+                showNameTag(actor);
             }
-            showNameTag(guard);
-            return Optional.of(new GuardIdentityView(server, data, existing));
+            return existing;
         }
 
         GuardGender gender = GuardNames.gender(uuid);
-        String name = guard.hasCustomName() && !guard.getCustomName().getString().isBlank()
-                ? guard.getCustomName().getString()
-                : GuardNames.name(uuid, gender);
-        GuardIdentityData.Entry entry = data.create(
-                uuid, name, gender, GuardNames.personality(uuid), guard.level().getGameTime());
-
-        if (!guard.hasCustomName()) {
-            guard.setCustomName(Component.literal(name));
+        String name;
+        String personality;
+        if (guard) {
+            name = actor.hasCustomName() && !actor.getCustomName().getString().isBlank()
+                    ? actor.getCustomName().getString()
+                    : GuardNames.name(uuid, gender);
+            personality = GuardNames.personality(uuid);
+        } else {
+            name = adapter.meaningfulName(actor).orElse("");
+            personality = "";
         }
-        showNameTag(guard);
+        GuardIdentityData.Entry entry = data.create(uuid, name, gender, personality, actor.level().getGameTime());
+        data.assignActor(entry, adapter.id().toString(), type);
 
-        GuardIdentity identity = new GuardIdentityView(server, data, entry);
-        McaMobCompat.debug("Gave guard {} the identity {} ({}, {})",
-                uuid, name, gender.id(), entry.personality());
-        McaMobCompat.post(new GuardIdentityCreatedEvent(guard, identity));
-        return Optional.of(identity);
+        if (guard) {
+            if (!actor.hasCustomName()) {
+                actor.setCustomName(Component.literal(name));
+            }
+            showNameTag(actor);
+            GuardIdentity identity = new GuardIdentityView(server, data, entry);
+            McaMobCompat.debug("Gave guard {} the identity {} ({}, {})", uuid, name, gender.id(), entry.personality());
+            McaMobCompat.post(new GuardIdentityCreatedEvent(actor, identity));
+        } else {
+            McaMobCompat.debug("Recorded {} {} for an MCA character", type, uuid);
+        }
+        return entry;
     }
 
     /**
@@ -123,9 +166,9 @@ public final class GuardIdentityStore {
     }
 
     /**
-     * Points a guard's entry at its hidden proxy villager, or clears the link when {@code proxy} is
-     * null. No-op for a guard with no entry, for a read-only store, and when another guard already
-     * owns that proxy -- the link is one-to-one, and a conflict is reported rather than resolved.
+     * Points an actor's record at its identity villager, or clears the link when {@code proxy} is
+     * null. No-op for an actor with no record, for a read-only store, and when another record already
+     * owns that identity -- the link is one-to-one, and a conflict is reported rather than resolved.
      *
      * @return whether the store now records exactly this link
      */
@@ -142,17 +185,17 @@ public final class GuardIdentityStore {
             data.linkProxy(entry, proxy);
             return true;
         } catch (IllegalStateException conflict) {
-            McaMobCompat.LOGGER.warn("Not linking guard {} to proxy {}: {}", guard, proxy, conflict.getMessage());
+            McaMobCompat.LOGGER.warn("Not linking actor {} to identity {}: {}", guard, proxy, conflict.getMessage());
             return false;
         }
     }
 
-    /** Forgets a guard's proxy. Called when the proxy is discarded or the guard dies. */
+    /** Forgets an actor's identity. Called when the identity is discarded or the actor dies. */
     public static void unlink(MinecraftServer server, UUID guard) {
         link(server, guard, null);
     }
 
-    /** The proxy villager's UUID for this guard, or empty while it has none. */
+    /** The identity villager's UUID for this actor, or empty while it has none. */
     public static Optional<UUID> proxyUuid(MinecraftServer server, UUID guard) {
         if (server == null || guard == null) {
             return Optional.empty();
@@ -161,7 +204,7 @@ public final class GuardIdentityStore {
         return entry == null ? Optional.empty() : Optional.ofNullable(entry.proxyUuid());
     }
 
-    /** The guard this proxy belongs to, or empty when no entry claims it. */
+    /** The actor this identity belongs to, or empty when no record claims it. */
     public static Optional<UUID> findByProxy(MinecraftServer server, UUID proxy) {
         if (server == null || proxy == null) {
             return Optional.empty();
@@ -185,8 +228,8 @@ public final class GuardIdentityStore {
     }
 
     /**
-     * The pair heartbeat for this guard's identity: flushes queued hearts into MCA and records the
-     * name, personality and balances MCA reports. No-op without an identity or a loaded proxy.
+     * The pair heartbeat for this actor's record: flushes queued hearts into MCA and records the
+     * name, personality and balances MCA reports. No-op without a record or a loaded identity.
      */
     public static void synchronize(Mob guard) {
         MinecraftServer server = serverFor(guard);

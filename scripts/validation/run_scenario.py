@@ -1,11 +1,13 @@
 """Run one production validation scenario against an installer-created runtime.
 
 run_scenario.py <runtime-dir> <scenario>
-  scenario: two | solo | minimal | missing
+  scenario: two | solo | minimal | missing | guards
 The runtime dir holds: server/ (the loader installer's server install), client/ (its client
-install), mods-base/ (release jar, runtime-probe jar, MCA, Guard Villagers and, on Forge,
-Architectury), mods-minimal/ (the same without Guard Villagers), mods-missing/ (MCA and Guard
-Villagers without this mod), java.txt (the java binary), launcher (the path of launch_client.py)
+install), mods-base/ (release jar, runtime-probe jar, MCA, Guard Villagers, on Forge Architectury,
+and every native-character mod the platform has a build of: Villager Recruits and Villager Workers
+on Forge), mods-guards/ (the same with Guard Villagers as the only native mod; optional),
+mods-minimal/ (the same without Guard Villagers), mods-missing/ (MCA and Guard Villagers without
+this mod), java.txt (the java binary), launcher (the path of launch_client.py)
 and run-args.txt (the server's argument files, e.g. "@user_jvm_args.txt @libraries/.../unix_args.txt").
 Clients run under `gamescope --backend headless`. Results land in <runtime-dir>/results/<scenario>/.
 The worlds, servers and clients are disposable; never point this at a world you want to keep.
@@ -78,6 +80,9 @@ if scenario == 'two':
     reset_server(rt / 'mods-base'); s = start_server()
     cs = [client('ProbeOne', rt / 'mods-base'), client('ProbeTwo', rt / 'mods-base')]
     wait_clients(cs); stop_server(s)
+elif scenario == 'guards':
+    reset_server(rt / 'mods-guards'); s = start_server()
+    wait_clients([client('ProbeGuards', rt / 'mods-guards')]); stop_server(s)
 elif scenario == 'minimal':
     reset_server(rt / 'mods-minimal'); s = start_server()
     wait_clients([client('ProbeMinimal', rt / 'mods-minimal', timeout=600)]); stop_server(s)

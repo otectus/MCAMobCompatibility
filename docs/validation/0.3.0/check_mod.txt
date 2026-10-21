@@ -1,0 +1,4 @@
+check_mod — mcamobcompat @ /home/otectus/Projects/MCAMobCompatibility
+0 errors, 0 warnings, 0 notes
+
+No problems found.

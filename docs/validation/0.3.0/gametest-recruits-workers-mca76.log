@@ -1,0 +1,197 @@
+[20Oct2026 19:13:20.845] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgegametestserveruserdev, --gameDir, ., --fml.forgeVersion, 47.4.10, --fml.mcVersion, 1.20.1, --fml.forgeGroup, net.minecraftforge, --fml.mcpVersion, 20230612.114412, -mixin.config=mcamobcompat.mixins.json]
+[20Oct2026 19:13:20.848] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher 10.0.9+10.0.9+main.dcd20f30 starting: java version 17.0.20.1 by Arch Linux; OS Linux arch amd64 version 7.2.11-1-cachyos
+[20Oct2026 19:13:20.951] [main/INFO] [net.minecraftforge.fml.loading.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgegametestserveruserdev
+[20Oct2026 19:13:20.990] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.5 Source=union:/home/otectus/.gradle/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.5/9d1c0c3a304ae6697ecd477218fa61b850bf57fc/mixin-0.8.5.jar%23117!/ Service=ModLauncher Env=SERVER
+[20Oct2026 19:13:21.290] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file /home/otectus/.gradle/caches/modules-2/files-2.1/net.minecraftforge/javafmllanguage/1.20.1-47.4.10/ccc533c7dd67e0983217197d7549c8b49e7ab453/javafmllanguage-1.20.1-47.4.10.jar is missing mods.toml file
+[20Oct2026 19:13:21.291] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file /home/otectus/.gradle/caches/modules-2/files-2.1/net.minecraftforge/lowcodelanguage/1.20.1-47.4.10/e9a2879fe3612ea34b9728ec2633304a1e67d480/lowcodelanguage-1.20.1-47.4.10.jar is missing mods.toml file
+[20Oct2026 19:13:21.292] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file /home/otectus/.gradle/caches/modules-2/files-2.1/net.minecraftforge/mclanguage/1.20.1-47.4.10/ec5cefbbc65c67302b8fac317010faab85fa14b9/mclanguage-1.20.1-47.4.10.jar is missing mods.toml file
+[20Oct2026 19:13:21.293] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file /home/otectus/.gradle/caches/modules-2/files-2.1/net.minecraftforge/fmlcore/1.20.1-47.4.10/94dae566be650566ea9115a1414ab76bfcf5a804/fmlcore-1.20.1-47.4.10.jar is missing mods.toml file
+[20Oct2026 19:13:21.357] [main/INFO] [net.minecraftforge.fml.loading.moddiscovery.JarInJarDependencyLocator/]: No dependencies to load found. Skipping!
+[20Oct2026 19:13:22.465] [main/INFO] [mixin/]: Compatibility level set to JAVA_17
+[20Oct2026 19:13:22.484] [main/INFO] [cpw.mods.modlauncher.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgegametestserveruserdev' with arguments [--gameDir, .]
+[20Oct2026 19:13:22.673] [main/INFO] [mixin/]: Remapping refMap guardvillagers.refmap.json using /home/otectus/Projects/MCAMobCompatibility/build/createSrgToMcp/output.srg
+[20Oct2026 19:13:22.675] [main/INFO] [mixin/]: Remapping refMap architectury-forge-refmap.json using /home/otectus/Projects/MCAMobCompatibility/build/createSrgToMcp/output.srg
+[20Oct2026 19:13:22.675] [main/INFO] [mixin/]: Remapping refMap architectury-common-refmap.json using /home/otectus/Projects/MCAMobCompatibility/build/createSrgToMcp/output.srg
+[20Oct2026 19:13:22.678] [main/INFO] [mixin/]: Remapping refMap mixins.recruits.refmap.json using /home/otectus/Projects/MCAMobCompatibility/build/createSrgToMcp/output.srg
+[20Oct2026 19:13:22.678] [main/INFO] [mixin/]: Remapping refMap mixins.workers.refmap.json using /home/otectus/Projects/MCAMobCompatibility/build/createSrgToMcp/output.srg
+[20Oct2026 19:13:27.591] [main/WARN] [mixin/]: @Final field attackTargeting:Lnet/minecraft/world/entity/ai/targeting/TargetingConditions; in guardvillagers.mixins.json:DefendVillageGoalGolemMixin should be final
+[20Oct2026 19:13:28.425] [modloading-worker-0/INFO] [net.minecraftforge.common.ForgeMod/FORGEMOD]: Forge mod loading, version 47.4.10, for MC 1.20.1 with MCP 20230612.114412
+[20Oct2026 19:13:28.425] [modloading-worker-0/INFO] [net.minecraftforge.common.MinecraftForge/FORGE]: MinecraftForge v47.4.10 Initialized
+[20Oct2026 19:13:28.431] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Configuration file /home/otectus/Projects/MCAMobCompatibility/run-gametest/config/guardvillagers-common.toml is not correct. Correcting
+[20Oct2026 19:13:28.438] [modloading-worker-0/INFO] [recruits/]: Registering POI for ResourceKey[minecraft:block / recruits:recruit_block]
+[20Oct2026 19:13:28.438] [modloading-worker-0/INFO] [recruits/]: Registering POI for ResourceKey[minecraft:block / recruits:recruit_shield_block]
+[20Oct2026 19:13:28.439] [modloading-worker-0/INFO] [recruits/]: Registering POI for ResourceKey[minecraft:block / recruits:bowman_block]
+[20Oct2026 19:13:28.439] [modloading-worker-0/INFO] [recruits/]: Registering POI for ResourceKey[minecraft:block / recruits:crossbowman_block]
+[20Oct2026 19:13:28.439] [modloading-worker-0/INFO] [recruits/]: Registering POI for ResourceKey[minecraft:block / recruits:horseman_block]
+[20Oct2026 19:13:28.439] [modloading-worker-0/INFO] [recruits/]: Registering POI for ResourceKey[minecraft:block / recruits:nomad_block]
+[20Oct2026 19:13:28.440] [modloading-worker-0/INFO] [recruits/]: Registering profession for recruit with POI net.minecraftforge.registries.RegistryObject@810c44e9
+[20Oct2026 19:13:28.441] [modloading-worker-0/INFO] [recruits/]: Registering profession for shieldman with POI net.minecraftforge.registries.RegistryObject@73a49efc
+[20Oct2026 19:13:28.441] [modloading-worker-0/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: MCA: Mob Compatibility initialising (mod id 'mcamobcompat')
+[20Oct2026 19:13:28.441] [modloading-worker-0/INFO] [recruits/]: Registering profession for bowman with POI net.minecraftforge.registries.RegistryObject@ee1298fb
+[20Oct2026 19:13:28.441] [modloading-worker-0/INFO] [recruits/]: Registering profession for crossbowman with POI net.minecraftforge.registries.RegistryObject@278013b
+[20Oct2026 19:13:28.441] [modloading-worker-0/INFO] [recruits/]: Registering profession for horseman with POI net.minecraftforge.registries.RegistryObject@2cde3e08
+[20Oct2026 19:13:28.441] [modloading-worker-0/INFO] [recruits/]: Registering profession for nomad with POI net.minecraftforge.registries.RegistryObject@46c5f19a
+[20Oct2026 19:13:28.475] [modloading-worker-0/INFO] [dev.architectury.networking.forge.NetworkManagerImpl/]: Registering C2S receiver with id architectury:sync_ids
+[20Oct2026 19:13:28.753] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.GrimReaperEntity from class forge.net.mca.util.network.datasync.CEnumParameter
+[20Oct2026 19:13:28.768] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.768] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.768] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.768] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.768] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.768] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.768] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.768] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CEnumParameter
+[20Oct2026 19:13:28.769] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.769] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.769] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.769] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.769] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.769] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.769] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.769] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.769] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.769] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.769] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.769] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CEnumParameter
+[20Oct2026 19:13:28.770] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.771] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.771] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CEnumParameter
+[20Oct2026 19:13:28.772] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.772] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CEnumParameter
+[20Oct2026 19:13:28.772] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CEnumParameter
+[20Oct2026 19:13:28.772] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.772] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.772] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.772] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.772] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.773] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.775] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.776] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.776] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.776] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.776] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:13:28.799] [main/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Configuration file /home/otectus/Projects/MCAMobCompatibility/run-gametest/config/guardvillagers-common.toml is not correct. Correcting
+[20Oct2026 19:13:28.867] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Detected Guard Villagers 1.20.1-1.6.19; integration enabled.
+[20Oct2026 19:13:28.867] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: SWEM not installed; integration skipped.
+[20Oct2026 19:13:28.867] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Genetic Animals not installed; integration skipped.
+[20Oct2026 19:13:28.867] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: DragN's Livestock Overhaul not installed; integration skipped.
+[20Oct2026 19:13:28.867] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Icy's Better Horses not installed; integration skipped.
+[20Oct2026 19:13:28.867] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Alex's Mobs not installed; integration skipped.
+[20Oct2026 19:13:28.871] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Detected Villager Recruits 1.15.2; integration enabled.
+[20Oct2026 19:13:28.879] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Detected Villager Workers 2.0.3; integration enabled.
+[20Oct2026 19:13:28.888] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: MCA binding: root forge.net.mca, MCA 7.6.20+1.20.1, members [VillagerEntityMCA: ok, getVillagerBrain: ok, getCurrentJob: ok, abandonJob: ok, getPersonality: ok, setPersonality: ok, getMemories: ok, getMemoriesForPlayer: ok, getMoveState: ok, setMoveState: ok, getGenetics/getGender: ok, getHearts: ok, modHearts: ok, setHearts: ok, getResidency: ok, seekHome: ok, getHomeVillage: ok, personality shape: enum (MCA 7.6), FamilyTree rollback: ok].
+[20Oct2026 19:13:28.889] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Listening for Villager Recruits promotions, to keep each promoted recruit's MCA person.
+[20Oct2026 19:13:28.889] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Character adapter mcamobcompat:workers: active
+[20Oct2026 19:13:28.889] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Character adapter mcamobcompat:recruits: active
+[20Oct2026 19:13:28.889] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Character adapter mcamobcompat:guardvillagers: active
+[20Oct2026 19:13:28.890] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Hooks: [mca.editor_save: armed (2 call site(s) in forge.net.mca.network.c2s.VillagerEditorSyncRequest, run 0 time(s)), recruits.create_recruit: armed (1 call site(s) in com.talhanation.recruits.VillagerEvents, run 0 time(s)), recruits.create_noble: armed (1 call site(s) in com.talhanation.recruits.VillagerEvents, run 0 time(s)), recruits.hire_from_villager: armed (1 call site(s) in com.talhanation.recruits.VillagerEvents, run 0 time(s))]
+[20Oct2026 19:13:28.892] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: MCA: Mob Compatibility ready. MCA villagers recognised as [mca:male_villager, mca:female_villager].
+[20Oct2026 19:13:29.011] [Forge Version Check/INFO] [net.minecraftforge.fml.VersionChecker/]: [forge] Starting version check at https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json
+[20Oct2026 19:13:29.287] [Forge Version Check/INFO] [net.minecraftforge.fml.VersionChecker/]: [forge] Found status: UP_TO_DATE Current: 47.4.10 Target: null
+[20Oct2026 19:13:29.287] [Forge Version Check/INFO] [net.minecraftforge.fml.VersionChecker/]: [guardvillagers] Starting version check at https://raw.githubusercontent.com/seymourimadeit/guardvillagers/master/update.json
+[20Oct2026 19:13:29.361] [Forge Version Check/INFO] [net.minecraftforge.fml.VersionChecker/]: [guardvillagers] Found status: BETA Current: 1.20.1-1.6.19 Target: 1.20-1.6.5
+[20Oct2026 19:13:29.361] [Forge Version Check/INFO] [net.minecraftforge.fml.VersionChecker/]: [recruits] Starting version check at https://raw.githubusercontent.com/talhanation/recruits/main/update.json
+[20Oct2026 19:13:29.374] [Forge Version Check/INFO] [net.minecraftforge.fml.VersionChecker/]: [recruits] Found status: UP_TO_DATE Current: 1.15.2 Target: null
+[20Oct2026 19:13:29.376] [Forge Version Check/INFO] [net.minecraftforge.fml.VersionChecker/]: [workers] Starting version check at https://raw.githubusercontent.com/talhanation/workers/main/update.json
+[20Oct2026 19:13:29.391] [Forge Version Check/INFO] [net.minecraftforge.fml.VersionChecker/]: [workers] Found status: UP_TO_DATE Current: 2.0.3 Target: null
+[20Oct2026 19:13:29.581] [main/INFO] [com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService/]: Environment: authHost='https://authserver.mojang.com', accountsHost='https://api.mojang.com', sessionHost='https://sessionserver.mojang.com', servicesHost='https://api.minecraftservices.com', name='PROD'
+[20Oct2026 19:13:29.623] [main/WARN] [net.minecraftforge.common.ForgeHooks/WP]: The following mods have version differences that were not resolved:
+mca (version 7.7.1-alpha.2+1.20.1 -> 7.6.20+1.20.1)
+Things may not work well.
+[20Oct2026 19:13:29.633] [main/INFO] [net.minecraftforge.registries.GameData/REGISTRIES]: Injecting existing registry data into this CLIENT instance
+[20Oct2026 19:13:29.657] [main/INFO] [net.minecraftforge.registries.ForgeRegistry/REGISTRIES]: Registry minecraft:memory_module_type: Found a missing id from the world mca:mourning_position
+[20Oct2026 19:13:29.657] [main/INFO] [net.minecraftforge.registries.ForgeRegistry/REGISTRIES]: Registry minecraft:memory_module_type: Found a missing id from the world mca:mourning_site
+[20Oct2026 19:13:29.660] [main/INFO] [net.minecraftforge.registries.ForgeRegistry/REGISTRIES]: Registry minecraft:sound_event: Found a missing id from the world mca:villager.female.sirben
+[20Oct2026 19:13:29.660] [main/INFO] [net.minecraftforge.registries.ForgeRegistry/REGISTRIES]: Registry minecraft:sound_event: Found a missing id from the world mca:villager.male.sirben
+[20Oct2026 19:13:29.668] [main/ERROR] [net.minecraftforge.registries.GameData/REGISTRIES]: Unidentified mapping from registry minecraft:memory_module_type
+	mca:mourning_position: 106
+	mca:mourning_site: 105
+
+[20Oct2026 19:13:29.669] [main/ERROR] [net.minecraftforge.registries.GameData/REGISTRIES]: Unidentified mapping from registry minecraft:sound_event
+	mca:villager.female.sirben: 1475
+	mca:villager.male.sirben: 1474
+
+[20Oct2026 19:13:29.669] [main/WARN] [net.minecraftforge.registries.GameData/REGISTRIES]: Forge Mod Loader detected missing registry entries.
+
+There are 4 missing entries in this save.
+If you continue the missing entries will get removed.
+A world backup will be automatically created in your saves directory.
+
+
+[20Oct2026 19:13:29.669] [main/WARN] [net.minecraftforge.registries.GameData/REGISTRIES]: Missing minecraft:sound_event:
+    mca:villager.female.sirben
+    mca:villager.male.sirben
+
+Missing minecraft:memory_module_type:
+    mca:mourning_position
+    mca:mourning_site
+
+
+[20Oct2026 19:13:29.669] [main/ERROR] [net.minecraftforge.registries.GameData/REGISTRIES]: There are unidentified mappings in this world - we are going to attempt to process anyway
+[20Oct2026 19:13:29.672] [main/WARN] [net.minecraftforge.registries.ForgeRegistry/REGISTRIES]: Registry minecraft:sound_event: Object did not get ID it asked for. Name: mca:villager.sirben Expected: 1510 Got: 1476
+[20Oct2026 19:13:29.981] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/home/otectus/.gradle/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.20.1-47.4.10_mapped_official_1.20.1/forge-1.20.1-47.4.10_mapped_official_1.20.1.jar%23181!/assets/.mcassetsroot' uses unexpected schema
+[20Oct2026 19:13:29.981] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/home/otectus/.gradle/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.20.1-47.4.10_mapped_official_1.20.1/forge-1.20.1-47.4.10_mapped_official_1.20.1.jar%23181!/data/.mcassetsroot' uses unexpected schema
+[20Oct2026 19:13:30.839] [main/INFO] [net.minecraft.world.item.crafting.RecipeManager/]: Loaded 7 recipes
+[20Oct2026 19:13:30.883] [main/INFO] [net.minecraft.advancements.AdvancementList/]: Loaded 1493 advancements
+[20Oct2026 19:13:31.212] [main/INFO] [net.minecraftforge.gametest.ForgeGameTestHooks/]: Enabled Gametest Namespaces: [mcamobcompat, mcamobcompat_workers, mcamobcompat_recruits]
+[20Oct2026 19:13:31.930] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Preparing start region for dimension minecraft:overworld
+[20Oct2026 19:13:33.199] [Worker-Main-7/INFO] [net.minecraft.server.level.progress.LoggerChunkProgressListener/]: Preparing spawn area: 0%
+[20Oct2026 19:13:33.217] [Worker-Main-2/INFO] [net.minecraft.server.level.progress.LoggerChunkProgressListener/]: Preparing spawn area: 0%
+[20Oct2026 19:13:33.219] [Worker-Main-7/INFO] [net.minecraft.server.level.progress.LoggerChunkProgressListener/]: Preparing spawn area: 0%
+[20Oct2026 19:13:33.435] [Worker-Main-4/INFO] [net.minecraft.server.level.progress.LoggerChunkProgressListener/]: Preparing spawn area: 0%
+[20Oct2026 19:13:33.932] [Worker-Main-14/INFO] [net.minecraft.server.level.progress.LoggerChunkProgressListener/]: Preparing spawn area: 82%
+[20Oct2026 19:13:34.033] [Server thread/INFO] [net.minecraft.server.level.progress.LoggerChunkProgressListener/]: Time elapsed: 2102 ms
+[20Oct2026 19:13:34.034] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: Started game test server
+[20Oct2026 19:13:34.039] [Server thread/INFO] [net.minecraftforge.server.permission.PermissionAPI/]: Successfully initialized permission handler forge:default_handler
+[20Oct2026 19:13:34.811] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestBatchRunner/]: Running test batch 'defaultBatch:1' (47 tests)...
+[20Oct2026 19:13:35.599] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: 48 tests are now running!
+[20Oct2026 19:13:36.139] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Hirer enlisted MCA villager Bran (e7314ee7-e35b-4158-b658-a6b70fa590f4) as recruits:recruit 35d8405a-cd2a-4bc3-b957-64f574bc8b00
+[20Oct2026 19:13:36.157] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Hirer returned Bran (e7314ee7-e35b-4158-b658-a6b70fa590f4) to civilian life from recruits:captain d4c97e15-4cf9-499a-a5f2-4677b6e9121a
+[20Oct2026 19:13:36.218] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Despawn enlisted MCA villager Guard (382caf17-5afa-46f0-b201-438af3e51c51) as guardvillagers:guard bda508f8-7764-4e5b-b4b9-0330bbe6c7e6
+[20Oct2026 19:13:36.219] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: The actor of enlisted character bda508f8-7764-4e5b-b4b9-0330bbe6c7e6 was discarded; Jobless went back to civilian life.
+[20Oct2026 19:13:36.250] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Returner enlisted MCA villager Guard (7d6cf1ce-1e0a-46c7-9875-6ee7e753d2e9) as guardvillagers:guard 7c2c620d-caa3-4de5-9d0c-e67f2988ca21
+[20Oct2026 19:13:36.251] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Returner returned Jobless (7d6cf1ce-1e0a-46c7-9875-6ee7e753d2e9) to civilian life from guardvillagers:guard 7c2c620d-caa3-4de5-9d0c-e67f2988ca21
+[20Oct2026 19:13:36.255] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Enlister enlisted MCA villager Edda (22e038c5-8c98-45a4-8fbc-f1a06be22667) as guardvillagers:guard a854e648-3647-4387-8c98-2e8dbec094cf
+[20Oct2026 19:13:36.258] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: The actor of enlisted character a854e648-3647-4387-8c98-2e8dbec094cf was discarded; Edda went back to civilian life.
+[20Oct2026 19:13:36.463] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Steward enlisted MCA villager Jobless (00f80f06-1b73-4230-949d-199602b2eee2) as workers:lumberjack 9cf6ef07-90d6-49f2-b42b-9d24ee0cdddd
+[20Oct2026 19:13:36.466] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Steward returned Jobless (00f80f06-1b73-4230-949d-199602b2eee2) to civilian life from workers:lumberjack 9cf6ef07-90d6-49f2-b42b-9d24ee0cdddd
+[20Oct2026 19:13:36.469] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Villager Recruits tried to turn MCA villager e5ced823-e689-43e4-b1f8-fca18e4baf6d into a noble; refused. (Logged once.)
+[20Oct2026 19:13:36.593] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Recovery enlisted MCA villager Guard (3a8fc7f7-24c0-4216-b5d9-ee4dfd708d0f) as guardvillagers:guard 4dd25672-d516-483a-b952-4c4cfdd690b1
+[20Oct2026 19:13:36.596] [Server thread/WARN] [dev.otectus.mcamobcompat.McaMobCompat/]: Recorded the pair of actor 4dd25672-d516-483a-b952-4c4cfdd690b1 and identity 3a8fc7f7-24c0-4216-b5d9-ee4dfd708d0f again: the entities were saved after a commit the store was not.
+[20Oct2026 19:13:36.599] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: The actor of enlisted character 4dd25672-d516-483a-b952-4c4cfdd690b1 was discarded; Jobless went back to civilian life.
+[20Oct2026 19:13:36.620] [Server thread/INFO] [net.minecraft.world.entity.npc.Villager/]: Villager VillagerEntityMCA['Osric'/168, l='ServerLevel[world]', x=25.50, y=-59.00, z=89.50] died, message: 'Osric was killed'
+[20Oct2026 19:13:36.622] [Server thread/INFO] [net.minecraft.world.entity.LivingEntity/]: Named entity VillagerEntityMCA['Osric'/168, l='ServerLevel[world]', x=25.50, y=-59.00, z=89.50] died: Osric was killed
+[20Oct2026 19:13:36.668] [Server thread/INFO] [net.minecraft.world.entity.LivingEntity/]: Named entity Guard['Gisela'/179, l='ServerLevel[world]', x=5.50, y=-59.00, z=110.50] died: Gisela died
+[20Oct2026 19:13:36.697] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Hoarder enlisted MCA villager Guard (33f0873b-692f-4ef3-9087-a11365a4d85a) as guardvillagers:guard b0f28b33-74c6-45b1-9f82-989ef8e58646
+[20Oct2026 19:13:36.699] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: The actor of enlisted character b0f28b33-74c6-45b1-9f82-989ef8e58646 was discarded; Jobless went back to civilian life.
+[20Oct2026 19:13:36.703] [Server thread/INFO] [net.minecraft.world.entity.npc.Villager/]: Villager VillagerEntityMCA['Gisela'/180, l='ServerLevel[world]', x=5.50, y=-59.00, z=110.50] died, message: 'Gisela died'
+[20Oct2026 19:13:36.703] [Server thread/INFO] [net.minecraft.world.entity.LivingEntity/]: Named entity VillagerEntityMCA['Gisela'/180, l='ServerLevel[world]', x=5.50, y=-59.00, z=110.50] died: Gisela died
+[20Oct2026 19:13:36.707] [Server thread/WARN] [net.minecraft.server.MinecraftServer/]: Can't keep up! Is the server overloaded? Running 2538ms or 50 ticks behind
+[20Oct2026 19:13:36.764] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Villager Recruits tried to turn MCA villager 8718bd8c-0a28-42a6-8e19-700681bc0ac3 into a recruit for its profession; refused, and the profession put back. (Logged once.)
+[20Oct2026 19:13:37.269] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [++_++_+__+++++__+++++++++++++_+++_+__++++++_+++ ]
+[20Oct2026 19:13:37.791] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__++++++++++++++++++++_+++_+++++++++_+++ ]
+[20Oct2026 19:13:37.914] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__++++++++++++++++++++_+++_+++++++++++++ ]
+[20Oct2026 19:13:38.015] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__++++++++++++++++++++_+++++++++++++++++ ]
+[20Oct2026 19:13:38.075] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__++++++++++++++++++++_+++++++++++++++++ ]
+[20Oct2026 19:13:38.131] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__++++++++++++++++++++_+++++++++++++++++ ]
+[20Oct2026 19:13:38.194] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__++++++++++++++++++++_+++++++++++++++++ ]
+[20Oct2026 19:13:38.319] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__++++++++++++++++++++_+++++++++++++++++ ]
+[20Oct2026 19:13:38.426] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__++++++++++++++++++++++++++++++++++++++ ]
+[20Oct2026 19:13:38.476] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++_+++++++++++++++++++++++++++++++++++++++ ]
+[20Oct2026 19:13:38.501] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++_+++++++++++++++++++++++++++++++++++++++ ]
+[20Oct2026 19:13:38.534] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestBatchRunner/]: Running test batch 'mcamobcompat_rebuild:1' (1 tests)...
+[20Oct2026 19:13:38.557] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [++++++++++++++++++++++++++++++++++++++++++++++++]
+[20Oct2026 19:13:38.557] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: ========= 48 GAME TESTS COMPLETE ======================
+[20Oct2026 19:13:38.557] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: All 48 required tests passed :)
+[20Oct2026 19:13:38.558] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: ====================================================
+[20Oct2026 19:13:38.558] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Stopping server
+[20Oct2026 19:13:38.558] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving players
+[20Oct2026 19:13:38.558] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving worlds
+[20Oct2026 19:13:38.963] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[20Oct2026 19:13:41.196] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_end
+[20Oct2026 19:13:41.197] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_nether
+[20Oct2026 19:13:41.213] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[20Oct2026 19:13:41.213] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[20Oct2026 19:13:41.213] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[20Oct2026 19:13:41.213] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage: All dimensions are saved
+[20Oct2026 19:13:41.482] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: Game test server shutting down

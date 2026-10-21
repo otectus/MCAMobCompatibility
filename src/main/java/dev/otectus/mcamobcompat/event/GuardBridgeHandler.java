@@ -2,12 +2,15 @@ package dev.otectus.mcamobcompat.event;
 
 import dev.otectus.mcamobcompat.McaMobCompat;
 import dev.otectus.mcamobcompat.api.event.GuardInteractEvent;
-import dev.otectus.mcamobcompat.bridge.GuardBridge;
 import dev.otectus.mcamobcompat.bridge.GuardIdentityStore;
 import dev.otectus.mcamobcompat.bridge.GuardInteractions;
 import dev.otectus.mcamobcompat.bridge.GuardProxy;
 import dev.otectus.mcamobcompat.bridge.GuardProxySync;
-import dev.otectus.mcamobcompat.integration.ModIntegrations;
+import dev.otectus.mcamobcompat.character.CharacterBridge;
+import dev.otectus.mcamobcompat.character.McaEditorBridge;
+import dev.otectus.mcamobcompat.character.NativeCharacterAdapter;
+import dev.otectus.mcamobcompat.character.NativeCharacterAdapters;
+import dev.otectus.mcamobcompat.integration.guardvillagers.GuardVillagersAdapter;
 import dev.otectus.mcamobcompat.mca.McaEntities;
 import dev.otectus.mcamobcompat.network.ProxyPairs;
 import net.minecraft.network.chat.Component;
@@ -19,6 +22,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
@@ -28,33 +33,40 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Keeps every bridged guard's identity up to date, and routes every click on a guard or its proxy.
+ * Keeps every bridged actor's record up to date, and routes every click on an actor or its identity.
  *
- * <p><b>One router for both halves of the pair.</b> A click can select the guard or, where the two
- * overlap, its proxy; and it can arrive as {@code EntityInteractSpecific} (the positional packet the
- * client sends first) or {@code EntityInteract}. All four combinations go through {@link #route},
- * which resolves the visible guard and decides the gesture once:
- * <ul>
- *   <li>with {@code guardMcaInteraction} on, a plain click is forwarded to the guard's hidden MCA
- *       villager, so <b>MCA's own</b> screen opens with every MCA option working, and a crouch click
- *       is replayed into Guard Villagers so its inventory GUI keeps a gesture of its own;</li>
- *   <li>with it off, a click on the guard does what it did before the proxy existed -- offer
- *       {@link GuardInteractEvent} to the addon suite, then leave the click alone -- and a click that
- *       lands on an already existing proxy runs the guard's stock gesture instead of opening MCA.</li>
- * </ul>
+ * <p><b>One router for both halves of the pair, and for every adapter.</b> A click can select the
+ * actor or, where the two overlap, its identity; and it can arrive as {@code EntityInteractSpecific}
+ * (the positional packet the client sends first) or {@code EntityInteract}. All four combinations go
+ * through {@link #route}, which resolves the visible actor and decides the gesture once, in this
+ * order:
+ * <ol>
+ *   <li><b>MCA's editor item</b>, in either hand: MCA's own editor for the person, if the server's
+ *       editor policy allows this player (see {@link McaEditorBridge}).</li>
+ *   <li><b>A native tool</b> -- one of the actor's own mod's items, a lead or a name tag: the click is
+ *       left to the native mod and to vanilla, untouched.</li>
+ *   <li><b>A crouching click</b>: the native mod's own screen -- Guard Villagers' inventory,
+ *       Recruits' and Workers' orders and inventory for the owner, Recruits' hire screen for an unhired
+ *       recruit -- through the adapter, which knows the gesture its mod expects.</li>
+ *   <li><b>Any other click</b>, empty-handed or holding a gift, a ring or any other MCA item: forwarded
+ *       to the hidden person, so <b>MCA's own</b> screen and items work exactly as on any villager --
+ *       unless the actor is hostile to this player right now.</li>
+ * </ol>
+ * With MCA interaction switched off for the actor's mod, a click does what it did before the bridge
+ * existed, and a click that lands on an existing identity runs the actor's stock gesture instead.
  *
- * <p>{@link GuardInteractEvent} is posted for the plain click only; its documented contract is the
- * MCA-style interaction, and an addon that cancels it takes MCA's place for that click.
+ * <p>{@link GuardInteractEvent} is posted for a guard's plain click only, as 0.2 promised; a recruit's
+ * or a worker's click is not a guard's.
  *
- * <p>Server authority: the client only cancels the click (it cannot open MCA's screen itself, and
- * must not let vanilla run the click locally); every decision with an effect is the server's,
- * after checking the guard is alive, in the player's level and within the player's own entity
- * reach. Each click is handled at most once per player per tick, whichever of the two packets
- * carries it.
+ * <p>Server authority: the client only cancels the click (it cannot open MCA's screen itself, and must
+ * not let vanilla run the click locally); every decision with an effect is the server's, after
+ * checking the actor is alive, in the player's level and within the player's own entity reach. Each
+ * click is handled at most once per player per tick, whichever of the two packets carries it.
  */
 @Mod.EventBusSubscriber(modid = McaMobCompat.MOD_ID)
 public final class GuardBridgeHandler {
@@ -68,19 +80,23 @@ public final class GuardBridgeHandler {
     /** The game time of each player's last routed click, so the two packets of one click route once. */
     private static final Map<UUID, Long> LAST_ROUTED = new ConcurrentHashMap<>();
 
+    /** Players already shown the native-controls hint this session. */
+    private static final Set<UUID> HINTED = ConcurrentHashMap.newKeySet();
+
     private GuardBridgeHandler() {
     }
 
     /**
-     * A guard entering a server level gets an identity if it has none: eagerly, so a guard has a name
-     * the moment a player can see it, and so guards already in the world when the option was turned
-     * on are caught.
+     * A guard entering a server level gets a record if it has none: eagerly, so it has a name the
+     * moment a player can see it, as in 0.2. Other adapters' actors get theirs from their first
+     * heartbeat instead: a native mod that replaces an actor (a Recruits promotion) adds the new one
+     * inside the very call the character moves over in, and a record made at its join would compete.
      */
     @SubscribeEvent
     public static void onEntityJoin(EntityJoinLevelEvent event) {
-        if (event.getLevel() instanceof ServerLevel && event.getEntity() instanceof Mob guard
-                && GuardBridge.isBridgedGuard(guard)) {
-            GuardIdentityStore.getOrCreate(guard);
+        if (event.getLevel() instanceof ServerLevel && event.getEntity() instanceof Mob actor
+                && dev.otectus.mcamobcompat.bridge.GuardBridge.isBridgedGuard(actor)) {
+            GuardIdentityStore.ensureRecord(actor);
         }
     }
 
@@ -100,44 +116,46 @@ public final class GuardBridgeHandler {
         }
         boolean client = event.getLevel().isClientSide;
         boolean selectedProxy = GuardProxy.isProxy(selected);
-        Mob guard = selectedProxy
+        Mob actor = selectedProxy
                 ? GuardProxy.nearbyGuardOf(selected)
                 : selected instanceof Mob mob && !McaEntities.isMcaVillager(mob) ? mob : null;
-        if (selectedProxy && guard == null) {
-            // A proxy whose guard is not here: nothing should open MCA for an invisible villager.
+        if (selectedProxy && actor == null) {
+            // An identity whose actor is not here: nothing should open MCA for an invisible villager.
             cancel(event, client ? InteractionResult.SUCCESS : InteractionResult.FAIL);
             return;
         }
-        if (guard == null) {
+        if (actor == null) {
             return;
         }
 
         Player player = event.getEntity();
         boolean routed = client
-                ? ProxyPairs.clientRoutesGuard(guard) || (GuardBridge.isBridgedGuard(guard)
-                        && ModIntegrations.guardVillagers().opensMcaInteraction())
-                : GuardBridge.isBridgedGuard(guard) && ModIntegrations.guardVillagers().opensMcaInteraction();
+                ? ProxyPairs.clientRoutesGuard(actor) || CharacterBridge.routesToMca(actor)
+                : CharacterBridge.routesToMca(actor);
         boolean crouch = player.isCrouching() || player.isShiftKeyDown();
+        NativeCharacterAdapter adapter = NativeCharacterAdapters.claimant(actor);
+        boolean guard = adapter == GuardVillagersAdapter.INSTANCE;
 
         if (!routed) {
             if (selectedProxy) {
-                // An existing proxy stays inert with the bridge off: its click is the guard's.
+                // An existing identity stays inert with the bridge off: its click is the actor's.
                 if (client) {
                     cancel(event, InteractionResult.SUCCESS);
-                } else if (player instanceof ServerPlayer serverPlayer && reachable(serverPlayer, guard)
+                } else if (player instanceof ServerPlayer serverPlayer && reachable(serverPlayer, actor)
                         && firstRouteThisTick(serverPlayer)) {
-                    cancel(event, forward(serverPlayer, guard, event.getHand()));
+                    cancel(event, forward(serverPlayer, actor, event.getHand()));
                 } else {
                     cancel(event, InteractionResult.FAIL);
                 }
                 return;
             }
-            // The pre-proxy behaviour: offer the plain click to the addon suite, nothing more.
-            if (event instanceof PlayerInteractEvent.EntityInteract && !crouch && GuardBridge.isBridgedGuard(guard)) {
+            // The pre-proxy behaviour: offer a guard's plain click to the addon suite, nothing more.
+            if (event instanceof PlayerInteractEvent.EntityInteract && !crouch && guard
+                    && CharacterBridge.isBridgedActor(actor)) {
                 if (!client) {
-                    GuardIdentityStore.getOrCreate(guard);
+                    GuardIdentityStore.getOrCreate(actor);
                 }
-                GuardInteractEvent offered = new GuardInteractEvent(player, guard, event.getHand());
+                GuardInteractEvent offered = new GuardInteractEvent(player, actor, event.getHand());
                 if (McaMobCompat.post(offered)) {
                     cancel(event, offered.getCancellationResult());
                 }
@@ -145,12 +163,29 @@ public final class GuardBridgeHandler {
             return;
         }
 
+        InteractionHand editorHand = McaEditorBridge.isEditor(player.getMainHandItem()) ? InteractionHand.MAIN_HAND
+                : McaEditorBridge.isEditor(player.getOffhandItem()) ? InteractionHand.OFF_HAND : null;
+        if (editorHand == null && nativeTool(adapter, player.getMainHandItem())) {
+            if (!selectedProxy) {
+                return; // the native mod's and vanilla's own click, untouched
+            }
+            if (client) {
+                cancel(event, InteractionResult.SUCCESS);
+            } else if (player instanceof ServerPlayer serverPlayer && reachable(serverPlayer, actor)
+                    && firstRouteThisTick(serverPlayer)) {
+                cancel(event, forward(serverPlayer, actor, event.getHand()));
+            } else {
+                cancel(event, InteractionResult.FAIL);
+            }
+            return;
+        }
+
         if (client) {
-            if (crouch) {
+            if (editorHand != null || crouch || !guard) {
                 cancel(event, InteractionResult.SUCCESS);
                 return;
             }
-            GuardInteractEvent offered = new GuardInteractEvent(player, guard, event.getHand());
+            GuardInteractEvent offered = new GuardInteractEvent(player, actor, event.getHand());
             cancel(event, McaMobCompat.post(offered)
                     ? offered.getCancellationResult() : InteractionResult.SUCCESS);
             return;
@@ -159,7 +194,7 @@ public final class GuardBridgeHandler {
         if (!(player instanceof ServerPlayer serverPlayer) || !(event.getLevel() instanceof ServerLevel level)) {
             return;
         }
-        if (!reachable(serverPlayer, guard)) {
+        if (!reachable(serverPlayer, actor)) {
             cancel(event, InteractionResult.FAIL);
             return;
         }
@@ -167,30 +202,73 @@ public final class GuardBridgeHandler {
             cancel(event, InteractionResult.SUCCESS);
             return;
         }
+        if (editorHand != null) {
+            GuardIdentityStore.ensureRecord(actor);
+            Villager proxy = GuardProxy.create(level, actor);
+            if (proxy == null || !proxy.isAlive() || proxy.level() != level) {
+                serverPlayer.displayClientMessage(Component.translatable("message.mcamobcompat.proxy_pending"), true);
+                cancel(event, InteractionResult.SUCCESS);
+                return;
+            }
+            cancel(event, forwarding(() -> McaEditorBridge.open(serverPlayer, actor, proxy, editorHand)));
+            return;
+        }
         if (crouch) {
-            cancel(event, GuardInteractions.delegateToGuardVillagers(serverPlayer, guard, event.getHand()));
+            cancel(event, forwarding(() -> adapter == null
+                    ? GuardInteractions.delegateToGuardVillagers(serverPlayer, actor, event.getHand())
+                    : adapter.openNativeInterface(serverPlayer, actor, event.getHand())));
+            return;
+        }
+        if (adapter != null && adapter.isHostileTo(actor, serverPlayer)) {
+            serverPlayer.displayClientMessage(Component.translatable("message.mcamobcompat.character.hostile",
+                    actor.getName()), true);
+            cancel(event, InteractionResult.FAIL);
             return;
         }
 
-        GuardIdentityStore.getOrCreate(guard);
-        GuardInteractEvent offered = new GuardInteractEvent(player, guard, event.getHand());
-        if (McaMobCompat.post(offered)) {
-            // An addon has taken this click. Honour its result and stay out of the way.
-            cancel(event, offered.getCancellationResult());
-            return;
+        if (guard) {
+            GuardIdentityStore.getOrCreate(actor);
+            GuardInteractEvent offered = new GuardInteractEvent(player, actor, event.getHand());
+            if (McaMobCompat.post(offered)) {
+                // An addon has taken this click. Honour its result and stay out of the way.
+                cancel(event, offered.getCancellationResult());
+                return;
+            }
+        } else {
+            GuardIdentityStore.ensureRecord(actor);
         }
 
-        // Resolves the existing proxy first; creates one only when that is safe.
-        Villager proxy = GuardProxy.create(level, guard);
+        // Resolves the existing identity first; creates one only when that is safe.
+        Villager proxy = GuardProxy.create(level, actor);
         if (proxy == null || !proxy.isAlive() || proxy.level() != level) {
             serverPlayer.displayClientMessage(Component.translatable("message.mcamobcompat.proxy_pending"), true);
             cancel(event, InteractionResult.SUCCESS);
             return;
         }
-        GuardProxySync.noteInteraction(guard, player.getUUID());
+        GuardProxySync.noteInteraction(actor, player.getUUID());
         // Queued hearts reach MCA before its screen reads them, rather than on the next heartbeat.
-        GuardIdentityStore.synchronize(guard);
+        GuardIdentityStore.synchronize(actor);
+        hintOnce(serverPlayer, actor);
         cancel(event, forward(serverPlayer, proxy, event.getHand()));
+    }
+
+    /** Whether the held item is one the actor's own mod, or vanilla, handles on the actor itself. */
+    private static boolean nativeTool(NativeCharacterAdapter adapter, ItemStack stack) {
+        if (stack.isEmpty()) {
+            return false;
+        }
+        if (stack.is(Items.LEAD) || stack.is(Items.NAME_TAG)) {
+            return true;
+        }
+        return adapter != null && adapter.isNativeTool(stack);
+    }
+
+    /** Tells a player once per session how to reach the native controls and the role actions. */
+    private static void hintOnce(ServerPlayer player, Mob actor) {
+        if (HINTED.add(player.getUUID())) {
+            player.displayClientMessage(Component.translatable("message.mcamobcompat.character.hint",
+                    actor.getType().getDescription()), false);
+        }
     }
 
     private static boolean reachable(ServerPlayer player, Mob guard) {
@@ -203,19 +281,28 @@ public final class GuardBridgeHandler {
         return previous == null || previous != now;
     }
 
+    /** Runs one replayed interaction with the router stood down, so its own events are left alone. */
+    private static InteractionResult forwarding(java.util.function.Supplier<InteractionResult> interaction) {
+        boolean previous = FORWARDING.get();
+        FORWARDING.set(true);
+        try {
+            return interaction.get();
+        } finally {
+            FORWARDING.set(previous);
+        }
+    }
+
     /**
      * Replays the click onto this entity exactly as though the player had clicked it.
      *
      * <p>Both Forge hooks are fired by hand first, because an addon listening for them on an MCA
      * villager -- which is how MCAQuests notices a conversation -- would otherwise never see this
-     * click: nothing else raises them for the proxy. A non-null result means a listener took the
+     * click: nothing else raises them for the identity. A non-null result means a listener took the
      * click. {@code interactAt} next, because that is where MCA opens its screen; vanilla's item
      * fallback only if that passed, without posting the hook a second time.
      */
     private static InteractionResult forward(ServerPlayer player, Mob target, InteractionHand hand) {
-        boolean previous = FORWARDING.get();
-        FORWARDING.set(true);
-        try {
+        return forwarding(() -> {
             InteractionResult hooked = ForgeHooks.onInteractEntityAt(player, target, Vec3.ZERO, hand);
             if (hooked != null) {
                 return hooked;
@@ -227,9 +314,7 @@ public final class GuardBridgeHandler {
             InteractionResult result = target.interactAt(player, Vec3.ZERO, hand);
             return result == InteractionResult.PASS
                     ? GuardInteractions.interactAfterHook(player, target, hand) : result;
-        } finally {
-            FORWARDING.set(previous);
-        }
+        });
     }
 
     /** Cancels either click event with a consuming result, so the client sends no second packet. */
@@ -247,5 +332,6 @@ public final class GuardBridgeHandler {
     /** Drops per-player click bookkeeping; called when the server stops. */
     public static void clear() {
         LAST_ROUTED.clear();
+        HINTED.clear();
     }
 }

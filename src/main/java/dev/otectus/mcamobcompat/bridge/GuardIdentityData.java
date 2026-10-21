@@ -2,6 +2,10 @@ package dev.otectus.mcamobcompat.bridge;
 
 import dev.otectus.mcamobcompat.McaMobCompat;
 import dev.otectus.mcamobcompat.api.GuardGender;
+import dev.otectus.mcamobcompat.character.CharacterOrigin;
+import dev.otectus.mcamobcompat.character.CharacterState;
+import dev.otectus.mcamobcompat.character.TransitionKind;
+import dev.otectus.mcamobcompat.character.TransitionStage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -22,28 +26,34 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Every bridged guard's identity, stored once for the whole world.
+ * Every bridged character's record, stored once for the whole world: the native actor, the real MCA
+ * villager that carries the person, and the bookkeeping that keeps the two one character.
  *
  * <p>Kept in the <b>overworld's</b> {@code DimensionDataStorage} rather than per-level, because a
- * guard UUID is global and a guard can walk through a portal; a per-level store would give the same
- * guard two identities. Nothing here is synced -- this is server data.
+ * UUID is global and an actor can walk through a portal; a per-level store would give the same
+ * character two records. Nothing here is synced -- this is server data. The storage key and the
+ * class name are the 0.2 ones: this is the same store, extended, never a second one beside it.
  *
  * <p>Only NBT and plain Java types appear below, so the store can be unit-tested without
  * bootstrapping Minecraft. Everything that needs a live entity or a server lives in
- * {@link GuardIdentityStore}.
+ * {@link GuardIdentityStore} and the {@code character} package.
+ *
+ * <p>Records are keyed by the <b>current actor's UUID</b> (the "guard" of 0.2), and indexed by the
+ * identity's UUID. The identity's UUID is the canonical character UUID once there is one; the actor's
+ * changes when the source mod replaces it (a promotion), which {@link #rekeyActor} handles in one step.
  *
  * <p>Deceased entries are kept, not deleted: a sibling asking about the guard a player killed last
  * week should still get a name back. {@link #purgeDeceased} is the operator's broom.
  *
  * <p><b>Nothing is ever silently thrown away.</b> A record this version cannot read is kept
- * verbatim and written back unchanged; two records that claim the same guard, or the same proxy,
- * are quarantined -- preserved, reported by {@code /mcamobcompat guards status}, and never relinked
- * or recreated automatically; and a file written by a newer version of this mod is loaded read-only
- * and never overwritten.
+ * verbatim and written back unchanged; two records that claim the same actor, or the same identity,
+ * are quarantined -- preserved, reported by {@code /mcamobcompat characters status}, and never
+ * relinked or recreated automatically; and a file written by a newer version of this mod is loaded
+ * read-only and never overwritten.
  */
 public class GuardIdentityData extends SavedData {
 
-    /** The data file name, under the world's {@code data/} folder. */
+    /** The data file name, under the world's {@code data/} folder. Unchanged since 0.1. */
     public static final String STORAGE_KEY = "mcamobcompat_guard_identities";
 
     /**
@@ -60,8 +70,21 @@ public class GuardIdentityData extends SavedData {
      * {@code PendingHearts} as the unapplied deltas only, stored as longs. Loading a version 2 file
      * subtracts each pending delta from the stored balance once, and keeps the untouched version 2
      * record under {@code LegacyV2} for audit and recovery.
+     *
+     * <p>Version 4 makes each record a character (0.3.0): which adapter and entity type the actor is,
+     * how the character came about ({@link CharacterOrigin}), its lifecycle state, an association
+     * generation bumped whenever the actor is replaced, an appearance revision, what an enlisted
+     * person's civilian life looked like, and a journal of structural transitions. A record migrated
+     * from versions 1 to 3 is a {@link CharacterOrigin#MIGRATED_GUARD_BRIDGE} with its existing proxy
+     * UUID as the character's UUID; nothing about its hearts, names or proxy changes.
      */
-    public static final int SCHEMA_VERSION = 3;
+    public static final int SCHEMA_VERSION = 4;
+
+    /** Adapter id every pre-0.3 record belongs to: they were all Guard Villagers bridges. */
+    public static final String LEGACY_ADAPTER = McaMobCompat.MOD_ID + ":guardvillagers";
+
+    /** How many settled transitions a record keeps for diagnostics; open ones are never dropped. */
+    static final int JOURNAL_LIMIT = 16;
 
     private static final String KEY_VERSION = "Version";
     private static final String KEY_GUARDS = "Guards";
@@ -79,6 +102,19 @@ public class GuardIdentityData extends SavedData {
     private static final String KEY_HEARTS_MIGRATED = "HeartsMigrated";
     private static final String KEY_PENDING_HEARTS = "PendingHearts";
     private static final String KEY_LEGACY_V2 = "LegacyV2";
+    private static final String KEY_ADAPTER = "Adapter";
+    private static final String KEY_ACTOR_TYPE = "ActorType";
+    private static final String KEY_ORIGIN = "Origin";
+    private static final String KEY_STATE = "State";
+    private static final String KEY_GENERATION = "Generation";
+    private static final String KEY_APPEARANCE = "AppearanceRevision";
+    private static final String KEY_CIVILIAN_PROFESSION = "CivilianProfession";
+    private static final String KEY_CIVILIAN_STATE = "CivilianState";
+    private static final String KEY_JOURNAL = "Journal";
+    private static final String KEY_MIGRATED_FROM = "MigratedFrom";
+    private static final String KEY_LAST_DIMENSION = "LastDimension";
+    private static final String KEY_LAST_POS = "LastPos";
+    private static final String KEY_LAST_TRANSITION = "LastTransition";
 
     /** A whole file from a newer schema, preserved verbatim. Non-null means read-only. */
     private CompoundTag futureData;
@@ -86,15 +122,15 @@ public class GuardIdentityData extends SavedData {
     /** Records that could not be read, written back exactly as they were found. */
     private final ListTag rejectedRecords = new ListTag();
 
-    /** Guards whose saved records conflict. Preserved, reported, never relinked. */
+    /** Actors whose saved records conflict. Preserved, reported, never relinked. */
     private final Set<UUID> quarantinedGuards = new HashSet<>();
 
     private final Map<UUID, Entry> entries = new LinkedHashMap<>();
 
     /**
-     * Proxy UUID to guard UUID, for the hot path: {@code GuardProxy.isProxy} asks it for every MCA
-     * villager that ticks, so a linear scan of the entries would cost villagers times guards per
-     * tick. Maintained by {@link #linkProxy} and rebuilt on load.
+     * Identity (proxy) UUID to actor UUID, for the hot path: {@code GuardProxy.isProxy} asks it for
+     * every MCA villager that ticks, so a linear scan of the entries would cost villagers times
+     * actors per tick. Maintained by {@link #linkProxy} and {@link #rekeyActor}, rebuilt on load.
      */
     private final Map<UUID, UUID> guardByProxy = new HashMap<>();
 
@@ -104,7 +140,7 @@ public class GuardIdentityData extends SavedData {
         int version = tag.contains(KEY_VERSION) ? tag.getInt(KEY_VERSION) : 1;
         if (version < 1 || version > SCHEMA_VERSION) {
             data.futureData = tag.copy();
-            McaMobCompat.LOGGER.error("Guard identities use schema {}, which this version of {} does not "
+            McaMobCompat.LOGGER.error("Character identities use schema {}, which this version of {} does not "
                     + "understand; preserving the file read-only.", version, McaMobCompat.MOD_ID);
             return data;
         }
@@ -113,7 +149,7 @@ public class GuardIdentityData extends SavedData {
         for (int i = 0; i < guards.size(); i++) {
             CompoundTag raw = guards.getCompound(i);
             try {
-                Entry entry = Entry.load(raw);
+                Entry entry = Entry.load(raw, version);
                 if (entry == null) {
                     data.rejectedRecords.add(raw.copy());
                     continue;
@@ -147,10 +183,15 @@ public class GuardIdentityData extends SavedData {
                 data.quarantinedGuards.add(previous);
                 data.quarantinedGuards.add(entry.uuid());
             }
+            // An identity that is also some record's actor is the same entity claimed twice over.
+            if (data.entries.containsKey(entry.proxyUuid())) {
+                data.quarantinedGuards.add(entry.proxyUuid());
+                data.quarantinedGuards.add(entry.uuid());
+            }
         }
         if (!data.quarantinedGuards.isEmpty()) {
             data.guardByProxy.values().removeIf(data.quarantinedGuards::contains);
-            McaMobCompat.LOGGER.error("Conflicting saved guard or proxy UUIDs; preserving {} identities "
+            McaMobCompat.LOGGER.error("Conflicting saved actor or identity UUIDs; preserving {} record(s) "
                     + "without relinking or recreating them: {}", data.quarantinedGuards.size(),
                     data.quarantinedGuards);
         }
@@ -162,7 +203,7 @@ public class GuardIdentityData extends SavedData {
 
     private void requireWritable() {
         if (futureData != null) {
-            throw new IllegalStateException("Guard identities use an unsupported schema; refusing to "
+            throw new IllegalStateException("Character identities use an unsupported schema; refusing to "
                     + "overwrite them");
         }
     }
@@ -172,13 +213,18 @@ public class GuardIdentityData extends SavedData {
         return futureData != null;
     }
 
-    /** True when this guard's saved record conflicts with another and is preserved as-is. */
+    /** True when this actor's saved record conflicts with another and is preserved as-is. */
     public boolean isQuarantined(UUID guard) {
         return guard != null && quarantinedGuards.contains(guard);
     }
 
     public int quarantinedCount() {
         return quarantinedGuards.size();
+    }
+
+    /** The quarantined actor UUIDs, for the repair report. */
+    public Set<UUID> quarantined() {
+        return Collections.unmodifiableSet(new HashSet<>(quarantinedGuards));
     }
 
     /** Records preserved verbatim because they could not be read. */
@@ -191,28 +237,84 @@ public class GuardIdentityData extends SavedData {
         return (int) Math.max(Integer.MIN_VALUE, Math.min(Integer.MAX_VALUE, value));
     }
 
-    /** The entry for this guard, or null. Never creates; never returns a quarantined entry. */
+    /** The entry for this actor, or null. Never creates; never returns a quarantined entry. */
     public Entry find(UUID uuid) {
         return uuid == null || isQuarantined(uuid) ? null : entries.get(uuid);
     }
 
-    /** Creates and stores an entry, replacing any existing one for the same guard. */
+    /** The entry whose character UUID (identity UUID, or actor UUID before there is one) this is. */
+    public Entry findByCharacter(UUID character) {
+        Entry byIdentity = findByProxy(character);
+        return byIdentity != null ? byIdentity : find(character);
+    }
+
+    /** Creates and stores an entry for an actor adopted in place, replacing any existing one. */
     public Entry create(UUID uuid, String name, GuardGender gender, String personality, long created) {
         requireWritable();
         if (isQuarantined(uuid)) {
-            throw new IllegalStateException("Guard identity " + uuid + " is quarantined");
+            throw new IllegalStateException("Character record " + uuid + " is quarantined");
         }
         Entry previous = entries.get(uuid);
         if (previous != null && previous.proxyUuid() != null) {
             guardByProxy.remove(previous.proxyUuid());
         }
         Entry entry = new Entry(uuid, name, gender, personality, created);
+        entry.origin = CharacterOrigin.ADOPTED_ACTOR;
+        entry.state = CharacterState.AWAITING_IDENTITY;
         entries.put(uuid, entry);
         setDirty();
         return entry;
     }
 
-    /** Marks a guard dead at this game time. No-op for a guard with no entry. */
+    /**
+     * Creates the record of an existing MCA villager taking a native role. The identity is that
+     * villager, already alive with its own name and personality, so the record is born seeded: the
+     * stored roll must never be pushed onto a real person.
+     *
+     * @throws IllegalStateException if either UUID already belongs to another record
+     */
+    public Entry createEnlisted(UUID actor, UUID identity, String name, GuardGender gender, String personality,
+                                long created, String adapter, String actorType, String civilianProfession,
+                                CompoundTag civilianState) {
+        requireWritable();
+        if (actor == null || identity == null || actor.equals(identity)) {
+            throw new IllegalArgumentException("An enlisted character needs two distinct UUIDs");
+        }
+        if (entries.containsKey(actor) || isQuarantined(actor)) {
+            throw new IllegalStateException("Actor " + actor + " already has a record");
+        }
+        if (guardByProxy.containsKey(identity) || entries.containsKey(identity)) {
+            throw new IllegalStateException("Identity " + identity + " already belongs to a record");
+        }
+        Entry entry = new Entry(actor, name, gender, personality, created);
+        entry.origin = CharacterOrigin.ENLISTED_PERSON;
+        entry.state = CharacterState.TRANSITIONING;
+        entry.adapter = adapter == null ? "" : adapter;
+        entry.actorType = actorType == null ? "" : actorType;
+        entry.civilianProfession = civilianProfession == null ? "" : civilianProfession;
+        entry.civilianState = civilianState == null ? new CompoundTag() : civilianState.copy();
+        entry.seeded = true;
+        entry.proxyUuid = identity;
+        entries.put(actor, entry);
+        guardByProxy.put(identity, actor);
+        setDirty();
+        return entry;
+    }
+
+    /** Forgets a record outright. Only for a transition rolled back before anything was committed. */
+    public void remove(Entry entry) {
+        requireWritable();
+        if (entry == null || entries.get(entry.uuid()) != entry) {
+            return;
+        }
+        entries.remove(entry.uuid());
+        if (entry.proxyUuid() != null) {
+            guardByProxy.remove(entry.proxyUuid(), entry.uuid());
+        }
+        setDirty();
+    }
+
+    /** Marks an actor dead at this game time. No-op for an actor with no entry. */
     public void markDeceased(UUID uuid, long gameTime) {
         if (isReadOnly()) {
             return;
@@ -223,12 +325,13 @@ public class GuardIdentityData extends SavedData {
         }
         entry.deceased = true;
         entry.deceasedAt = gameTime;
+        entry.state = CharacterState.DECEASED;
         setDirty();
     }
 
     /**
      * Removes deceased entries that died at least {@code maxAgeTicks} ago, and returns how many
-     * went. Living guards are never touched, whatever their age, and neither are quarantined ones.
+     * went. Living characters are never touched, whatever their age, and neither are quarantined ones.
      */
     public int purgeDeceased(long now, long maxAgeTicks) {
         requireWritable();
@@ -250,7 +353,7 @@ public class GuardIdentityData extends SavedData {
         return removed;
     }
 
-    /** How many guards are known, alive and dead. */
+    /** How many characters are known, alive and dead. */
     public int size() {
         return entries.size();
     }
@@ -266,9 +369,20 @@ public class GuardIdentityData extends SavedData {
         return count;
     }
 
-    /** Every entry, in insertion order. */
+    /** Every entry, in insertion order, quarantined ones included (they report as such). */
     public Collection<Entry> entries() {
         return List.copyOf(entries.values());
+    }
+
+    /** Every entry with a transition that has not settled, for recovery and the transitions report. */
+    public List<Entry> withOpenTransitions() {
+        List<Entry> open = new ArrayList<>();
+        for (Entry entry : entries.values()) {
+            if (entry.openTransition() != null) {
+                open.add(entry);
+            }
+        }
+        return open;
     }
 
     /** Applies a heart change to the stored balance and marks the store dirty. Returns the new total. */
@@ -279,7 +393,7 @@ public class GuardIdentityData extends SavedData {
         return updated;
     }
 
-    /** Adopts a new display name for a guard and marks the store dirty. */
+    /** Adopts a new display name for a character and marks the store dirty. */
     void rename(Entry entry, String newName) {
         requireWritable();
         if (!Objects.equals(entry.name(), newName)) {
@@ -289,17 +403,17 @@ public class GuardIdentityData extends SavedData {
     }
 
     /**
-     * Points an entry at its proxy villager, or at nothing when {@code proxy} is null.
+     * Points an entry at its identity villager, or at nothing when {@code proxy} is null.
      *
-     * @throws IllegalStateException if another guard already owns this proxy: the link is
+     * @throws IllegalStateException if another record already owns this identity: the link is
      *                               one-to-one, and a second owner would hand one MCA villager to
-     *                               two guards
+     *                               two actors
      */
     void linkProxy(Entry entry, UUID proxy) {
         requireWritable();
         UUID owner = proxy == null ? null : guardByProxy.get(proxy);
         if (owner != null && !owner.equals(entry.uuid())) {
-            throw new IllegalStateException("Proxy " + proxy + " already belongs to guard " + owner);
+            throw new IllegalStateException("Identity " + proxy + " already belongs to actor " + owner);
         }
         if (entry.proxyUuid != null) {
             guardByProxy.remove(entry.proxyUuid);
@@ -307,12 +421,178 @@ public class GuardIdentityData extends SavedData {
         entry.proxyUuid = proxy;
         if (proxy != null) {
             guardByProxy.put(proxy, entry.uuid());
+            if (entry.state == CharacterState.AWAITING_IDENTITY) {
+                entry.state = CharacterState.ACTIVE;
+            }
+        } else if (!entry.deceased && entry.state == CharacterState.ACTIVE) {
+            entry.state = CharacterState.AWAITING_IDENTITY;
         }
         setDirty();
     }
 
+    /**
+     * Moves a record to a new actor: the source mod replaced the entity (a promotion), the character
+     * did not change. One step, so no lookup ever sees the record under both keys or under neither.
+     * Bumps the association generation, which is what tells clients and stale entities apart.
+     *
+     * @throws IllegalStateException if the new actor already has a record of its own
+     */
+    public void rekeyActor(Entry entry, UUID newActor) {
+        requireWritable();
+        if (entry == null || newActor == null || newActor.equals(entry.uuid())) {
+            return;
+        }
+        if (entries.containsKey(newActor) || isQuarantined(newActor) || isQuarantined(entry.uuid())) {
+            throw new IllegalStateException("Actor " + newActor + " already has a record");
+        }
+        entries.remove(entry.uuid());
+        entry.uuid = newActor;
+        entries.put(newActor, entry);
+        if (entry.proxyUuid != null) {
+            guardByProxy.put(entry.proxyUuid, newActor);
+        }
+        entry.generation++;
+        setDirty();
+    }
+
+    /** Records which adapter and entity type this record's actor is. Idempotent. */
+    public void assignActor(Entry entry, String adapter, String actorType) {
+        requireWritable();
+        String a = adapter == null ? "" : adapter;
+        String t = actorType == null ? "" : actorType;
+        if (!a.equals(entry.adapter) || !t.equals(entry.actorType)) {
+            entry.adapter = a;
+            entry.actorType = t;
+            setDirty();
+        }
+    }
+
+    /** Moves the record to a lifecycle state. A deceased record stays deceased. */
+    public void setState(Entry entry, CharacterState state) {
+        requireWritable();
+        if (state == null || state == CharacterState.QUARANTINED || entry.state == state
+                || (entry.deceased && state != CharacterState.DECEASED)) {
+            return;
+        }
+        entry.state = state;
+        setDirty();
+    }
+
+    /** Bumps the association generation: anything still naming the old one is stale. */
+    public int bumpGeneration(Entry entry) {
+        requireWritable();
+        entry.generation++;
+        setDirty();
+        return entry.generation;
+    }
+
+    /** Bumps the public appearance revision, after an editor save or a detected appearance change. */
+    public int bumpAppearance(Entry entry) {
+        requireWritable();
+        entry.appearanceRevision++;
+        setDirty();
+        return entry.appearanceRevision;
+    }
+
+    /** Records where the actor was last seen, for diagnostics. Cheap: only dirties on a change. */
+    public void noteLocation(Entry entry, String dimension, long blockPos) {
+        if (isReadOnly() || entry == null) {
+            return;
+        }
+        String dim = dimension == null ? "" : dimension;
+        if (!dim.equals(entry.lastDimension) || blockPos != entry.lastPos) {
+            entry.lastDimension = dim;
+            entry.lastPos = blockPos;
+            setDirty();
+        }
+    }
+
+    /**
+     * Opens a transition on this record and returns its id. Refuses while another is open: a
+     * character goes through one structural change at a time, and recovery comes first.
+     *
+     * @throws IllegalStateException if a transition is already open
+     */
+    public UUID beginTransition(Entry entry, TransitionKind kind, UUID sourceActor, UUID player, long gameTime,
+                         CompoundTag receipt) {
+        requireWritable();
+        if (entry.openTransition() != null) {
+            throw new IllegalStateException("Character " + entry.characterUuid() + " is already in a transition");
+        }
+        Transition transition = new Transition(UUID.randomUUID(), kind, TransitionStage.PREPARED, gameTime,
+                sourceActor, null, player, receipt == null ? new CompoundTag() : receipt.copy(), "");
+        entry.journal.add(transition);
+        entry.trimJournal();
+        if (!entry.deceased) {
+            entry.stateBeforeTransition = entry.state;
+            entry.state = CharacterState.TRANSITIONING;
+        }
+        setDirty();
+        return transition.id;
+    }
+
+    /**
+     * Advances a transition to {@code stage}. Moving to a terminal stage restores the record's
+     * lifecycle state from before the transition, unless {@code settledState} names a new one.
+     *
+     * @return false when the transition is unknown or already settled
+     */
+    public boolean advanceTransition(Entry entry, UUID id, TransitionStage stage, UUID targetActor, long gameTime,
+                              String note, CharacterState settledState) {
+        requireWritable();
+        Transition transition = entry.transition(id);
+        if (transition == null || transition.stage.isTerminal() || stage == null) {
+            return false;
+        }
+        transition.stage = stage;
+        transition.updated = gameTime;
+        if (targetActor != null) {
+            transition.targetActor = targetActor;
+        }
+        if (note != null && !note.isBlank()) {
+            transition.note = note;
+        }
+        if (stage.isCommitted()) {
+            entry.lastTransition = id;
+        }
+        if (stage.isTerminal() && !entry.deceased) {
+            CharacterState next = settledState != null ? settledState : entry.stateBeforeTransition;
+            entry.state = next == null || next == CharacterState.TRANSITIONING ? CharacterState.ACTIVE : next;
+            entry.stateBeforeTransition = null;
+            entry.trimJournal();
+        }
+        setDirty();
+        return true;
+    }
+
+    /**
+     * Rebuilds what an enlisted person's record must know from the stamps on the person themselves,
+     * when the store's copy was lost to an interrupted save: the origin and the civilian life to
+     * return to. Never applied to a record already an enlisted person's.
+     */
+    public void restoreEnlistment(Entry entry, String profession, CompoundTag state, int generation) {
+        requireWritable();
+        if (entry.origin == CharacterOrigin.ENLISTED_PERSON) {
+            return;
+        }
+        entry.origin = CharacterOrigin.ENLISTED_PERSON;
+        entry.seeded = true;
+        entry.civilianProfession = profession == null ? "" : profession;
+        entry.civilianState = state == null ? new CompoundTag() : state.copy();
+        entry.generation = Math.max(entry.generation, generation);
+        setDirty();
+    }
+
+    /** Records the civilian profession and the flags proxy mode will change, for a later return. */
+    public void recordCivilianLife(Entry entry, String profession, CompoundTag state) {
+        requireWritable();
+        entry.civilianProfession = profession == null ? "" : profession;
+        entry.civilianState = state == null ? new CompoundTag() : state.copy();
+        setDirty();
+    }
+
     /** Records that the stored name and personality have been pushed onto the proxy once. */
-    void markSeeded(Entry entry) {
+    public void markSeeded(Entry entry) {
         requireWritable();
         if (!entry.seeded) {
             entry.seeded = true;
@@ -349,7 +629,7 @@ public class GuardIdentityData extends SavedData {
         }
     }
 
-    /** Records the balance MCA itself reports, so an unloaded guard still answers correctly. */
+    /** Records the balance MCA itself reports, so an unloaded character still answers correctly. */
     void snapshotHearts(Entry entry, UUID player, int balance) {
         requireWritable();
         Integer previous = entry.hearts.put(player, balance);
@@ -367,7 +647,7 @@ public class GuardIdentityData extends SavedData {
         }
     }
 
-    /** The entry whose proxy this is, or null. The proxy link is one-to-one by construction. */
+    /** The entry whose identity (proxy) this is, or null. The link is one-to-one by construction. */
     public Entry findByProxy(UUID proxy) {
         if (proxy == null) {
             return null;
@@ -393,8 +673,116 @@ public class GuardIdentityData extends SavedData {
         return tag;
     }
 
+    /** One structural transition of a character, as journaled in its record. */
+    public static final class Transition {
+
+        private final UUID id;
+        private final TransitionKind kind;
+        private final long started;
+        private final UUID sourceActor;
+        private final UUID player;
+        private final CompoundTag receipt;
+        private TransitionStage stage;
+        private long updated;
+        private UUID targetActor;
+        private String note;
+
+        Transition(UUID id, TransitionKind kind, TransitionStage stage, long started, UUID sourceActor,
+                   UUID targetActor, UUID player, CompoundTag receipt, String note) {
+            this.id = id;
+            this.kind = kind;
+            this.stage = stage;
+            this.started = started;
+            this.updated = started;
+            this.sourceActor = sourceActor;
+            this.targetActor = targetActor;
+            this.player = player;
+            this.receipt = receipt;
+            this.note = note == null ? "" : note;
+        }
+
+        static Transition load(CompoundTag tag) {
+            TransitionKind kind = TransitionKind.parse(tag.getString("Kind"));
+            TransitionStage stage = TransitionStage.parse(tag.getString("Stage"));
+            if (!tag.hasUUID("Id") || kind == null || stage == null) {
+                return null;
+            }
+            Transition transition = new Transition(tag.getUUID("Id"), kind, stage, tag.getLong("Started"),
+                    tag.hasUUID("Source") ? tag.getUUID("Source") : null,
+                    tag.hasUUID("Target") ? tag.getUUID("Target") : null,
+                    tag.hasUUID("Player") ? tag.getUUID("Player") : null,
+                    tag.getCompound("Receipt").copy(), tag.getString("Note"));
+            transition.updated = tag.getLong("Updated");
+            return transition;
+        }
+
+        CompoundTag save() {
+            CompoundTag tag = new CompoundTag();
+            tag.putUUID("Id", id);
+            tag.putString("Kind", kind.id());
+            tag.putString("Stage", stage.id());
+            tag.putLong("Started", started);
+            tag.putLong("Updated", updated);
+            if (sourceActor != null) {
+                tag.putUUID("Source", sourceActor);
+            }
+            if (targetActor != null) {
+                tag.putUUID("Target", targetActor);
+            }
+            if (player != null) {
+                tag.putUUID("Player", player);
+            }
+            tag.put("Receipt", receipt.copy());
+            if (!note.isEmpty()) {
+                tag.putString("Note", note);
+            }
+            return tag;
+        }
+
+        public UUID id() {
+            return id;
+        }
+
+        public TransitionKind kind() {
+            return kind;
+        }
+
+        public TransitionStage stage() {
+            return stage;
+        }
+
+        public long started() {
+            return started;
+        }
+
+        public long updated() {
+            return updated;
+        }
+
+        public UUID sourceActor() {
+            return sourceActor;
+        }
+
+        public UUID targetActor() {
+            return targetActor;
+        }
+
+        public UUID player() {
+            return player;
+        }
+
+        /** What the transition took or must give back: a copy, so a reader cannot rewrite the evidence. */
+        public CompoundTag receipt() {
+            return receipt.copy();
+        }
+
+        public String note() {
+            return note;
+        }
+    }
+
     /**
-     * One guard's stored identity.
+     * One character's stored record.
      *
      * <p>Its mutators are package-private and routed through {@link GuardIdentityData}, so that
      * every change dirties the store: an entry that changed without {@code setDirty} would look
@@ -402,7 +790,7 @@ public class GuardIdentityData extends SavedData {
      */
     public static final class Entry {
 
-        private final UUID uuid;
+        private UUID uuid;
         private final GuardGender gender;
         private final long created;
 
@@ -414,6 +802,8 @@ public class GuardIdentityData extends SavedData {
         /** Deltas MCA has not taken yet. A long, because a delta can span the whole int range. */
         private final Map<UUID, Long> pendingHearts = new HashMap<>();
 
+        private final List<Transition> journal = new ArrayList<>();
+
         private String name;
         private String personality;
         private boolean deceased;
@@ -421,6 +811,20 @@ public class GuardIdentityData extends SavedData {
         private UUID proxyUuid;
         private boolean seeded;
         private CompoundTag legacyV2;
+
+        private String adapter = "";
+        private String actorType = "";
+        private CharacterOrigin origin = CharacterOrigin.ADOPTED_ACTOR;
+        private CharacterState state = CharacterState.AWAITING_IDENTITY;
+        private CharacterState stateBeforeTransition;
+        private int generation = 1;
+        private int appearanceRevision;
+        private String civilianProfession = "";
+        private CompoundTag civilianState = new CompoundTag();
+        private int migratedFrom;
+        private String lastDimension = "";
+        private long lastPos;
+        private UUID lastTransition;
 
         Entry(UUID uuid, String name, GuardGender gender, String personality, long created) {
             this.uuid = uuid;
@@ -430,7 +834,7 @@ public class GuardIdentityData extends SavedData {
             this.created = created;
         }
 
-        static Entry load(CompoundTag tag) {
+        static Entry load(CompoundTag tag, int version) {
             if (!tag.hasUUID(KEY_UUID)) {
                 return null;
             }
@@ -480,6 +884,44 @@ public class GuardIdentityData extends SavedData {
             if (tag.contains(KEY_LEGACY_V2, Tag.TAG_COMPOUND)) {
                 entry.legacyV2 = tag.getCompound(KEY_LEGACY_V2).copy();
             }
+
+            CharacterState derived = entry.deceased ? CharacterState.DECEASED
+                    : entry.proxyUuid != null ? CharacterState.ACTIVE : CharacterState.AWAITING_IDENTITY;
+            if (version < 4) {
+                // Every record before 0.3.0 is a Guard Villagers bridge whose proxy, when it has one,
+                // is the character's identity. Nothing else is invented: the actor's type is learned
+                // the next time it is seen, and the generation starts at one.
+                entry.origin = CharacterOrigin.MIGRATED_GUARD_BRIDGE;
+                entry.adapter = LEGACY_ADAPTER;
+                entry.state = derived;
+                entry.migratedFrom = version;
+                return entry;
+            }
+            entry.adapter = tag.getString(KEY_ADAPTER);
+            entry.actorType = tag.getString(KEY_ACTOR_TYPE);
+            entry.origin = CharacterOrigin.parse(tag.getString(KEY_ORIGIN), CharacterOrigin.ADOPTED_ACTOR);
+            entry.state = entry.deceased ? CharacterState.DECEASED : CharacterState.parse(tag.getString(KEY_STATE), derived);
+            entry.generation = Math.max(1, tag.getInt(KEY_GENERATION));
+            entry.appearanceRevision = Math.max(0, tag.getInt(KEY_APPEARANCE));
+            entry.civilianProfession = tag.getString(KEY_CIVILIAN_PROFESSION);
+            entry.civilianState = tag.getCompound(KEY_CIVILIAN_STATE).copy();
+            entry.migratedFrom = tag.getInt(KEY_MIGRATED_FROM);
+            entry.lastDimension = tag.getString(KEY_LAST_DIMENSION);
+            entry.lastPos = tag.getLong(KEY_LAST_POS);
+            if (tag.hasUUID(KEY_LAST_TRANSITION)) {
+                entry.lastTransition = tag.getUUID(KEY_LAST_TRANSITION);
+            }
+            ListTag journal = tag.getList(KEY_JOURNAL, Tag.TAG_COMPOUND);
+            for (int i = 0; i < journal.size(); i++) {
+                Transition transition = Transition.load(journal.getCompound(i));
+                if (transition != null) {
+                    entry.journal.add(transition);
+                }
+            }
+            if (entry.state == CharacterState.TRANSITIONING && entry.openTransition() == null) {
+                // A transitioning record whose journal settled is simply in its derived state.
+                entry.state = derived;
+            }
             return entry;
         }
 
@@ -525,11 +967,76 @@ public class GuardIdentityData extends SavedData {
                 migrated.add(record);
             }
             tag.put(KEY_HEARTS_MIGRATED, migrated);
+
+            tag.putString(KEY_ADAPTER, adapter);
+            tag.putString(KEY_ACTOR_TYPE, actorType);
+            tag.putString(KEY_ORIGIN, origin.id());
+            tag.putString(KEY_STATE, state.id());
+            tag.putInt(KEY_GENERATION, generation);
+            tag.putInt(KEY_APPEARANCE, appearanceRevision);
+            if (!civilianProfession.isEmpty()) {
+                tag.putString(KEY_CIVILIAN_PROFESSION, civilianProfession);
+            }
+            if (!civilianState.isEmpty()) {
+                tag.put(KEY_CIVILIAN_STATE, civilianState.copy());
+            }
+            if (migratedFrom > 0) {
+                tag.putInt(KEY_MIGRATED_FROM, migratedFrom);
+            }
+            if (!lastDimension.isEmpty()) {
+                tag.putString(KEY_LAST_DIMENSION, lastDimension);
+                tag.putLong(KEY_LAST_POS, lastPos);
+            }
+            if (lastTransition != null) {
+                tag.putUUID(KEY_LAST_TRANSITION, lastTransition);
+            }
+            if (!journal.isEmpty()) {
+                ListTag list = new ListTag();
+                for (Transition transition : journal) {
+                    list.add(transition.save());
+                }
+                tag.put(KEY_JOURNAL, list);
+            }
             return tag;
         }
 
+        /** Keeps every open transition and the newest settled ones, up to {@link #JOURNAL_LIMIT}. */
+        private void trimJournal() {
+            while (journal.size() > JOURNAL_LIMIT) {
+                boolean removed = false;
+                for (Iterator<Transition> it = journal.iterator(); it.hasNext(); ) {
+                    if (it.next().stage.isTerminal()) {
+                        it.remove();
+                        removed = true;
+                        break;
+                    }
+                }
+                if (!removed) {
+                    return;
+                }
+            }
+        }
+
+        Transition transition(UUID id) {
+            if (id == null) {
+                return null;
+            }
+            for (Transition transition : journal) {
+                if (transition.id.equals(id)) {
+                    return transition;
+                }
+            }
+            return null;
+        }
+
+        /** The actor's UUID: the record's key, and the "guard" UUID of 0.2. */
         public UUID uuid() {
             return uuid;
+        }
+
+        /** The canonical character UUID: the identity's once there is one, the actor's before that. */
+        public UUID characterUuid() {
+            return proxyUuid != null ? proxyUuid : uuid;
         }
 
         public String name() {
@@ -565,12 +1072,12 @@ public class GuardIdentityData extends SavedData {
             return value == null ? 0 : value;
         }
 
-        /** Every player this guard has a stored balance with. */
+        /** Every player this character has a stored balance with. */
         public Collection<UUID> knownPlayers() {
             return new ArrayList<>(hearts.keySet());
         }
 
-        /** The hidden MCA proxy villager's UUID, or null while the guard has none. */
+        /** The MCA identity villager's UUID, or null while the character has none. */
         public UUID proxyUuid() {
             return proxyUuid;
         }
@@ -599,6 +1106,76 @@ public class GuardIdentityData extends SavedData {
         /** Every player with banked hearts waiting for MCA. */
         public Set<UUID> pendingHeartPlayers() {
             return Collections.unmodifiableSet(new HashSet<>(pendingHearts.keySet()));
+        }
+
+        /** The adapter id that owns this record's actor; empty until the actor is first seen. */
+        public String adapter() {
+            return adapter;
+        }
+
+        /** The actor's entity type id; empty until the actor is first seen. */
+        public String actorType() {
+            return actorType;
+        }
+
+        public CharacterOrigin origin() {
+            return origin;
+        }
+
+        public CharacterState state() {
+            return state;
+        }
+
+        /** The association generation: bumped whenever the actor is replaced. Starts at one. */
+        public int generation() {
+            return generation;
+        }
+
+        public int appearanceRevision() {
+            return appearanceRevision;
+        }
+
+        /** An enlisted person's civilian profession id, to restore on return; empty otherwise. */
+        public String civilianProfession() {
+            return civilianProfession;
+        }
+
+        /** The flags proxy mode changed on an enlisted person, as they were before. A copy. */
+        public CompoundTag civilianState() {
+            return civilianState.copy();
+        }
+
+        /** The schema this record was migrated from; zero for a record written by 0.3.0 or later. */
+        public int migratedFrom() {
+            return migratedFrom;
+        }
+
+        public String lastDimension() {
+            return lastDimension;
+        }
+
+        public long lastPos() {
+            return lastPos;
+        }
+
+        /** The last committed transition's id, or null. */
+        public UUID lastTransition() {
+            return lastTransition;
+        }
+
+        /** The journal, oldest first. */
+        public List<Transition> journal() {
+            return List.copyOf(journal);
+        }
+
+        /** The transition that has not settled yet, or null. There is at most one. */
+        public Transition openTransition() {
+            for (Transition transition : journal) {
+                if (!transition.stage.isTerminal()) {
+                    return transition;
+                }
+            }
+            return null;
         }
 
         int addHearts(UUID player, int delta) {

@@ -1,6 +1,7 @@
 package dev.otectus.mcamobcompat.event;
 
 import dev.otectus.mcamobcompat.McaMobCompat;
+import dev.otectus.mcamobcompat.character.NativeCharacterAdapters;
 import dev.otectus.mcamobcompat.classification.ClassificationCache;
 import net.minecraftforge.event.TagsUpdatedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -24,6 +25,8 @@ public final class ClassificationReloadHandler {
     public static void onTagsUpdated(TagsUpdatedEvent event) {
         int dropped = ClassificationCache.size();
         ClassificationCache.invalidate();
+        // Which adapter claims a type rests on the guard tag too.
+        NativeCharacterAdapters.invalidate();
         McaMobCompat.LOGGER.debug("Tags updated; dropped {} cached entity classification(s).", dropped);
     }
 }

@@ -49,6 +49,19 @@ public final class ModIds {
     public static final String ALEXS_MOBS = "alexsmobs";
 
     /**
+     * Villager Recruits, by talhanation. Entities: {@code recruits:recruit}, {@code recruits:bowman},
+     * {@code recruits:captain}, ... Audited at release 1.15.2 for Forge 1.20.1; it publishes no NeoForge
+     * 1.21.1 build.
+     */
+    public static final String RECRUITS = "recruits";
+
+    /**
+     * Villager Workers, by talhanation, which requires Villager Recruits. Entities:
+     * {@code workers:farmer}, {@code workers:courier}, ... Audited at release 2.0.3 for Forge 1.20.1.
+     */
+    public static final String WORKERS = "workers";
+
+    /**
      * Golems Kill Creepers. Never integrated with -- only reported on, so a pack can see that its
      * two gamerules are left exactly as the operator set them.
      */

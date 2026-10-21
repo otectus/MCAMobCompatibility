@@ -1,0 +1,270 @@
+[20Oct2026 19:44:50.174] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgeserver, --fml.forgeVersion, 47.4.10, --fml.mcVersion, 1.20.1, --fml.forgeGroup, net.minecraftforge, --fml.mcpVersion, 20230612.114412, nogui]
+[20Oct2026 19:44:50.176] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher 10.0.9+10.0.9+main.dcd20f30 starting: java version 17.0.20.1 by Arch Linux; OS Linux arch amd64 version 7.2.11-1-cachyos
+[20Oct2026 19:44:50.241] [main/WARN] [net.minecraftforge.fml.loading.FMLConfig/CORE]: Configuration file /home/otectus/.cache/mcamobcompat-runtime/forge/server/config/fml.toml is not correct. Correcting
+[20Oct2026 19:44:50.242] [main/INFO] [net.minecraftforge.fml.loading.FMLConfig/CORE]: Incorrect key [earlyWindowSkipGLVersions] was corrected from null to []
+[20Oct2026 19:44:50.242] [main/INFO] [net.minecraftforge.fml.loading.FMLConfig/CORE]: Incorrect key [earlyWindowLogHelpMessage] was corrected from null to true
+[20Oct2026 19:44:50.243] [main/INFO] [net.minecraftforge.fml.loading.FMLConfig/CORE]: Incorrect key [earlyWindowSquir] was corrected from null to false
+[20Oct2026 19:44:50.243] [main/INFO] [net.minecraftforge.fml.loading.FMLConfig/CORE]: Incorrect key [earlyWindowShowCPU] was corrected from null to false
+[20Oct2026 19:44:50.298] [main/INFO] [net.minecraftforge.fml.loading.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgeserver
+[20Oct2026 19:44:50.329] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.5 Source=union:/home/otectus/.cache/mcamobcompat-runtime/forge/server/libraries/org/spongepowered/mixin/0.8.5/mixin-0.8.5.jar%2365!/ Service=ModLauncher Env=SERVER
+[20Oct2026 19:44:50.466] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file /home/otectus/.cache/mcamobcompat-runtime/forge/server/libraries/net/minecraftforge/fmlcore/1.20.1-47.4.10/fmlcore-1.20.1-47.4.10.jar is missing mods.toml file
+[20Oct2026 19:44:50.467] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file /home/otectus/.cache/mcamobcompat-runtime/forge/server/libraries/net/minecraftforge/javafmllanguage/1.20.1-47.4.10/javafmllanguage-1.20.1-47.4.10.jar is missing mods.toml file
+[20Oct2026 19:44:50.468] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file /home/otectus/.cache/mcamobcompat-runtime/forge/server/libraries/net/minecraftforge/lowcodelanguage/1.20.1-47.4.10/lowcodelanguage-1.20.1-47.4.10.jar is missing mods.toml file
+[20Oct2026 19:44:50.469] [main/WARN] [net.minecraftforge.fml.loading.moddiscovery.ModFileParser/LOADING]: Mod file /home/otectus/.cache/mcamobcompat-runtime/forge/server/libraries/net/minecraftforge/mclanguage/1.20.1-47.4.10/mclanguage-1.20.1-47.4.10.jar is missing mods.toml file
+[20Oct2026 19:44:50.512] [main/INFO] [net.minecraftforge.fml.loading.moddiscovery.JarInJarDependencyLocator/]: No dependencies to load found. Skipping!
+[20Oct2026 19:44:51.253] [main/INFO] [mixin/]: Compatibility level set to JAVA_17
+[20Oct2026 19:44:51.262] [main/INFO] [cpw.mods.modlauncher.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgeserver' with arguments [nogui]
+[20Oct2026 19:44:55.140] [main/WARN] [mixin/]: @Final field f_26027_:Lnet/minecraft/world/entity/ai/targeting/TargetingConditions; in guardvillagers.mixins.json:DefendVillageGoalGolemMixin should be final
+[20Oct2026 19:44:55.903] [modloading-worker-0/INFO] [net.minecraftforge.common.ForgeMod/FORGEMOD]: Forge mod loading, version 47.4.10, for MC 1.20.1 with MCP 20230612.114412
+[20Oct2026 19:44:55.903] [modloading-worker-0/INFO] [net.minecraftforge.common.MinecraftForge/FORGE]: MinecraftForge v47.4.10 Initialized
+[20Oct2026 19:44:55.906] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Configuration file /home/otectus/.cache/mcamobcompat-runtime/forge/server/config/guardvillagers-common.toml is not correct. Correcting
+[20Oct2026 19:44:55.906] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key raids and illagers was corrected from null to its default, SimpleCommentedConfig:{}. 
+[20Oct2026 19:44:55.906] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key raids and illagers.Illagers in raids attack animals? was corrected from null to its default, true. 
+[20Oct2026 19:44:55.907] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key raids and illagers.Witches attack villagers? was corrected from null to its default, true. 
+[20Oct2026 19:44:55.907] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key raids and illagers.Have Illusioners in raids? was corrected from null to its default, false. 
+[20Oct2026 19:44:55.907] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key raids and illagers.Have Illagers have some common sense? was corrected from null to its default, true. 
+[20Oct2026 19:44:55.907] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key mob ai in general was corrected from null to its default, SimpleCommentedConfig:{}. 
+[20Oct2026 19:44:55.907] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key mob ai in general.Guards attack all mobs? was corrected from null to its default, true. 
+[20Oct2026 19:44:55.907] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key mob ai in general.All mobs attack guards was corrected from null to its default, false. 
+[20Oct2026 19:44:55.907] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key mob ai in general.Mob Blacklist was corrected from null to its default, [minecraft:villager, minecraft:iron_golem, minecraft:wandering_trader, guardvillagers:guard, minecraft:creeper, alexsmobs:komodo_dragon, minecraft:enderman]. 
+[20Oct2026 19:44:55.907] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key mob ai in general.Mob Whitelist was corrected from null to its default, []. 
+[20Oct2026 19:44:55.907] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key villager stuff was corrected from null to its default, SimpleCommentedConfig:{}. 
+[20Oct2026 19:44:55.907] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key villager stuff.Profession Whitelist for healing ai for clerics was corrected from null to its default, [cleric]. 
+[20Oct2026 19:44:55.907] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key villager stuff.Profession Whitelist for golem repair ai was corrected from null to its default, [armorer, weaponsmith]. 
+[20Oct2026 19:44:55.908] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key villager stuff.Profession Whitelist for guard weaponry repair ai was corrected from null to its default, [weaponsmith, armorer]. 
+[20Oct2026 19:44:55.908] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key villager stuff.How many times a cleric can heal a guard in one day was corrected from null to its default, 3. 
+[20Oct2026 19:44:55.908] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key villager stuff.How many times a smith villager can heal a golem in one day was corrected from null to its default, 3. 
+[20Oct2026 19:44:55.908] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key villager stuff.How many times a villager can heal a guard's equipment in one day was corrected from null to its default, 3. 
+[20Oct2026 19:44:55.908] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key villager stuff.Allow armorers and weaponsmiths repair guard items when down below half durability? was corrected from null to its default, true. 
+[20Oct2026 19:44:55.908] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key villager stuff.Make it so players have to have hero of the village to convert villagers into guards? was corrected from null to its default, false. 
+[20Oct2026 19:44:55.908] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key villager stuff.Have it so blacksmiths heal golems under 60 health? was corrected from null to its default, true. 
+[20Oct2026 19:44:55.908] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key villager stuff.Have it so clerics heal guards and players with hero of the village? was corrected from null to its default, true. 
+[20Oct2026 19:44:55.908] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key villager stuff.Have Villagers have some common sense? was corrected from null to its default, true. 
+[20Oct2026 19:44:55.909] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key golem stuff was corrected from null to its default, SimpleCommentedConfig:{}. 
+[20Oct2026 19:44:55.909] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key golem stuff.Allow Iron Golems to float on water? was corrected from null to its default, false. 
+[20Oct2026 19:44:55.909] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff was corrected from null to its default, SimpleCommentedConfig:{}. 
+[20Oct2026 19:44:55.909] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.How many guards should spawn in a village? was corrected from null to its default, 6. 
+[20Oct2026 19:44:55.909] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Allow guards to sink temporarily to fight mobs that are under water? was corrected from null to its default, true. 
+[20Oct2026 19:44:55.909] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Depth value for guards fighting underwater mobs was corrected from null to its default, 5. 
+[20Oct2026 19:44:55.909] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Mobs that guards actively protect when they get targeted was corrected from null to its default, [minecraft:villager, guardvillagers:guard, minecraft:iron_golem]. 
+[20Oct2026 19:44:55.909] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Mobs that guards actively protect when they get hurt was corrected from null to its default, [minecraft:villager, guardvillagers:guard, minecraft:iron_golem]. 
+[20Oct2026 19:44:55.909] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Guard crossbow attack radius was corrected from null to its default, 8.0. 
+[20Oct2026 19:44:55.909] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Allow guards to convert to zombie villagers upon being killed by zombies? was corrected from null to its default, true. 
+[20Oct2026 19:44:55.909] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Allow the player to right click on bells to mass order guards to follow them? was corrected from null to its default, true. 
+[20Oct2026 19:44:55.909] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Have guards patrol the village regularly? was corrected from null to its default, false. 
+[20Oct2026 19:44:55.909] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Chance to drop equipment was corrected from null to its default, 100.0. 
+[20Oct2026 19:44:55.910] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Have Guards have some common sense? was corrected from null to its default, false. 
+[20Oct2026 19:44:55.910] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Have Guards open doors? was corrected from null to its default, true. 
+[20Oct2026 19:44:55.910] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Have Guards raise their shield all the time? was corrected from null to its default, false. 
+[20Oct2026 19:44:55.910] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Chance for guards to lose durability was corrected from null to its default, 1.0. 
+[20Oct2026 19:44:55.910] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Allow guards to teleport if following the player was corrected from null to its default, true. 
+[20Oct2026 19:44:55.910] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Have guards form a phalanx? was corrected from null to its default, true. 
+[20Oct2026 19:44:55.910] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Have guards attempt to avoid firing into other friendlies? was corrected from null to its default, true. 
+[20Oct2026 19:44:55.910] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Angle of how ranged guards determine if a friendly mob is in front of them before firing was corrected from null to its default, -0.9. 
+[20Oct2026 19:44:55.910] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Range was corrected from null to its default, 50.0. 
+[20Oct2026 19:44:55.910] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Guard health regeneration amount was corrected from null to its default, 1.0. 
+[20Oct2026 19:44:55.910] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Allow guard arrows to damage villagers, iron golems, or other guards? The i-frames will still be shown for them but they won't lose any health if this is set to false was corrected from null to its default, true. 
+[20Oct2026 19:44:55.910] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Allow players to give guards stuff only if they have the hero of the village effect? was corrected from null to its default, false. 
+[20Oct2026 19:44:55.910] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Allow players to set guard patrol points only if they have hero of the village was corrected from null to its default, false. 
+[20Oct2026 19:44:55.910] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Minimum reputation requirement for guards to give you access to their inventories was corrected from null to its default, 15. 
+[20Oct2026 19:44:55.910] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Guard health was corrected from null to its default, 20.0. 
+[20Oct2026 19:44:55.910] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Guard speed was corrected from null to its default, 0.5. 
+[20Oct2026 19:44:55.910] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Guard follow range was corrected from null to its default, 20.0. 
+[20Oct2026 19:44:55.910] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.Have guards only follow the player if they have hero of the village? was corrected from null to its default, true. 
+[20Oct2026 19:44:55.910] [modloading-worker-0/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard stuff.How low of a reputation of a player should have to be instantly aggroed upon by guards and golems? was corrected from null to its default, -100. 
+[20Oct2026 19:44:55.913] [modloading-worker-0/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: MCA: Mob Compatibility initialising (mod id 'mcamobcompat')
+[20Oct2026 19:44:55.949] [modloading-worker-0/INFO] [dev.architectury.networking.forge.NetworkManagerImpl/]: Registering C2S receiver with id architectury:sync_ids
+[20Oct2026 19:44:56.131] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.131] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.131] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.131] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.131] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.131] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.131] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.131] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CEnumParameter
+[20Oct2026 19:44:56.132] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.132] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.133] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.133] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.133] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.133] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.133] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.139] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.139] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.139] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.139] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.139] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CEnumParameter
+[20Oct2026 19:44:56.140] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.143] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.143] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CEnumParameter
+[20Oct2026 19:44:56.143] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.143] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CEnumParameter
+[20Oct2026 19:44:56.143] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CEnumParameter
+[20Oct2026 19:44:56.143] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.143] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.143] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.143] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.143] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.144] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.147] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.147] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.148] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.148] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.148] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.VillagerEntityMCA from class forge.net.mca.util.network.datasync.CDataParameter
+[20Oct2026 19:44:56.148] [main/WARN] [net.minecraft.network.syncher.SynchedEntityData/]: defineId called for: class forge.net.mca.entity.GrimReaperEntity from class forge.net.mca.util.network.datasync.CEnumParameter
+[20Oct2026 19:44:56.162] [main/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Configuration file /home/otectus/.cache/mcamobcompat-runtime/forge/server/config/guardvillagers-common.toml is not correct. Correcting
+[20Oct2026 19:44:56.163] [Thread-1/WARN] [net.minecraftforge.fml.config.ConfigFileTypeHandler/CONFIG]: Configuration file /home/otectus/.cache/mcamobcompat-runtime/forge/server/config/guardvillagers-common.toml is not correct. Correcting
+[20Oct2026 19:44:56.164] [main/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Configuration file /home/otectus/.cache/mcamobcompat-runtime/forge/server/config/mcamobcompat-common.toml is not correct. Correcting
+[20Oct2026 19:44:56.164] [main/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key general was corrected from null to its default, SimpleCommentedConfig:{}. 
+[20Oct2026 19:44:56.164] [main/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key general.debugLogging was corrected from null to its default, false. 
+[20Oct2026 19:44:56.164] [main/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key modules was corrected from null to its default, SimpleCommentedConfig:{}. 
+[20Oct2026 19:44:56.164] [main/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key modules.guardVillagers was corrected from null to its default, true. 
+[20Oct2026 19:44:56.164] [main/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key modules.swem was corrected from null to its default, true. 
+[20Oct2026 19:44:56.164] [main/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key modules.geneticAnimals was corrected from null to its default, true. 
+[20Oct2026 19:44:56.165] [main/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key modules.dragnLivestock was corrected from null to its default, true. 
+[20Oct2026 19:44:56.165] [main/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key modules.icysBetterHorses was corrected from null to its default, true. 
+[20Oct2026 19:44:56.165] [main/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key modules.alexsMobs was corrected from null to its default, true. 
+[20Oct2026 19:44:56.165] [main/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key modules.recruits was corrected from null to its default, true. 
+[20Oct2026 19:44:56.165] [main/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key modules.workers was corrected from null to its default, true. 
+[20Oct2026 19:44:56.181] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Detected Guard Villagers 1.20.1-1.6.19; integration enabled.
+[20Oct2026 19:44:56.181] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: SWEM not installed; integration skipped.
+[20Oct2026 19:44:56.181] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Genetic Animals not installed; integration skipped.
+[20Oct2026 19:44:56.181] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: DragN's Livestock Overhaul not installed; integration skipped.
+[20Oct2026 19:44:56.181] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Icy's Better Horses not installed; integration skipped.
+[20Oct2026 19:44:56.181] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Alex's Mobs not installed; integration skipped.
+[20Oct2026 19:44:56.181] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Villager Recruits not installed; integration skipped.
+[20Oct2026 19:44:56.181] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Villager Workers not installed; integration skipped.
+[20Oct2026 19:44:56.199] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: MCA binding: root forge.net.mca, MCA 7.6.20+1.20.1, members [VillagerEntityMCA: ok, getVillagerBrain: ok, getCurrentJob: ok, abandonJob: ok, getPersonality: ok, setPersonality: ok, getMemories: ok, getMemoriesForPlayer: ok, getMoveState: ok, setMoveState: ok, getGenetics/getGender: ok, getHearts: ok, modHearts: ok, setHearts: ok, getResidency: ok, seekHome: ok, getHomeVillage: ok, personality shape: enum (MCA 7.6), FamilyTree rollback: ok].
+[20Oct2026 19:44:56.199] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Character adapter mcamobcompat:guardvillagers: active
+[20Oct2026 19:44:56.201] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Hooks: [mca.editor_save: armed (2 call site(s) in forge.net.mca.network.c2s.VillagerEditorSyncRequest, run 0 time(s)), recruits.create_recruit: not armed (0 call site(s), run 0 time(s)), recruits.create_noble: not armed (0 call site(s), run 0 time(s)), recruits.hire_from_villager: not armed (0 call site(s), run 0 time(s))]
+[20Oct2026 19:44:56.202] [main/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: MCA: Mob Compatibility ready. MCA villagers recognised as [mca:female_villager, mca:male_villager].
+[20Oct2026 19:44:56.264] [Forge Version Check/INFO] [net.minecraftforge.fml.VersionChecker/]: [forge] Starting version check at https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json
+[20Oct2026 19:44:56.503] [Forge Version Check/INFO] [net.minecraftforge.fml.VersionChecker/]: [forge] Found status: UP_TO_DATE Current: 47.4.10 Target: null
+[20Oct2026 19:44:56.503] [Forge Version Check/INFO] [net.minecraftforge.fml.VersionChecker/]: [guardvillagers] Starting version check at https://raw.githubusercontent.com/seymourimadeit/guardvillagers/master/update.json
+[20Oct2026 19:44:56.553] [Forge Version Check/INFO] [net.minecraftforge.fml.VersionChecker/]: [guardvillagers] Found status: BETA Current: 1.20.1-1.6.19 Target: 1.20-1.6.5
+[20Oct2026 19:44:56.788] [main/INFO] [com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService/]: Environment: authHost='https://authserver.mojang.com', accountsHost='https://api.mojang.com', sessionHost='https://sessionserver.mojang.com', servicesHost='https://api.minecraftservices.com', name='PROD'
+[20Oct2026 19:44:56.818] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/home/otectus/.cache/mcamobcompat-runtime/forge/server/libraries/net/minecraft/server/1.20.1-20230612.114412/server-1.20.1-20230612.114412-srg.jar%23111!/assets/.mcassetsroot' uses unexpected schema
+[20Oct2026 19:44:56.818] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/home/otectus/.cache/mcamobcompat-runtime/forge/server/libraries/net/minecraft/server/1.20.1-20230612.114412/server-1.20.1-20230612.114412-srg.jar%23111!/data/.mcassetsroot' uses unexpected schema
+[20Oct2026 19:44:57.238] [main/ERROR] [net.minecraft.server.dedicated.DedicatedServerProperties/]: No key layers in MapLike[{}]
+[20Oct2026 19:44:57.696] [main/INFO] [net.minecraft.world.item.crafting.RecipeManager/]: Loaded 7 recipes
+[20Oct2026 19:44:57.739] [main/INFO] [net.minecraft.advancements.AdvancementList/]: Loaded 1493 advancements
+[20Oct2026 19:44:58.202] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Starting minecraft server version 1.20.1
+[20Oct2026 19:44:58.202] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Loading properties
+[20Oct2026 19:44:58.202] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Default game type: SURVIVAL
+[20Oct2026 19:44:58.202] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Generating keypair
+[20Oct2026 19:44:58.248] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Starting Minecraft server on 127.0.0.1:25576
+[20Oct2026 19:44:58.281] [Server thread/INFO] [net.minecraft.server.network.ServerConnectionListener/]: Using epoll channel type
+[20Oct2026 19:44:58.367] [Server thread/WARN] [net.minecraft.server.dedicated.DedicatedServer/]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[20Oct2026 19:44:58.367] [Server thread/WARN] [net.minecraft.server.dedicated.DedicatedServer/]: The server will make no attempt to authenticate usernames. Beware.
+[20Oct2026 19:44:58.368] [Server thread/WARN] [net.minecraft.server.dedicated.DedicatedServer/]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+[20Oct2026 19:44:58.368] [Server thread/WARN] [net.minecraft.server.dedicated.DedicatedServer/]: To change this, set "online-mode" to "true" in the server.properties file.
+[20Oct2026 19:44:58.384] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Configuration file ./world/serverconfig/mcamobcompat-server.toml is not correct. Correcting
+[20Oct2026 19:44:58.385] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard_villagers was corrected from null to its default, SimpleCommentedConfig:{}. 
+[20Oct2026 19:44:58.385] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard_villagers.blockGuardConversion was corrected from null to its default, true. 
+[20Oct2026 19:44:58.385] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard_villagers.protectMcaVillagers was corrected from null to its default, true. 
+[20Oct2026 19:44:58.385] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard_villagers.preventGuardFriendlyFire was corrected from null to its default, true. 
+[20Oct2026 19:44:58.385] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard_villagers.retaliateAgainstPlayers was corrected from null to its default, false. 
+[20Oct2026 19:44:58.385] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard_villagers.guardHelpRange was corrected from null to its default, 32. 
+[20Oct2026 19:44:58.385] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard_villagers.maxGuardsAlerted was corrected from null to its default, 8. 
+[20Oct2026 19:44:58.385] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard_villagers.treatGuardsAsMcaGuards was corrected from null to its default, true. 
+[20Oct2026 19:44:58.385] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard_villagers.guardMcaInteraction was corrected from null to its default, true. 
+[20Oct2026 19:44:58.385] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard_villagers.recruitMcaVillagersAsGuards was corrected from null to its default, true. 
+[20Oct2026 19:44:58.385] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard_villagers.guardRecruitmentMode was corrected from null to its default, NATIVE_GUARD. 
+[20Oct2026 19:44:58.385] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard_villagers.guardAppearance was corrected from null to its default, MCA. 
+[20Oct2026 19:44:58.385] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard_villagers.guardShowNameTag was corrected from null to its default, true. 
+[20Oct2026 19:44:58.385] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key guard_villagers.followAddonTargets was corrected from null to its default, true. 
+[20Oct2026 19:44:58.386] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key recruits was corrected from null to its default, SimpleCommentedConfig:{}. 
+[20Oct2026 19:44:58.386] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key recruits.mcaCharacters was corrected from null to its default, true. 
+[20Oct2026 19:44:58.386] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key recruits.mcaInteraction was corrected from null to its default, true. 
+[20Oct2026 19:44:58.386] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key recruits.appearance was corrected from null to its default, MCA. 
+[20Oct2026 19:44:58.386] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key recruits.villagerConversion was corrected from null to its default, ENLIST. 
+[20Oct2026 19:44:58.387] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key recruits.lawEnforcement was corrected from null to its default, false. 
+[20Oct2026 19:44:58.388] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key workers was corrected from null to its default, SimpleCommentedConfig:{}. 
+[20Oct2026 19:44:58.388] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key workers.mcaCharacters was corrected from null to its default, true. 
+[20Oct2026 19:44:58.388] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key workers.mcaInteraction was corrected from null to its default, true. 
+[20Oct2026 19:44:58.388] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key workers.appearance was corrected from null to its default, MCA. 
+[20Oct2026 19:44:58.389] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key characters was corrected from null to its default, SimpleCommentedConfig:{}. 
+[20Oct2026 19:44:58.389] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key characters.editorPermission was corrected from null to its default, OWNER_OR_UNOWNED. 
+[20Oct2026 19:44:58.389] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key characters.editorAdminPermissionLevel was corrected from null to its default, 2. 
+[20Oct2026 19:44:58.389] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key characters.editorSessionMinutes was corrected from null to its default, 10. 
+[20Oct2026 19:44:58.389] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key characters.playerEnlistment was corrected from null to its default, true. 
+[20Oct2026 19:44:58.389] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key characters.playerCivilianReturn was corrected from null to its default, true. 
+[20Oct2026 19:44:58.389] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key characters.forwardMcaCommands was corrected from null to its default, true. 
+[20Oct2026 19:44:58.389] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key characters.socialPause was corrected from null to its default, false. 
+[20Oct2026 19:44:58.390] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key chores was corrected from null to its default, SimpleCommentedConfig:{}. 
+[20Oct2026 19:44:58.390] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key chores.protectOwnedAnimals was corrected from null to its default, true. 
+[20Oct2026 19:44:58.390] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key chores.protectedRoles was corrected from null to its default, [mount, pet]. 
+[20Oct2026 19:44:58.390] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key chores.protectNamedAnimals was corrected from null to its default, true. 
+[20Oct2026 19:44:58.390] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key chores.protectLeashedAnimals was corrected from null to its default, true. 
+[20Oct2026 19:44:58.390] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key chores.abandonHuntOnProtectedTarget was corrected from null to its default, true. 
+[20Oct2026 19:44:58.391] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key threats was corrected from null to its default, SimpleCommentedConfig:{}. 
+[20Oct2026 19:44:58.391] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key threats.creeperAwareness was corrected from null to its default, true. 
+[20Oct2026 19:44:58.391] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key threats.creeperAlertRange was corrected from null to its default, 8. 
+[20Oct2026 19:44:58.391] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key threats.swellingFleeRange was corrected from null to its default, 4. 
+[20Oct2026 19:44:58.391] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key threats.guardsEngageCreepers was corrected from null to its default, true. 
+[20Oct2026 19:44:58.391] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key threats.dismountToFlee was corrected from null to its default, true. 
+[20Oct2026 19:44:58.393] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key mounts was corrected from null to its default, SimpleCommentedConfig:{}. 
+[20Oct2026 19:44:58.393] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key mounts.npcRidingPolicy was corrected from null to its default, REFUSE. 
+[20Oct2026 19:44:58.394] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key swem was corrected from null to its default, SimpleCommentedConfig:{}. 
+[20Oct2026 19:44:58.394] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key swem.recognizeAsMounts was corrected from null to its default, true. 
+[20Oct2026 19:44:58.395] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key genetic_animals was corrected from null to its default, SimpleCommentedConfig:{}. 
+[20Oct2026 19:44:58.395] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key genetic_animals.recognizeLivestock was corrected from null to its default, true. 
+[20Oct2026 19:44:58.397] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key dragn_livestock was corrected from null to its default, SimpleCommentedConfig:{}. 
+[20Oct2026 19:44:58.397] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key dragn_livestock.recognizeLivestock was corrected from null to its default, true. 
+[20Oct2026 19:44:58.399] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key icys_better_horses was corrected from null to its default, SimpleCommentedConfig:{}. 
+[20Oct2026 19:44:58.399] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key icys_better_horses.recognizeOwnership was corrected from null to its default, true. 
+[20Oct2026 19:44:58.401] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key alexs_mobs was corrected from null to its default, SimpleCommentedConfig:{}. 
+[20Oct2026 19:44:58.401] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key alexs_mobs.recognizeAnimals was corrected from null to its default, true. 
+[20Oct2026 19:44:58.404] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Configuration file ./world/serverconfig/forge-server.toml is not correct. Correcting
+[20Oct2026 19:44:58.404] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key server was corrected from null to its default, SimpleCommentedConfig:{}. 
+[20Oct2026 19:44:58.405] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key server.removeErroringBlockEntities was corrected from null to its default, false. 
+[20Oct2026 19:44:58.405] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key server.removeErroringEntities was corrected from null to its default, false. 
+[20Oct2026 19:44:58.405] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key server.fullBoundingBoxLadders was corrected from null to its default, false. 
+[20Oct2026 19:44:58.405] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key server.zombieBaseSummonChance was corrected from null to its default, 0.1. 
+[20Oct2026 19:44:58.405] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key server.zombieBabyChance was corrected from null to its default, 0.05. 
+[20Oct2026 19:44:58.405] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key server.permissionHandler was corrected from null to its default, forge:default_handler. 
+[20Oct2026 19:44:58.405] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key server.advertiseDedicatedServerToLan was corrected from null to its default, true. 
+[20Oct2026 19:44:58.405] [Server thread/WARN] [net.minecraftforge.common.ForgeConfigSpec/CORE]: Incorrect key server.useItemWithDurationZero was corrected from null to its default, false. 
+[20Oct2026 19:44:58.423] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Preparing level "world"
+[20Oct2026 19:44:59.196] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Preparing start region for dimension minecraft:overworld
+[20Oct2026 19:44:59.619] [Worker-Main-21/INFO] [net.minecraft.server.level.progress.LoggerChunkProgressListener/]: Preparing spawn area: 0%
+[20Oct2026 19:44:59.697] [Worker-Main-21/INFO] [net.minecraft.server.level.progress.LoggerChunkProgressListener/]: Preparing spawn area: 1%
+[20Oct2026 19:45:00.197] [Worker-Main-4/INFO] [net.minecraft.server.level.progress.LoggerChunkProgressListener/]: Preparing spawn area: 49%
+[20Oct2026 19:45:00.524] [Server thread/INFO] [net.minecraft.server.level.progress.LoggerChunkProgressListener/]: Time elapsed: 1328 ms
+[20Oct2026 19:45:00.524] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Done (2.141s)! For help, type "help"
+[20Oct2026 19:45:00.547] [Server thread/INFO] [net.minecraftforge.server.permission.PermissionAPI/]: Successfully initialized permission handler forge:default_handler
+[20Oct2026 19:45:16.085] [Server thread/INFO] [net.minecraft.server.players.PlayerList/]: ProbeGuards[/127.0.0.1:59152] logged in with entity id 1 at (-6.5, -60.0, -0.5)
+[20Oct2026 19:45:16.103] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ProbeGuards joined the game
+[20Oct2026 19:45:16.643] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE MOVEMENT_VERIFIED player=ProbeGuards
+[20Oct2026 19:45:16.645] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE PAIR player=ProbeGuards guard=eb2b7f4f-8893-4ef8-aefc-8ff6c23fdcb6 proxy=88eec5dd-9f80-46f6-b5ed-36d35884ab2c hearts=7
+[20Oct2026 19:45:17.090] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ProbeGuards has made the advancement [Minecraft Comes Alive]
+[20Oct2026 19:45:17.219] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE CLIENT_READY ProbeGuards
+[20Oct2026 19:45:21.756] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE PROXY_SPECIFIC player=ProbeGuards canceled=false
+[20Oct2026 19:45:21.760] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE PROXY_GENERIC player=ProbeGuards canceled=false
+[20Oct2026 19:45:21.768] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE NATIVE_CLICK specific player=ProbeGuards actor=guardvillagers:guard crouching=false effectiveAi=false targetsPlayer=false hero=true hand=Relationships and You canceled=true
+[20Oct2026 19:45:28.712] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE NATIVE_CLICK specific player=ProbeGuards actor=guardvillagers:guard crouching=false effectiveAi=false targetsPlayer=false hero=true hand=Villager Editor canceled=true
+[20Oct2026 19:45:30.288] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE EDITOR_SERVER player=ProbeGuards character=88eec5dd-9f80-46f6-b5ed-36d35884ab2c size=0.65000004 revision=1 invisible=true noAi=true
+[20Oct2026 19:45:33.280] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE NATIVE_CLICK specific player=ProbeGuards actor=guardvillagers:guard crouching=true effectiveAi=true targetsPlayer=false hero=true hand=Air canceled=true
+[20Oct2026 19:45:43.288] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE RECRUIT_SETUP player=ProbeGuards villager=e6dbbbe4-5c15-4ffb-ba9e-63174da48425
+[20Oct2026 19:45:45.770] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ProbeGuards has made the advancement [We Want You, as a New Recruit!]
+[20Oct2026 19:45:45.770] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: ProbeGuards enlisted MCA villager Isidro (e6dbbbe4-5c15-4ffb-ba9e-63174da48425) as guardvillagers:guard d96e8bbe-5519-4b1c-b763-b7fad4485b6e
+[20Oct2026 19:45:45.770] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE PROXY_GENERIC player=ProbeGuards canceled=true
+[20Oct2026 19:45:47.782] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE RECRUIT_SERVER PASS player=ProbeGuards person=e6dbbbe4-5c15-4ffb-ba9e-63174da48425 alive=true hidden=true actor=guardvillagers:guard actors=1 profession=mca:guard guardHand=Probe sword 1 playerHand=empty
+[20Oct2026 19:45:51.778] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE NATIVE_CLICK specific player=ProbeGuards actor=guardvillagers:guard crouching=true effectiveAi=true targetsPlayer=false hero=true hand=Probe sword 2 canceled=true
+[20Oct2026 19:45:53.284] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE ALREADY_ENLISTED PASS player=ProbeGuards person=e6dbbbe4-5c15-4ffb-ba9e-63174da48425 alive=true hidden=true actor=guardvillagers:guard actors=1 profession=mca:guard guardHand=Probe sword 1 playerHand=Probe sword 2
+[20Oct2026 19:45:55.331] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE PRESENT player=ProbeGuards guard=d96e8bbe-5519-4b1c-b763-b7fad4485b6e
+[20Oct2026 19:45:55.777] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: ProbeGuards returned Isidro (e6dbbbe4-5c15-4ffb-ba9e-63174da48425) to civilian life from guardvillagers:guard d96e8bbe-5519-4b1c-b763-b7fad4485b6e
+[20Oct2026 19:45:58.300] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: RUNTIME_PROBE RELEASE_SERVER PASS player=ProbeGuards person=e6dbbbe4-5c15-4ffb-ba9e-63174da48425 alive=true visible=true swordInInventory=true profession=minecraft:none
+[20Oct2026 19:46:00.307] [Server thread/INFO] [net.minecraft.server.network.ServerGamePacketListenerImpl/]: ProbeGuards lost connection: Disconnected
+[20Oct2026 19:46:00.307] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ProbeGuards left the game
+[20Oct2026 19:46:01.066] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Stopping the server
+[20Oct2026 19:46:01.105] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Stopping server
+[20Oct2026 19:46:01.105] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving players
+[20Oct2026 19:46:01.105] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving worlds
+[20Oct2026 19:46:01.461] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[20Oct2026 19:46:03.577] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_end
+[20Oct2026 19:46:03.578] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_nether
+[20Oct2026 19:46:03.593] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[20Oct2026 19:46:03.593] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[20Oct2026 19:46:03.593] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[20Oct2026 19:46:03.593] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage: All dimensions are saved

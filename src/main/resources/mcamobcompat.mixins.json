@@ -1,0 +1,14 @@
+{
+  "required": false,
+  "minVersion": "0.8.5",
+  "package": "dev.otectus.mcamobcompat.hook.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "plugin": "dev.otectus.mcamobcompat.hook.HookPlugin",
+  "mixins": [
+    "McaEditorSaveHook",
+    "RecruitsConversionHook"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

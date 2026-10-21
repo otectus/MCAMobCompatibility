@@ -2,10 +2,15 @@ package dev.otectus.mcamobcompat.bridge;
 
 import dev.otectus.mcamobcompat.McaMobCompat;
 import dev.otectus.mcamobcompat.api.GuardGender;
+import dev.otectus.mcamobcompat.character.CharacterCommandRouter;
+import dev.otectus.mcamobcompat.character.CharacterOrigin;
+import dev.otectus.mcamobcompat.character.NativeCharacterAdapter;
+import dev.otectus.mcamobcompat.character.NativeCharacterAdapters;
 import dev.otectus.mcamobcompat.event.ProxySpawnHandler;
 import dev.otectus.mcamobcompat.integration.ModIntegrations;
 import dev.otectus.mcamobcompat.integration.guardvillagers.GuardReflection;
 import dev.otectus.mcamobcompat.integration.guardvillagers.GuardVariants;
+import dev.otectus.mcamobcompat.integration.guardvillagers.GuardVillagersAdapter;
 import dev.otectus.mcamobcompat.mca.McaBinding;
 import dev.otectus.mcamobcompat.mca.McaEntities;
 import dev.otectus.mcamobcompat.network.ProxyPairs;
@@ -71,6 +76,9 @@ public final class GuardProxy {
 
     /** MCA's guard profession, by id: the profession is what makes addons treat the proxy as one. */
     public static final ResourceLocation GUARD_PROFESSION = McaMobCompat.location(ModIds.MCA, "guard");
+
+    /** No profession: what a new identity for a recruit or a worker carries, a civilian to MCA. */
+    public static final ResourceLocation NO_PROFESSION = McaMobCompat.location("minecraft", "none");
 
     /**
      * How long a guard must have existed before it may create a proxy: two seconds, to let a
@@ -168,6 +176,12 @@ public final class GuardProxy {
             return null;
         }
         if (owner == null) {
+            // Repair only a pair the store vouches for. An actor's own key alone may be stale -- the
+            // person it names may have gone back to civilian life -- and must never claim them again.
+            UUID recorded = server == null ? null : GuardIdentityStore.proxyUuid(server, guard.getUUID()).orElse(null);
+            if (!villager.getUUID().equals(recorded)) {
+                return null;
+            }
             villager.getPersistentData().putUUID(KEY_GUARD, guard.getUUID());
             villager.addTag(TAG_PROXY);
         }
@@ -247,8 +261,7 @@ public final class GuardProxy {
             return null;
         }
 
-        GuardIdentityStore.getOrCreate(guard);
-        GuardIdentityData.Entry entry = data.find(guard.getUUID());
+        GuardIdentityData.Entry entry = GuardIdentityStore.ensureRecord(guard);
         return entry == null ? null : spawn(level, guard, data, entry);
     }
 
@@ -339,28 +352,51 @@ public final class GuardProxy {
     }
 
     /**
-     * The two things that make the proxy an MCA guard rather than an MCA villager: the profession
-     * and a biome type that matches the guard's own variant.
+     * What the identity carries for MCA: the profession its adapter gives this actor -- MCA's guard
+     * profession for a Guard Villagers guard, none for a recruit's or worker's new person -- and, for a
+     * guard, a biome type that matches its own variant. An adapter that names no profession leaves the
+     * person's own, which is how an enlisted person keeps theirs.
      */
     static void applyVillagerData(Villager proxy, Mob guard) {
+        NativeCharacterAdapter adapter = NativeCharacterAdapters.claimant(guard);
+        GuardIdentityData.Entry entry = guard.getServer() == null ? null
+                : GuardIdentityStore.get(guard.getServer()).find(guard.getUUID());
+        CharacterOrigin origin = entry == null ? CharacterOrigin.ADOPTED_ACTOR : entry.origin();
+        ResourceLocation wanted = adapter == null ? GUARD_PROFESSION : adapter.identityProfession(guard, origin);
+        if (wanted == null) {
+            return;
+        }
         VillagerProfession profession =
-                BuiltInRegistries.VILLAGER_PROFESSION.getOptional(GUARD_PROFESSION).orElse(null);
-        if (profession == null || !GUARD_PROFESSION.equals(BuiltInRegistries.VILLAGER_PROFESSION.getKey(profession))) {
+                BuiltInRegistries.VILLAGER_PROFESSION.getOptional(wanted).orElse(null);
+        if (profession == null || !wanted.equals(BuiltInRegistries.VILLAGER_PROFESSION.getKey(profession))) {
             if (!warnedMissingProfession) {
                 warnedMissingProfession = true;
                 McaMobCompat.LOGGER.warn("No villager profession '{}' is registered; the proxy keeps "
-                        + "whatever profession MCA rolled for it.", GUARD_PROFESSION);
+                        + "whatever profession MCA rolled for it.", wanted);
             }
             return;
         }
         VillagerData current = proxy.getVillagerData();
         VillagerData updated = current.setProfession(profession);
-        VillagerType villagerType = BuiltInRegistries.VILLAGER_TYPE.get(
-                GuardVariants.villagerType(GuardReflection.variant(guard).orElse(null)));
-        if (villagerType != null) {
-            updated = updated.setType(villagerType);
+        if (adapter == null || adapter == GuardVillagersAdapter.INSTANCE) {
+            VillagerType villagerType = BuiltInRegistries.VILLAGER_TYPE.get(
+                    GuardVariants.villagerType(GuardReflection.variant(guard).orElse(null)));
+            if (villagerType != null && entry != null && entry.origin() != CharacterOrigin.ENLISTED_PERSON) {
+                updated = updated.setType(villagerType);
+            }
         }
-        proxy.setVillagerData(updated);
+        if (!updated.equals(current)) {
+            proxy.setVillagerData(updated);
+        }
+    }
+
+    /** The profession the identity should carry right now, or null to leave it as it is. */
+    static ResourceLocation wantedProfession(Mob actor) {
+        NativeCharacterAdapter adapter = NativeCharacterAdapters.claimant(actor);
+        GuardIdentityData.Entry entry = actor.getServer() == null ? null
+                : GuardIdentityStore.get(actor.getServer()).find(actor.getUUID());
+        CharacterOrigin origin = entry == null ? CharacterOrigin.ADOPTED_ACTOR : entry.origin();
+        return adapter == null ? GUARD_PROFESSION : adapter.identityProfession(actor, origin);
     }
 
     /**
@@ -369,6 +405,9 @@ public final class GuardProxy {
      */
     public static void hide(Villager proxy) {
         proxy.setNoAi(true);
+        if (proxy.canPickUpLoot() && !proxy.level().isClientSide) {
+            proxy.setCanPickUpLoot(false);
+        }
         proxy.setInvisible(true);
         proxy.setSilent(true);
         proxy.setNoGravity(true);
@@ -385,19 +424,65 @@ public final class GuardProxy {
     }
 
     /**
-     * Puts the proxy's name on the guard, which is the name a player actually reads.
+     * Puts the proxy's name on the actor, which is the name a player actually reads.
      *
-     * <p>Name-tag visibility follows the same option new identities use, and is only ever turned
-     * on: a nameplate already showing is a player-visible fact we do not quietly take away.
+     * <p>A guard's name-tag visibility follows the same option new identities use, and is only ever
+     * turned on: a nameplate already showing is a player-visible fact we do not quietly take away.
+     * Other mods' NPCs keep their own nameplate visibility.
      */
     static void copyNameToGuard(Mob guard, Villager proxy) {
         if (!proxy.hasCustomName()) {
             return;
         }
         guard.setCustomName(proxy.getCustomName());
-        if (!guard.isCustomNameVisible() && ModIntegrations.guardVillagers().showsNameTag()) {
+        if (!guard.isCustomNameVisible() && ModIntegrations.guardVillagers().showsNameTag()
+                && NativeCharacterAdapters.claimant(guard) == GuardVillagersAdapter.INSTANCE) {
             guard.setCustomNameVisible(true);
         }
+    }
+
+    /**
+     * The flags {@link #hide} changes, as they are on this villager now: what an enlisted person's
+     * civilian life is restored to, so that a flag the person had of their own is never cleared by
+     * the return and one the proxy mode set is never left behind.
+     */
+    public static CompoundTag civilianFlags(Villager person) {
+        CompoundTag flags = new CompoundTag();
+        flags.putBoolean("NoAI", person.isNoAi());
+        flags.putBoolean("Invisible", person.isInvisible());
+        flags.putBoolean("Silent", person.isSilent());
+        flags.putBoolean("NoGravity", person.isNoGravity());
+        flags.putBoolean("CanPickUpLoot", person.canPickUpLoot());
+        flags.putBoolean("Glowing", person.hasGlowingTag());
+        flags.putString("MoveState", McaBinding.moveState(person).orElse(""));
+        return flags;
+    }
+
+    /**
+     * Brings a hidden person back into the world exactly as they were before {@link #hide}: each flag
+     * from {@code flags}, physics back on, the normal collision box restored. The link is the
+     * transition's to clear.
+     */
+    public static void reveal(Villager person, CompoundTag flags) {
+        person.setNoAi(flags.getBoolean("NoAI"));
+        person.setInvisible(flags.getBoolean("Invisible"));
+        person.setSilent(flags.getBoolean("Silent"));
+        person.setNoGravity(flags.getBoolean("NoGravity"));
+        person.setCanPickUpLoot(!flags.contains("CanPickUpLoot") || flags.getBoolean("CanPickUpLoot"));
+        if (flags.getBoolean("Glowing")) {
+            person.setGlowingTag(true);
+        }
+        String move = flags.getString("MoveState");
+        if (!move.isEmpty() && !move.equals(McaBinding.moveState(person).orElse(move))) {
+            // MCA's own order from before the role, if the role changed it. Follow had a leader the
+            // role replaced, so it comes back as Move.
+            McaBinding.setMoveState(person, "FOLLOW".equals(move) ? "MOVE" : move);
+        }
+        CharacterCommandRouter.resetOrders(person);
+        person.noPhysics = false;
+        person.removeTag(TAG_PROXY);
+        person.getPersistentData().remove(KEY_GUARD);
+        person.refreshDimensions();
     }
 
     /** The guard UUID written on a proxy, or null when it carries none. */

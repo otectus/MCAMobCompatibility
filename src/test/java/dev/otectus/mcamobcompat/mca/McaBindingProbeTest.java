@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -103,7 +104,8 @@ class McaBindingProbeTest {
                 assertEquals(List.of(), missing, name + " leaves part of the binding unbound.");
 
                 String nodeReport = familyNodeReport(loader, root.get(), name);
-                System.out.println("[probe] " + name + " -> " + root.get() + "; " + nodeReport);
+                String editorReport = editorHookReport(loader, root.get(), name);
+                System.out.println("[probe] " + name + " -> " + root.get() + "; " + nodeReport + "; " + editorReport);
             }
         }
     }
@@ -136,6 +138,35 @@ class McaBindingProbeTest {
         return "family node " + nodeClass.getSimpleName() + (generated
                 ? " (generated parents are cleaned up on rollback)"
                 : " (no probablyGenerated: rollback removes the proxy's own node only)");
+    }
+
+    /**
+     * The editor-save hook's target, as the hook contract names it: MCA's editor save request with the
+     * method the hook brackets -- {@code receive(ServerPlayer)} on the Forge builds, the payload's
+     * {@code handleServer(ServerPlayer)} on NeoForge -- and the members {@code McaBinding.editorRequest}
+     * reads at call time: the command, the target UUID and the payload tag.
+     */
+    private static String editorHookReport(ClassLoader loader, String root, String jar) throws Exception {
+        Class<?> request = Class.forName(root + ".network.c2s.VillagerEditorSyncRequest", false, loader);
+        Class<?> player = Class.forName("net.minecraft.server.level.ServerPlayer", false, loader);
+        Method bracketed;
+        try {
+            bracketed = request.getDeclaredMethod("receive", player);
+        } catch (NoSuchMethodException forgeShapeAbsent) {
+            bracketed = request.getDeclaredMethod("handleServer", player);
+        }
+        assertEquals(void.class, bracketed.getReturnType(), jar + ": the hooked save method changed shape");
+        for (String member : List.of("command", "uuid")) {
+            boolean accessor = Arrays.stream(request.getMethods()).anyMatch(m -> m.getName().equals(member)
+                    && m.getParameterCount() == 0);
+            boolean field = Arrays.stream(request.getDeclaredFields()).anyMatch(f -> f.getName().equals(member));
+            assertTrue(accessor || field, jar + ": VillagerEditorSyncRequest has no '" + member + "'");
+        }
+        boolean data = Arrays.stream(request.getMethods()).anyMatch(m -> (m.getName().equals("getData")
+                || m.getName().equals("data")) && m.getParameterCount() == 0
+                && m.getReturnType().getName().equals("net.minecraft.nbt.CompoundTag"));
+        assertTrue(data, jar + ": VillagerEditorSyncRequest has no payload accessor");
+        return "editor hook target " + bracketed.getName() + "(ServerPlayer)";
     }
 
     /**

@@ -97,3 +97,21 @@ description='''${mod_description}'''
     versionRange="[0,)"
     ordering="AFTER"
     side="BOTH"
+
+# Villager Recruits -- its recruits, companions and nobles become MCA characters, and its conversions
+# never discard an MCA villager. Reached by name (integration/recruits/RecruitsBinding) and through
+# optional hooks whose landing is counted at start; any version loads, the audited one is 1.15.2.
+[[dependencies.${mod_id}]]
+    modId="recruits"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+# Villager Workers -- its workers become MCA characters; audited at 2.0.3. It needs Villager Recruits.
+[[dependencies.${mod_id}]]
+    modId="workers"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"

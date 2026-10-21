@@ -1,6 +1,6 @@
 {
-  "description": "Every third-party artifact MCA: Mob Compatibility 0.2.1 for Forge 1.20.1 was tested against, with the exact file and its SHA-256. It was validated while numbered 2.1; a version in a usedIn entry is the one that run's jar carried. None is a compile dependency and none is shipped. See docs/VALIDATION.md for what each run showed.",
-  "recorded": "2026-09-22",
+  "description": "Every third-party artifact MCA: Mob Compatibility 0.3.0 for Forge 1.20.1 was tested against, with the exact file and its SHA-256. None is a compile dependency and none is shipped. Entries naming an earlier release record what that release was tested with; see docs/VALIDATION.md for what each 0.3.0 run showed, and docs/NATIVE_CHARACTER_COMPATIBILITY.md for the per-capability status.",
+  "recorded": "2026-10-20",
   "platform": {
     "minecraft": "1.20.1",
     "forge": "47.4.10",
@@ -17,9 +17,11 @@
       "bytes": 13023382,
       "sha256": "6d77a7f54ac4abeb1c655127cc0884039cb0d673324a30a43c45a84806cc34b8",
       "usedIn": [
+        "0.3.0 GameTests (core, -PwithRecruits -PwithWorkers, all mods, -PwithCrime)",
+        "0.3.0 production runtime (two clients, Guard Villagers only, minimal, missing mod, single player)",
         "GameTests (core, all mods)",
-        "production runtime probe 2.1",
-        "0.3.0 production server"
+        "0.2.1 production runtime probe (numbered 2.1)",
+        "0.2.1 pre-release production server, when that build was numbered 0.3.0"
       ]
     },
     {
@@ -31,6 +33,7 @@
       "bytes": 13384179,
       "sha256": "ea37239455860eedfdbe0b30338a43d24a7b47af489da180a5b18dd8f167d16d",
       "usedIn": [
+        "0.3.0 GameTests (-PmcaDev77 -PwithRecruits -PwithWorkers)",
         "GameTests (core, -PmcaDev77)"
       ]
     },
@@ -43,9 +46,11 @@
       "bytes": 599211,
       "sha256": "47d5eca3d83aae1ac1d4a70116727715bd7ef4c077d228fee873065cbca94687",
       "usedIn": [
+        "0.3.0 GameTests with MCA 7.6",
+        "0.3.0 production runtime",
         "GameTests with MCA 7.6",
-        "production runtime probe 2.1",
-        "0.3.0 production server"
+        "0.2.1 production runtime probe (numbered 2.1)",
+        "0.2.1 pre-release production server, when that build was numbered 0.3.0"
       ]
     },
     {
@@ -57,9 +62,51 @@
       "bytes": 204767,
       "sha256": "4c48c88144bcd8d47820baa5ca0d0c1cab8984da4ec2ceeb7ed164c27d1266f3",
       "usedIn": [
+        "0.3.0 GameTests (every run)",
+        "0.3.0 production runtime",
         "GameTests (every run)",
-        "production runtime probe 2.1",
-        "0.3.0 production server"
+        "0.2.1 production runtime probe (numbered 2.1)",
+        "0.2.1 pre-release production server, when that build was numbered 0.3.0"
+      ]
+    },
+    {
+      "name": "Villager Recruits",
+      "modId": "recruits",
+      "version": "1.15.2",
+      "source": "Modrinth Maven maven.modrinth:villager-recruits:2zXpVxK4 (project WOg9lm4u)",
+      "file": "recruits-1.20.1-1.15.2.jar",
+      "bytes": 2811101,
+      "sha256": "4b53c1b752e886ba10985aad2df30d668971810230eb77867e07428a21d1af7f",
+      "usedIn": [
+        "0.3.0 RecruitsBindingProbeTest and WorkersBindingProbeTest (raw jar)",
+        "0.3.0 GameTests (-PwithRecruits, -PwithWorkers)",
+        "0.3.0 production runtime (two clients, single player)"
+      ]
+    },
+    {
+      "name": "Villager Workers",
+      "modId": "workers",
+      "version": "2.0.3",
+      "source": "Modrinth Maven maven.modrinth:villager-workers:49csRXJc",
+      "file": "workers-1.20.1-2.0.3.jar",
+      "bytes": 1316715,
+      "sha256": "c7c59a7a87bf51ec5ffbadfe5340f854f92397591a52ab5af1df8bffd71d941e",
+      "usedIn": [
+        "0.3.0 WorkersBindingProbeTest (raw jar)",
+        "0.3.0 GameTests (-PwithWorkers)",
+        "0.3.0 production runtime (two clients, single player)"
+      ]
+    },
+    {
+      "name": "MCA: Crime",
+      "modId": "mcacrime",
+      "version": "0.8.0",
+      "source": "built locally from the MCACrime repository (build/libs)",
+      "file": "mcacrime-0.8.0.jar",
+      "bytes": 3590274,
+      "sha256": "63fdbb00cb5d047677f425a596da0503f465c8689956faa5c528278fcb712022",
+      "usedIn": [
+        "0.3.0 GameTests (-PwithCrime)"
       ]
     },
     {
@@ -168,7 +215,7 @@
       "bytes": 2942296,
       "sha256": "2e5ae915948bb6a3c4927af1872e0676c3b48c69ea6de76c62d1e36137ec3723",
       "usedIn": [
-        "0.3.0 pre-release production server only (loaded alongside; no client interaction)"
+        "0.2.1 pre-release production server only, when that build was numbered 0.3.0 (loaded alongside; no client interaction)"
       ]
     },
     {
@@ -180,7 +227,7 @@
       "bytes": 3167980,
       "sha256": "4915cc2f2606da1a466a727762fbe449eeafaf0604a094d66542570b3fa14fcd",
       "usedIn": [
-        "0.3.0 pre-release production server only (loaded alongside; no client interaction)"
+        "0.2.1 pre-release production server only, when that build was numbered 0.3.0 (loaded alongside; no client interaction)"
       ]
     },
     {
@@ -192,7 +239,7 @@
       "bytes": 733112,
       "sha256": "81ed9c32d0e7ab872db5f1c94de8391229f3dcbccda873c2fb8e500637104b7c",
       "usedIn": [
-        "0.3.0 pre-release production server only (loaded alongside; no client interaction)"
+        "0.2.1 pre-release production server only, when that build was numbered 0.3.0 (loaded alongside; no client interaction)"
       ]
     },
     {
@@ -204,7 +251,7 @@
       "bytes": 5100426,
       "sha256": "51b84bc51a96df4570d8446197a3fa54689d1de7212368346b160a650e16d176",
       "usedIn": [
-        "0.3.0 pre-release production server only (loaded alongside; no client interaction)"
+        "0.2.1 pre-release production server only, when that build was numbered 0.3.0 (loaded alongside; no client interaction)"
       ]
     },
     {
@@ -216,7 +263,8 @@
       "bytes": 6078070,
       "sha256": "1912760b4cb6b803d8a826de603c9076b1da71ec2765e9a1f8c1ca78f65278e3",
       "usedIn": [
-        "production runtime probe 2.1 (--installServer and --installClient)"
+        "0.3.0 production runtime (--installServer and --installClient; SHA-1 66bfea9963bfa60d88bab6b2750e74a958392715 as published)",
+        "0.2.1 production runtime probe (numbered 2.1) (--installServer and --installClient)"
       ]
     }
   ],
@@ -238,5 +286,5 @@
       "note": "Not present; classification relies on its Forge conventional tags and ids recorded in the spec (section 13)."
     }
   ],
-  "release": "0.2.1+1.20.1"
+  "release": "0.3.0+1.20.1"
 }

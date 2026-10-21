@@ -107,6 +107,16 @@ public final class McaBinding {
     /** {@code VillagerBrain#getMoveState()}, whose enum constants are MOVE, STAY and FOLLOW. */
     private static volatile Method getMoveState;
 
+    /**
+     * {@code VillagerBrain#setMoveState(MoveState, Player)}: puts MCA's own order back to Move when the
+     * native mod refused the one it recorded, so MCA's screen never claims an order nobody carries out.
+     */
+    private static volatile Method setMoveState;
+
+    /** {@code VillagerLike#getGenetics()} and {@code Genetics#getGender()}: an identity's real gender. */
+    private static volatile Method getGenetics;
+    private static volatile Method getGender;
+
     /** Residency: how a proxy gets a home village, so the addons that key a deed to one find it. */
     private static volatile Method getResidency;
     private static volatile Method seekHome;
@@ -231,6 +241,20 @@ public final class McaBinding {
         if (getMoveState != null && !getMoveState.getReturnType().isEnum()) {
             warnMissing("getMoveState", new NoSuchMethodException("getMoveState is not an enum"));
             getMoveState = null;
+        }
+        if (getMoveState != null) {
+            setMoveState = typed(brainClass, "setMoveState", void.class, getMoveState.getReturnType(), Player.class);
+        }
+
+        // Gender lives in the genetics, not in the entity type: MCA's editor can change it on a
+        // male_villager, so the type alone is not the person's gender.
+        getGenetics = findMethod(villagerClass, "getGenetics", 0);
+        if (getGenetics != null) {
+            getGender = findMethod(getGenetics.getReturnType(), "getGender", 0);
+            if (getGender != null && !getGender.getReturnType().isEnum()) {
+                warnMissing("getGender", new NoSuchMethodException("getGender is not an enum"));
+                getGender = null;
+            }
         }
 
         // Residency, the same way: its type is the accessor's return type, so one MCA name to keep in
@@ -629,6 +653,118 @@ public final class McaBinding {
     }
 
     /**
+     * Sets MCA's own movement order on this villager -- {@code MOVE}, {@code STAY} or {@code FOLLOW} --
+     * with no player recorded as the leader. False when unbound or the name is not one of MCA's.
+     */
+    public static boolean setMoveState(Entity entity, String state) {
+        Method setter = setMoveState;
+        Object brain = boundBrain(entity, setter);
+        if (brain == null || state == null) {
+            return false;
+        }
+        try {
+            Class<?> type = setter.getParameterTypes()[0];
+            for (Object constant : type.getEnumConstants()) {
+                if (((Enum<?>) constant).name().equals(state)) {
+                    setter.invoke(brain, constant, null);
+                    return true;
+                }
+            }
+            return false;
+        } catch (Throwable t) {
+            setMoveState = null;
+            retire("setMoveState", t);
+            return false;
+        }
+    }
+
+    /**
+     * This villager's gender as MCA's genetics record it: {@code MALE}, {@code FEMALE},
+     * {@code NEUTRAL} or {@code UNASSIGNED}. Empty when unbound.
+     */
+    public static Optional<String> gender(Entity entity) {
+        Method genetics = getGenetics;
+        Method reader = getGender;
+        if (genetics == null || reader == null || !isBoundVillager(entity)) {
+            return Optional.empty();
+        }
+        try {
+            Object value = reader.invoke(genetics.invoke(entity));
+            return value instanceof Enum<?> constant ? Optional.of(constant.name()) : Optional.empty();
+        } catch (Throwable t) {
+            getGender = null;
+            retire("getGender", t);
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * The fields of one of MCA's editor save requests, read from the request object MCA's network
+     * handed to the hook: the command, the target's UUID and the payload. Works on both request shapes
+     * -- the class with private fields and {@code getData()} of the Forge builds, and the record of the
+     * NeoForge builds. The payload is the live tag inside the request, so a sanitised edit of it is
+     * what MCA then applies. Empty for anything that is not such a request.
+     */
+    public static Optional<EditorRequest> editorRequest(Object request) {
+        if (request == null) {
+            return Optional.empty();
+        }
+        Class<?> type = request.getClass();
+        try {
+            Object command = readMember(type, request, "command");
+            Object uuid = readMember(type, request, "uuid");
+            Object data;
+            try {
+                data = type.getMethod("getData").invoke(request);
+            } catch (NoSuchMethodException absent) {
+                data = type.getMethod("data").invoke(request);
+            }
+            if (command instanceof String text && uuid instanceof UUID id
+                    && data instanceof net.minecraft.nbt.CompoundTag tag) {
+                return Optional.of(new EditorRequest(text, id, tag));
+            }
+            return Optional.empty();
+        } catch (Throwable t) {
+            FAILURES.putIfAbsent("VillagerEditorSyncRequest", t.toString());
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Loads MCA's editor save request class without initialising it, so the editor-save hook -- which
+     * Mixin applies as a class is loaded -- has landed or not by the time this mod reports its hooks.
+     * NeoForge loads MCA's payload classes only when the first one is used, long after setup. False when
+     * the binding found no MCA, or this MCA has no such class.
+     */
+    public static boolean loadEditorRequestClass() {
+        String root = packageRoot;
+        if (root == null) {
+            return false;
+        }
+        try {
+            Class.forName(root + ".network.c2s.VillagerEditorSyncRequest", false, McaBinding.class.getClassLoader());
+            return true;
+        } catch (ClassNotFoundException | LinkageError absent) {
+            return false;
+        }
+    }
+
+    /** A record accessor where there is one, the private field of that name where there is not. */
+    private static Object readMember(Class<?> type, Object target, String name) throws ReflectiveOperationException {
+        try {
+            return type.getMethod(name).invoke(target);
+        } catch (NoSuchMethodException absent) {
+            java.lang.reflect.Field field = type.getDeclaredField(name);
+            field.setAccessible(true);
+            return field.get(target);
+        }
+    }
+
+    /** One editor save request: what MCA's editor asked for, and for whom. */
+    public record EditorRequest(String command, UUID target, net.minecraft.nbt.CompoundTag data) {
+    }
+
+    /**
      * Asks MCA to give this villager a home village the way it would any other -- the nearest one
      * whose border reaches it -- and says whether the call could be made. Residency is what every
      * sibling addon keys a deed to: MCA: Reputation and MCA: Crime both resolve a victim's community
@@ -692,6 +828,8 @@ public final class McaBinding {
         lines.add("getMemories: " + state(getMemories != null));
         lines.add("getMemoriesForPlayer: " + state(getMemoriesForPlayer != null));
         lines.add("getMoveState: " + state(getMoveState != null));
+        lines.add("setMoveState: " + state(setMoveState != null));
+        lines.add("getGenetics/getGender: " + state(getGenetics != null && getGender != null));
         lines.add("getHearts: " + state(getHearts != null));
         lines.add("modHearts: " + state(modHearts != null));
         lines.add("setHearts: " + state(setHearts != null));
@@ -704,7 +842,7 @@ public final class McaBinding {
     }
 
     /** How many lines {@link #describeBindings} always returns, bound or not. */
-    public static final int BINDING_LINES = 17;
+    public static final int BINDING_LINES = 19;
 
     /** Members that failed to bind or were retired this session, with the reason. */
     public static Map<String, String> failures() {
@@ -767,6 +905,9 @@ public final class McaBinding {
         getMemories = null;
         getMemoriesForPlayer = null;
         getMoveState = null;
+        setMoveState = null;
+        getGenetics = null;
+        getGender = null;
         getResidency = null;
         seekHome = null;
         getHomeVillage = null;

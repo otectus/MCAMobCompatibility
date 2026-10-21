@@ -56,6 +56,10 @@ minecraft {
             // GameTest here, start at all.
             property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+            // This mod's own optional hooks (docs/NATIVE_CHARACTER_COMPATIBILITY.md, "Hook contracts").
+            // A jar declares them in its manifest; a dev run reads classes from a directory, so the
+            // config is named here.
+            args '-mixin.config=mcamobcompat.mixins.json'
             mods {
                 "${mod_id}" {
                     source sourceSets.main
@@ -102,6 +106,8 @@ def gameTestNamespaces() {
     if (project.hasProperty('withAlex')) namespaces << 'mcamobcompat_alex'
     if (project.hasProperty('withGolems')) namespaces << 'mcamobcompat_golems'
     if (project.hasProperty('withCrime')) namespaces << 'mcamobcompat_crime'
+    if (project.hasProperty('withRecruits') || project.hasProperty('withWorkers')) namespaces << 'mcamobcompat_recruits'
+    if (project.hasProperty('withWorkers')) namespaces << 'mcamobcompat_workers'
     return namespaces.join(',')
 }
 
@@ -149,6 +155,14 @@ ext.mcaProbeVersions = (project.findProperty('mcaProbeVersions') ?: mca_probe_ve
         .toString().split(',').collect { it.trim() }.findAll { !it.isEmpty() }
 mcaProbeVersions.eachWithIndex { version, i ->
     configurations.create("mcaProbe${i}") {
+        canBeConsumed = false
+        transitive = false
+    }
+}
+// The audited Villager Recruits and Villager Workers jars, for the binding and hook-target probes
+// (RecruitsBindingProbeTest, WorkersBindingProbeTest). Raw production jars, never on any classpath.
+configurations {
+    nativeModProbe {
         canBeConsumed = false
         transitive = false
     }
@@ -306,6 +320,14 @@ dependencies {
     if (project.hasProperty('withGolems')) {
         devModSource "maven.modrinth:golemskillcreepers:${dev_golemskillcreepers_version}"
     }
+    // Villager Recruits, and Villager Workers on top of it (Workers requires Recruits), for the
+    // native-character GameTests. Pinned by Modrinth version id to the audited releases.
+    if (project.hasProperty('withRecruits') || project.hasProperty('withWorkers')) {
+        devModSource "maven.modrinth:villager-recruits:${dev_recruits_version}"
+    }
+    if (project.hasProperty('withWorkers')) {
+        devModSource "maven.modrinth:villager-workers:${dev_workers_version}"
+    }
     // MCA: Crime is not on Modrinth in the version the effect mirror targets, so -PwithCrime takes a
     // built jar: -PcrimeJar=<path to mcacrime-<version>.jar> (its Forge 1.20.1 release jar). It runs the
     // mcamobcompat_crime suite, which checks that Crime's effects on a hidden proxy reach the guard.
@@ -322,6 +344,8 @@ dependencies {
     mcaProbeVersions.eachWithIndex { version, i ->
         add("mcaProbe${i}", "maven.modrinth:minecraft-comes-alive-reborn:${version}")
     }
+    nativeModProbe "maven.modrinth:villager-recruits:${dev_recruits_version}"
+    nativeModProbe "maven.modrinth:villager-workers:${dev_workers_version}"
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
@@ -353,7 +377,12 @@ test {
     // configuration time, so the repositories are not frozen before every dependency is registered.
     inputs.files(mcaProbeVersions.indices.collect { i -> configurations.getByName("mcaProbe${i}") })
             .withPropertyName('mcaProbeJars')
+    inputs.files(configurations.nativeModProbe).withPropertyName('nativeModProbeJars')
     doFirst {
+        systemProperty 'mcamobcompat.probe.recruits', configurations.nativeModProbe.files
+                .findAll { it.name.contains('recruits') }.join(File.pathSeparator)
+        systemProperty 'mcamobcompat.probe.workers', configurations.nativeModProbe.files
+                .findAll { it.name.contains('workers') }.join(File.pathSeparator)
         systemProperty 'mcamobcompat.probe.jars', mcaProbeVersions.indices
                 .collect { i -> configurations.getByName("mcaProbe${i}").files }
                 .flatten()
@@ -386,7 +415,10 @@ tasks.named('jar', Jar).configure {
                 'Specification-Version'   : '1',
                 'Implementation-Title'    : project.name,
                 'Implementation-Version'  : project.jar.archiveVersion,
-                'Implementation-Vendor'   : mod_authors
+                'Implementation-Vendor'   : mod_authors,
+                // The optional hooks. Every injection in it is optional and string-targeted; see
+                // hook.HookPlugin for how an injection that found nothing is told apart from one that landed.
+                'MixinConfigs'            : 'mcamobcompat.mixins.json'
         ])
     }
     finalizedBy 'reobfJar'
@@ -416,25 +448,36 @@ tasks.register('checkJarContents') {
         def forbidden = ['tallestegg/guardvillagers/', 'com/alaharranhonor/swem/',
                          'mokiyoki/enhancedanimals/', 'com/dragn0007/dragnlivestock/',
                          'icy/betterhorses/', 'com/github/alexthe666/', 'codx/codxlib/',
-                         'dev/terminalmc/golemskillcreepers/',
+                         'dev/terminalmc/golemskillcreepers/', 'com/talhanation/',
                          'forge/net/mca/', 'net/mca/', 'forge/net/conczin/mca/',
                          'net/conczin/mca/', 'dev/architectury/',
                          // The GameTest mod is its own source set and must never reach this jar.
                          'dev/otectus/mcamobcompat/gametest/']
-        // Slash form is a real class reference; dotted form is a Class.forName name. Only the
-        // allowlisted class may carry the dotted form, and only that exact entry -- no prefixes.
+        // Slash form is a real class reference, and no class may hold one, allowlisted or not.
         def forbiddenBytes = ['forge/net/mca', 'net/conczin/mca', 'net/mca/',
                               'tallestegg/guardvillagers', 'com/alaharranhonor/swem',
                               'mokiyoki/enhancedanimals', 'com/dragn0007/dragnlivestock',
                               'icy/betterhorses', 'com/github/alexthe666', 'codx/codxlib',
-                              'dev/terminalmc/golemskillcreepers', 'dev/architectury',
-                              // Optional mods' dotted names have no exemption, even in McaBinding.
+                              'dev/terminalmc/golemskillcreepers', 'dev/architectury', 'com/talhanation',
+                              // Optional mods' dotted names that no class may hold at all.
                               'tallestegg.guardvillagers', 'com.alaharranhonor.swem',
                               'mokiyoki.enhancedanimals', 'com.dragn0007', 'icy.betterhorses',
                               'com.github.alexthe666', 'codx.codxlib', 'dev.terminalmc.golemskillcreepers',
                               'dev.architectury']
-        def forbiddenNames = ['forge.net.mca', 'net.conczin.mca', 'net.mca.']
-        def reflectionAllowlist = ['dev/otectus/mcamobcompat/mca/McaBinding.class'] as Set
+        // Dotted form is a Class.forName or Mixin target name. Each root may appear only in the exact
+        // class files listed -- the reflective bindings and the optional hooks -- and no prefix matches.
+        def dottedAllowlist = [
+                'forge.net.mca'           : ['dev/otectus/mcamobcompat/mca/McaBinding.class',
+                                             'dev/otectus/mcamobcompat/hook/mixin/McaEditorSaveHook.class'],
+                'net.conczin.mca'         : ['dev/otectus/mcamobcompat/mca/McaBinding.class',
+                                             'dev/otectus/mcamobcompat/hook/mixin/McaEditorSaveHook.class'],
+                'net.mca.'                : ['dev/otectus/mcamobcompat/mca/McaBinding.class',
+                                             'dev/otectus/mcamobcompat/hook/mixin/McaEditorSaveHook.class'],
+                'com.talhanation.recruits': ['dev/otectus/mcamobcompat/integration/recruits/RecruitsBinding.class',
+                                             'dev/otectus/mcamobcompat/hook/mixin/RecruitsConversionHook.class'],
+                'com.talhanation.workers' : ['dev/otectus/mcamobcompat/integration/workers/WorkersBinding.class'],
+        ]
+        def allowlisted = dottedAllowlist.values().flatten() as Set
 
         def jarFile = tasks.named('jar').get().archiveFile.get().asFile
         def offenders = []
@@ -447,8 +490,7 @@ tasks.register('checkJarContents') {
                 }
                 if (entry.name.startsWith('dev/otectus/mcamobcompat/') && entry.name.endsWith('.class')) {
                     def text = new String(zip.getInputStream(entry).bytes, 'ISO-8859-1')
-                    def allowed = reflectionAllowlist.contains(entry.name)
-                    if (allowed) {
+                    if (allowlisted.contains(entry.name)) {
                         allowlistSeen << entry.name
                     }
                     forbiddenBytes.each { root ->
@@ -456,11 +498,9 @@ tasks.register('checkJarContents') {
                             linked << "${entry.name} -> ${root}"
                         }
                     }
-                    if (!allowed) {
-                        forbiddenNames.each { name ->
-                            if (text.contains(name)) {
-                                linked << "${entry.name} -> ${name}"
-                            }
+                    dottedAllowlist.each { root, classes ->
+                        if (text.contains(root) && !classes.contains(entry.name)) {
+                            linked << "${entry.name} -> ${root}"
                         }
                     }
                 }
@@ -471,17 +511,17 @@ tasks.register('checkJarContents') {
         }
         if (!linked.isEmpty()) {
             throw new GradleException("Class(es) in ${jarFile.name} name MCA or an optional mod: "
-                    + "${linked.take(20)}. Reflective access belongs in mca/McaBinding alone; see "
-                    + "NoOptionalModStaticLinkTest.")
+                    + "${linked.take(20)}. Reflective access and hook targets belong in the allowlisted "
+                    + "classes alone; see NoOptionalModStaticLinkTest.")
         }
         // A dead exemption is worse than none: it would silently cover nothing while looking safe.
-        def missing = reflectionAllowlist - allowlistSeen
+        def missing = allowlisted - allowlistSeen
         if (!missing.isEmpty()) {
             throw new GradleException("Allowlisted class(es) missing from ${jarFile.name}: ${missing}. "
-                    + "Update both this list and NoOptionalModStaticLinkTest.REFLECTION_ALLOWLIST.")
+                    + "Update both this list and NoOptionalModStaticLinkTest.DOTTED_ALLOWLIST.")
         }
         logger.lifecycle("checkJarContents: ${jarFile.name} is clean (no shaded MCA/optional-mod classes, "
-                + "no foreign package names outside the ${reflectionAllowlist.size()}-class allowlist).")
+                + "no foreign package names outside the ${allowlisted.size()}-class allowlist).")
     }
 }
 
@@ -548,10 +588,21 @@ tasks.register('verifyProductionJar') {
                     throw new GradleException("${jarFile.name} is missing the entity tag ${it}")
                 }
             }
-            ['assets/mcamobcompat/lang/en_us.json', 'pack.mcmeta'].each {
+            ['assets/mcamobcompat/lang/en_us.json', 'pack.mcmeta', 'mcamobcompat.mixins.json',
+             'dev/otectus/mcamobcompat/hook/mixin/McaEditorSaveHook.class',
+             'dev/otectus/mcamobcompat/hook/mixin/RecruitsConversionHook.class',
+             'dev/otectus/mcamobcompat/hook/HookPlugin.class'].each {
                 if (zip.getEntry(it) == null) {
                     throw new GradleException("${jarFile.name} is missing ${it}")
                 }
+            }
+            def manifest = zip.getInputStream(zip.getEntry('META-INF/MANIFEST.MF')).getText('UTF-8')
+            if (!manifest.contains('MixinConfigs: mcamobcompat.mixins.json')) {
+                throw new GradleException("${jarFile.name} does not declare its hook config (MixinConfigs)")
+            }
+            def hooks = zip.getInputStream(zip.getEntry('mcamobcompat.mixins.json')).getText('UTF-8')
+            if (hooks.contains('"refmap"') || !hooks.contains('"required": false')) {
+                throw new GradleException("mcamobcompat.mixins.json must be optional and need no refmap")
             }
             zip.entries().each { entry ->
                 if (entry.name.endsWith('.jar') || entry.name.contains('tags/entity_type/')

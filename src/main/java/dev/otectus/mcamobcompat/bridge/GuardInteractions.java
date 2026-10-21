@@ -31,12 +31,22 @@ public final class GuardInteractions {
      * throws.
      */
     public static InteractionResult delegateToGuardVillagers(ServerPlayer player, Mob guard, InteractionHand hand) {
+        return withCrouch(player, false, () -> interactAfterHook(player, guard, hand));
+    }
+
+    /**
+     * Runs one interaction with the player's crouch set as given -- the flag and the pose -- and puts
+     * both back in {@code finally}, including when the interaction throws. A command that opens a
+     * native screen meant for a crouching click uses this, as does the Guard Villagers gesture swap.
+     */
+    public static InteractionResult withCrouch(ServerPlayer player, boolean crouching,
+                                               java.util.function.Supplier<InteractionResult> interaction) {
         boolean shift = player.isShiftKeyDown();
         Pose pose = player.getPose();
         try {
-            player.setShiftKeyDown(false);
-            player.setPose(Pose.STANDING);
-            return interactAfterHook(player, guard, hand);
+            player.setShiftKeyDown(crouching);
+            player.setPose(crouching ? Pose.CROUCHING : Pose.STANDING);
+            return interaction.get();
         } finally {
             player.setShiftKeyDown(shift);
             player.setPose(pose);

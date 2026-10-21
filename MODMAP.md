@@ -24,18 +24,23 @@ Machine-generated map of this mod. Read this first when picking the project up.
 dev.otectus.mcamobcompat                             2 files
 dev.otectus.mcamobcompat.api                         5 files
 dev.otectus.mcamobcompat.api.event                   3 files
-dev.otectus.mcamobcompat.bridge                      8 files
+dev.otectus.mcamobcompat.bridge                      9 files
+dev.otectus.mcamobcompat.character                   23 files
 dev.otectus.mcamobcompat.classification              6 files
-dev.otectus.mcamobcompat.client                      2 files
-dev.otectus.mcamobcompat.command                     1 file
+dev.otectus.mcamobcompat.client                      4 files
+dev.otectus.mcamobcompat.command                     2 files
 dev.otectus.mcamobcompat.event                       13 files
-dev.otectus.mcamobcompat.integration                 2 files
+dev.otectus.mcamobcompat.hook                        2 files
+dev.otectus.mcamobcompat.hook.mixin                  2 files
+dev.otectus.mcamobcompat.integration                 3 files
 dev.otectus.mcamobcompat.integration.alexsmobs       1 file
 dev.otectus.mcamobcompat.integration.dragnlivestock  1 file
 dev.otectus.mcamobcompat.integration.geneticanimals  1 file
-dev.otectus.mcamobcompat.integration.guardvillagers  3 files
+dev.otectus.mcamobcompat.integration.guardvillagers  5 files
 dev.otectus.mcamobcompat.integration.icysbetterhorses 2 files
+dev.otectus.mcamobcompat.integration.recruits        4 files
 dev.otectus.mcamobcompat.integration.swem            1 file
+dev.otectus.mcamobcompat.integration.workers         4 files
 dev.otectus.mcamobcompat.mca                         3 files
 dev.otectus.mcamobcompat.mount                       4 files
 dev.otectus.mcamobcompat.network                     1 file
@@ -72,18 +77,24 @@ Run `check_mod.py` for a full consistency check (missing models, lang keys, text
 <!-- MODMAP:AUTO:END — everything below is hand-maintained and preserved -->
 
 
+
+
 ## Current focus
 
-0.2.1 is implemented, documented and validated on this Forge 1.20.1 build and on the NeoForge 1.21.1
-build (`../1.21.1 Ports/MCAMobCompatibility_1.21.1`), which are one mod held together by
-`scripts/parity.py`. This build is on `main` and the NeoForge build on `neoforge/1.21.1`.
-`docs/VALIDATION.md` records what was run.
+0.3.0, native characters, is implemented, documented and validated on this Forge 1.20.1 build and on
+the NeoForge 1.21.1 build (`../1.21.1 Ports/MCAMobCompatibility_1.21.1`), which are one mod held
+together by `scripts/parity.py`. This build is on `main` and the NeoForge build on `neoforge/1.21.1`.
+`docs/VALIDATION.md` records what was run; `docs/NATIVE_CHARACTER_COMPATIBILITY.md` is the design and
+capability record, `docs/PLAYER_GUIDE.md` the player guide.
 
 ## Roadmap
 
 - [x] 0.2.1 (developed as 0.3.0, then 2.1): hidden proxy released and hardened, chore safety, creeper
       awareness, mount policy, Icy's Better Horses, Alex's Mobs, MCA 7.7
       (`docs/MCA_MOB_COMPATIBILITY.md` §21), the recruit fix, parity with the NeoForge build
+- [x] 0.3.0: Guard Villagers, Villager Recruits and Villager Workers as MCA characters (adapters,
+      MCA appearance, MCA's editor, enlistment and civilian return, promotions, schema 4, protocol 2,
+      optional hooks); Recruits and Workers unavailable on NeoForge 1.21.1 (no upstream build)
 - [ ] Next: MCA farmer/livestock chores on modded animals
 - [ ] SWEM steering, only if SWEM adopts `docs/UPSTREAM.md`
 
@@ -91,8 +102,18 @@ build (`../1.21.1 Ports/MCAMobCompatibility_1.21.1`), which are one mod held tog
 
 - **Real MCA behaviour, never an emulation.** A bridged guard gets MCA's screen, hearts and family
   through a real hidden `mca:*_villager` proxy; an imitation screen was built once and rejected.
-- **No mixins, no access transformers, no optional-mod class names.** Only `mca/McaBinding` names MCA
-  classes, as dotted strings. Guard Villagers and Icy's are reached by their own member names.
+- **No access transformers, no optional-mod class names, and Mixin only for optional hooks.** (The
+  generated table's "Mixins: no" means no MixinGradle plugin: the hooks are string-targeted and need
+  no refmap, so the build applies no Mixin tooling.) Five
+  exact classes may hold foreign dotted names: `mca/McaBinding`, `integration/recruits/RecruitsBinding`,
+  `integration/workers/WorkersBinding` and the two hooks in `hook/mixin`. Every hook is string-targeted,
+  `require = 0`, counted at start, and refused safely when it did not land. Guard Villagers and Icy's are
+  reached by their own member names.
+- **The native mod owns the body.** Combat, work, hiring, payment, promotion, screens, hitbox and stats
+  stay the native mod's; MCA owns the person. Appearance is drawn, never simulated in the hitbox.
+- **A change of body is a journaled transition**, stamped on both entities; recovery rolls forward and
+  never re-rolls, refunds or restores inventories by guessing.
+- **An MCA order is applied once per change**, and the order last applied is remembered on the person.
 - **Nothing deletes a proxy on a timer.** An unloaded partner looks the same as a missing one.
 - **Guard death is relayed only once confirmed** at the end of the server tick (totems, late cancels).
 - **The client learns proxies from the `proxy_pair` channel**, never from entity flags.
@@ -110,6 +131,9 @@ build (`../1.21.1 Ports/MCAMobCompatibility_1.21.1`), which are one mod held tog
 
 - SWEM horses cannot be ridden by villagers; refused under the default `REFUSE` policy.
 - A player killing a proxy by hand, or `guards rebuild`, gives the guard a new MCA villager and loses
-  the old one's memories, hearts and family-tree node. By design; documented in `DATAPACK.md`.
+  the old one's memories, hearts and family-tree node. By design; documented in `DATAPACK.md`. An
+  enlisted person must never be killed that way: send them home with `character release`.
+- Guard Villagers opens its inventory only for a guard with AI (`isEffectiveAi`); a `NoAI` guard answers
+  a crouching click with nothing.
 - Guard Villagers' own guards do not attack creepers, because their `MobBlackList` names creepers
   by default; this mod does not edit that list.

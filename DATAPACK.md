@@ -18,6 +18,13 @@ heard of takes one JSON file and no code.
 | `guard` | `mcamobcompat:guard` | Village defenders that are NPCs. Any entity type in this tag is eligible for bridging to an MCA guard (given a name, gender, personality and per-player hearts) when Guard Villagers is installed and the bridge option is on. |
 | `humanoid_npc` | `mcamobcompat:humanoid_npc` | Humanoid village inhabitants. |
 
+**Tags classify; they do not make characters.** `guard` and `humanoid_npc` say what a mob *is*. Only
+an adapter, which knows its mod's orders, screens and lifecycle, gives a native NPC an MCA person:
+Guard Villagers (any entity in `guard`, `guardvillagers:guard` among them), Villager Recruits and
+Villager Workers (their own entities, recognised by class, whatever the tags say). Adding a mod's NPC
+to `guard` or `humanoid_npc` classifies it; it does not bridge it. See
+[docs/NATIVE_CHARACTER_COMPATIBILITY.md](docs/NATIVE_CHARACTER_COMPATIBILITY.md).
+
 `livestock` is composed from the four species tags rather than repeating their contents, so putting
 a mob in `cattle` automatically makes it livestock. Horses are deliberately **not** inside
 `livestock`: a player's prize horse is not a farm animal for chore purposes. If you want them there,
@@ -149,7 +156,8 @@ bundled list is the fallback used only before a proxy exists or while MCA is unr
 ## Operator note: hidden proxies
 
 While `guardMcaInteraction` is on, every bridged guard is paired with a real, invisible MCA villager
-(the "proxy") that carries its MCA state. Every proxy carries the scoreboard tag
+(the "proxy") that carries its MCA state; so is every recruit and worker while its
+`mcaInteraction` is on. Every proxy carries the scoreboard tag
 `mcamobcompat_proxy`, so operators can select them:
 
 ```
@@ -169,3 +177,9 @@ node are gone. Remove a proxy by hand only when its guard is known to be gone fo
 `guards rebuild` replaces the proxy of every loaded bridged guard, whether or not it already had
 one. It is destructive for the same reason, so use it only after confirming with `guards proxies`
 that a link is actually broken.
+
+**An enlisted person is not a disposable proxy.** When an MCA villager took a native role, the hidden
+villager *is* that person, with their family and history. Never kill it: send them home with
+`/mcamobcompat character release`, and use `/mcamobcompat characters repair <target>`, which never
+re-rolls anyone, for a link that needs mending. `characters inspect` says which kind a character is
+(its origin: adopted actor, enlisted person, or migrated from 0.2).

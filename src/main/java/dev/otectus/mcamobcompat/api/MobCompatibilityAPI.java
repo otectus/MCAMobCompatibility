@@ -1,7 +1,10 @@
 package dev.otectus.mcamobcompat.api;
 
 import dev.otectus.mcamobcompat.bridge.GuardBridge;
+import dev.otectus.mcamobcompat.bridge.GuardIdentityData;
 import dev.otectus.mcamobcompat.bridge.GuardIdentityStore;
+import dev.otectus.mcamobcompat.bridge.GuardProxy;
+import dev.otectus.mcamobcompat.character.CharacterBridge;
 import dev.otectus.mcamobcompat.classification.ProviderRegistry;
 import dev.otectus.mcamobcompat.classification.TagClassifier;
 import dev.otectus.mcamobcompat.integration.ModIntegrations;
@@ -77,6 +80,55 @@ public final class MobCompatibilityAPI {
             return Optional.empty();
         }
         return GuardIdentityStore.getOrCreate(guard);
+    }
+
+    /**
+     * Whether this entity is a native NPC -- a Guard Villagers guard, a Villager Recruits recruit, a
+     * Villager Workers worker -- that this mod gives a persistent MCA person. Wider than
+     * {@link #isBridgedGuard}, which stays true for guards only. Side-agnostic.
+     */
+    public static boolean isCharacterActor(Entity entity) {
+        return CharacterBridge.isBridgedActor(entity);
+    }
+
+    /**
+     * The hidden MCA villager that is this native actor's person, when it is loaded. Server side; empty
+     * on the client and for anything else. A sibling that already knows how to talk to an MCA villager
+     * can use this to reach the real one instead of assuming the visible body is the villager.
+     */
+    public static Optional<Mob> characterIdentity(Entity actor) {
+        if (!(actor instanceof Mob mob) || actor.level().isClientSide) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(GuardProxy.proxyOf(mob));
+    }
+
+    /**
+     * The native actor whose person this hidden MCA villager is, when it is loaded: the body to aim
+     * speech, escorts and restraints at. Server side; empty for an ordinary villager.
+     */
+    public static Optional<Mob> characterActor(Entity identity) {
+        if (identity == null || identity.level().isClientSide || !GuardProxy.isProxy(identity)) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(GuardProxy.guardOf(identity));
+    }
+
+    /**
+     * The canonical UUID of the character an actor or a hidden identity belongs to: the MCA identity's
+     * own UUID once it has one, which never changes across promotions, restarts or portals. Server
+     * side; empty for anything that is not a character.
+     */
+    public static Optional<UUID> characterUuid(Entity actorOrIdentity) {
+        if (actorOrIdentity == null || actorOrIdentity.level().isClientSide || actorOrIdentity.getServer() == null) {
+            return Optional.empty();
+        }
+        GuardIdentityData data = GuardIdentityStore.get(actorOrIdentity.getServer());
+        GuardIdentityData.Entry entry = data.find(actorOrIdentity.getUUID());
+        if (entry == null) {
+            entry = data.findByProxy(actorOrIdentity.getUUID());
+        }
+        return entry == null ? Optional.empty() : Optional.of(entry.characterUuid());
     }
 
     /** Every role this entity holds: its type's tags plus anything the providers add. */
