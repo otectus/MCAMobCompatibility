@@ -5,6 +5,8 @@ import dev.otectus.mcamobcompat.util.ModIds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.ai.gossip.GossipContainer;
+import net.minecraft.world.entity.ai.gossip.GossipType;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 
@@ -71,6 +73,89 @@ public final class GuardReflection {
     public static void setOwnerId(Mob guard, UUID owner) {
         Handles resolved = handles(guard);
         invoke(guard, resolved == null ? null : resolved.setOwnerId, "setOwnerId", owner);
+    }
+
+    /** Sets the guard's appearance variant ({@code desert}, {@code taiga}, ...), Guard Villagers' own way. */
+    public static boolean setVariant(Mob guard, String variant) {
+        Handles resolved = handles(guard);
+        if (resolved == null || resolved.setVariant == null || variant == null || variant.isBlank()) {
+            return false;
+        }
+        invoke(guard, resolved.setVariant, resolved.setVariant.getName(), variant);
+        return true;
+    }
+
+    /** Guard Villagers' own variant for this spot, from its static {@code getVariantFromBiome}. */
+    public static Optional<String> variantForBiome(Mob guard) {
+        Handles resolved = handles(guard);
+        if (resolved == null || resolved.variantFromBiome == null) {
+            return Optional.empty();
+        }
+        try {
+            Object value = resolved.variantFromBiome.invoke(null, guard.level(), guard.blockPosition());
+            return value instanceof String text && !text.isBlank() ? Optional.of(text) : Optional.empty();
+        } catch (Throwable t) {
+            warnOnce("getVariantFromBiome", t);
+            return Optional.empty();
+        }
+    }
+
+    /** Whether Guard Villagers has the guard following a player. Empty when unreadable. */
+    public static Optional<Boolean> following(Mob guard) {
+        Handles resolved = handles(guard);
+        return read(guard, resolved == null ? null : resolved.isFollowing, "isFollowing", Boolean.class);
+    }
+
+    /** Whether Guard Villagers has the guard patrolling. Empty when unreadable. */
+    public static Optional<Boolean> patrolling(Mob guard) {
+        Handles resolved = handles(guard);
+        return read(guard, resolved == null ? null : resolved.isPatrolling, "isPatrolling", Boolean.class);
+    }
+
+    /** The player Guard Villagers has the guard follow, or empty. */
+    public static Optional<UUID> ownerId(Mob guard) {
+        Handles resolved = handles(guard);
+        return read(guard, resolved == null ? null : resolved.getOwnerId, "getOwnerId", UUID.class);
+    }
+
+    /**
+     * Gives a player reputation with a guard the way Guard Villagers' own conversion does for the player
+     * who made it: minor positive gossip in the guard's own gossip store, which is what its inventory
+     * checks. False when the store cannot be reached.
+     */
+    public static boolean addReputation(Mob guard, UUID player, int amount) {
+        Handles resolved = handles(guard);
+        Method method = resolved == null ? null : resolved.getGossips;
+        if (method == null || player == null || amount <= 0) {
+            return false;
+        }
+        try {
+            if (method.invoke(guard) instanceof GossipContainer gossips) {
+                gossips.add(player, GossipType.MINOR_POSITIVE, amount);
+                return true;
+            }
+        } catch (Throwable t) {
+            warnOnce("getGossips", t);
+        }
+        return false;
+    }
+
+    /** Whether this mob is one of Guard Villagers' own guards, whose members this class can bind. */
+    public static boolean isGuardVillagersGuard(Mob guard) {
+        return handles(guard) != null;
+    }
+
+    private static <T> Optional<T> read(Mob guard, Method method, String name, Class<T> type) {
+        if (guard == null || method == null) {
+            return Optional.empty();
+        }
+        try {
+            Object value = method.invoke(guard);
+            return type.isInstance(value) ? Optional.of(type.cast(value)) : Optional.empty();
+        } catch (Throwable t) {
+            warnOnce(name, t);
+            return Optional.empty();
+        }
     }
 
     /**
@@ -146,6 +231,12 @@ public final class GuardReflection {
         private final Method setPatrolPos;
         private final Method setOwnerId;
         private final Method getVariant;
+        private final Method setVariant;
+        private final Method variantFromBiome;
+        private final Method isFollowing;
+        private final Method isPatrolling;
+        private final Method getOwnerId;
+        private final Method getGossips;
 
         private Handles(Class<?> owner) {
             setFollowing = find(owner, "setFollowing", void.class, boolean.class);
@@ -154,6 +245,16 @@ public final class GuardReflection {
             setOwnerId = find(owner, "setOwnerId", void.class, UUID.class);
             Method variant = lookup(owner, "getGuardVariant", String.class);
             getVariant = variant != null ? variant : find(owner, "getVariant", String.class);
+            Method setter = lookup(owner, "setGuardVariant", void.class, String.class);
+            setVariant = setter != null ? setter : lookup(owner, "setVariant", void.class, String.class);
+            Method fromBiome = lookup(owner, "getVariantFromBiome", String.class,
+                    net.minecraft.world.level.LevelAccessor.class, BlockPos.class);
+            variantFromBiome = fromBiome != null && java.lang.reflect.Modifier.isStatic(fromBiome.getModifiers())
+                    ? fromBiome : null;
+            isFollowing = lookup(owner, "isFollowing", boolean.class);
+            isPatrolling = lookup(owner, "isPatrolling", boolean.class);
+            getOwnerId = lookup(owner, "getOwnerId", UUID.class);
+            getGossips = lookup(owner, "getGossips", GossipContainer.class);
         }
 
         static Handles resolve(Class<?> owner) {

@@ -1,0 +1,103 @@
+[20Oct2026 19:14:59.454] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgeserverdev, --gameDir, ., --fml.fmlVersion, 4.0.43, --fml.mcVersion, 1.21.1, --fml.neoForgeVersion, 21.1.248, --fml.neoFormVersion, 20240808.144430]
+[20Oct2026 19:14:59.456] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: JVM identified as Eclipse Adoptium OpenJDK 64-Bit Server VM 21.0.12.1+1-LTS
+[20Oct2026 19:14:59.458] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher 11.0.5+main.901c6ea8 starting: java version 21.0.12.1 by Eclipse Adoptium; OS Linux arch amd64 version 7.2.11-1-cachyos
+[20Oct2026 19:14:59.542] [main/INFO] [net.neoforged.fml.loading.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgeserverdev
+[20Oct2026 19:14:59.574] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.7 Source=union:/home/otectus/.gradle/caches/modules-2/files-2.1/net.fabricmc/sponge-mixin/0.15.2+mixin.0.8.7/2af2f021d8e02a0220dc27a7a72b4666d66d44ca/sponge-mixin-0.15.2+mixin.0.8.7.jar%2394!/ Service=ModLauncher Env=SERVER
+[20Oct2026 19:14:59.837] [main/INFO] [net.neoforged.fml.loading.moddiscovery.locators.JarInJarDependencyLocator/]: Found 2 dependencies adding them to mods collection
+[20Oct2026 19:14:59.839] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/]: 
+     Mod List:
+		Name Version (Mod Id)
+
+		Guard Villagers 2.4.12 (guardvillagers)
+		MCA: Mob Compatibility 0.3.0+1.21.1 (mcamobcompat)
+		MCA: Mob Compatibility GameTests 1 (mcamobcompat_tests)
+		Minecraft 1.21.1 (minecraft)
+		Minecraft Comes Alive 7.7.36-beta.3+1.21.1 (mca)
+		NeoForge 21.1.248 (neoforge)
+[20Oct2026 19:15:00.396] [main/INFO] [mixin/]: Compatibility level set to JAVA_21
+[20Oct2026 19:15:00.402] [main/INFO] [cpw.mods.modlauncher.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgeserverdev' with arguments [--gameDir, .]
+[20Oct2026 19:15:00.468] [main/WARN] [mixin/]: Reference map 'guardvillagers.refmap.json' for guardvillagers.mixins.json could not be read. If this is a development environment you can ignore this message
+[20Oct2026 19:15:00.468] [main/WARN] [mixin/]: Reference map 'mca.refmap.json' for mca.mixins.json could not be read. If this is a development environment you can ignore this message
+[20Oct2026 19:15:00.863] [main/INFO] [MixinExtras|Service/]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.4).
+[20Oct2026 19:15:05.465] [main/WARN] [net.minecraft.commands.Commands/]: Ambiguity between arguments [teleport, location] and [teleport, destination] with inputs: [0.1 -0.5 .9, 0 0 0]
+[20Oct2026 19:15:05.467] [main/WARN] [net.minecraft.commands.Commands/]: Ambiguity between arguments [teleport, location] and [teleport, targets] with inputs: [0.1 -0.5 .9, 0 0 0]
+[20Oct2026 19:15:05.468] [main/WARN] [net.minecraft.commands.Commands/]: Ambiguity between arguments [teleport, destination] and [teleport, targets] with inputs: [Player, 0123, @e, dd12be42-52a9-4a91-a8a1-11c01849e498]
+[20Oct2026 19:15:05.469] [main/WARN] [net.minecraft.commands.Commands/]: Ambiguity between arguments [teleport, targets] and [teleport, destination] with inputs: [Player, 0123, dd12be42-52a9-4a91-a8a1-11c01849e498]
+[20Oct2026 19:15:05.470] [main/WARN] [net.minecraft.commands.Commands/]: Ambiguity between arguments [teleport, targets, location] and [teleport, targets, destination] with inputs: [0.1 -0.5 .9, 0 0 0]
+[20Oct2026 19:15:05.519] [modloading-worker-0/INFO] [net.neoforged.neoforge.common.NeoForgeMod/NEOFORGE-MOD]: NeoForge mod loading, version 21.1.248, for MC 1.21.1
+[20Oct2026 19:15:05.567] [modloading-worker-0/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: MCA: Mob Compatibility initialising (mod id 'mcamobcompat')
+[20Oct2026 19:15:05.812] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Detected Guard Villagers 2.4.12; integration enabled.
+[20Oct2026 19:15:05.813] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: SWEM not installed; integration skipped.
+[20Oct2026 19:15:05.813] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Genetic Animals not installed; integration skipped.
+[20Oct2026 19:15:05.814] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: DragN's Livestock Overhaul not installed; integration skipped.
+[20Oct2026 19:15:05.814] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Icy's Better Horses not installed; integration skipped.
+[20Oct2026 19:15:05.814] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Alex's Mobs not installed; integration skipped.
+[20Oct2026 19:15:05.815] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Villager Recruits not installed; integration skipped.
+[20Oct2026 19:15:05.815] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Villager Workers not installed; integration skipped.
+[20Oct2026 19:15:05.843] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: MCA binding: root net.conczin.mca, MCA 7.7.36-beta.3+1.21.1, members [VillagerEntityMCA: ok, getVillagerBrain: ok, getCurrentJob: ok, abandonJob: ok, getPersonality: ok, setPersonality: ok, getMemories: ok, getMemoriesForPlayer: ok, getMoveState: ok, setMoveState: ok, getGenetics/getGender: ok, getHearts: ok, modHearts: ok, setHearts: ok, getResidency: ok, seekHome: ok, getHomeVillage: ok, personality shape: registry (MCA 7.7), FamilyTree rollback: ok].
+[20Oct2026 19:15:05.844] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Character adapter mcamobcompat:workers: unavailable on NeoForge 1.21.1: no verified Villager Workers build exists for this platform
+[20Oct2026 19:15:05.845] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Character adapter mcamobcompat:recruits: unavailable on NeoForge 1.21.1: no verified Villager Recruits build exists for this platform
+[20Oct2026 19:15:05.846] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Character adapter mcamobcompat:guardvillagers: active
+[20Oct2026 19:15:05.854] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Hooks: [mca.editor_save: armed (2 call site(s) in net.conczin.mca.network.c2s.VillagerEditorSyncRequest, run 0 time(s)), recruits.create_recruit: not armed (0 call site(s), run 0 time(s)), recruits.create_noble: not armed (0 call site(s), run 0 time(s)), recruits.hire_from_villager: not armed (0 call site(s), run 0 time(s))]
+[20Oct2026 19:15:05.858] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: MCA: Mob Compatibility ready. MCA villagers recognised as [mca:female_villager, mca:male_villager].
+[20Oct2026 19:15:05.966] [main/INFO] [com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService/]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[20Oct2026 19:15:06.028] [NeoForge Version Check/INFO] [net.neoforged.fml.VersionChecker/]: [guardvillagers] Starting version check at https://api.modrinth.com/updates/H1sntfo8/forge_updates.json
+[20Oct2026 19:15:06.093] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/home/otectus/Projects/1.21.1%20Ports/MCAMobCompatibility_1.21.1/build/moddev/artifacts/neoforge-21.1.248.jar%23126!/assets/.mcassetsroot' uses unexpected schema
+[20Oct2026 19:15:06.094] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/home/otectus/Projects/1.21.1%20Ports/MCAMobCompatibility_1.21.1/build/moddev/artifacts/neoforge-21.1.248.jar%23126!/data/.mcassetsroot' uses unexpected schema
+[20Oct2026 19:15:06.099] [main/INFO] [net.neoforged.neoforge.gametest.GameTestHooks/]: Enabled Gametest Namespaces: [mcamobcompat]
+[20Oct2026 19:15:06.348] [NeoForge Version Check/INFO] [net.neoforged.fml.VersionChecker/]: [guardvillagers] Found status: BETA Current: 2.4.12 Target: null
+[20Oct2026 19:15:06.954] [main/INFO] [net.minecraft.world.item.crafting.RecipeManager/]: Loaded 1517 recipes
+[20Oct2026 19:15:07.102] [main/INFO] [net.minecraft.advancements.AdvancementTree/]: Loaded 1622 advancements
+[20Oct2026 19:15:07.806] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Preparing start region for dimension minecraft:overworld
+[20Oct2026 19:15:07.838] [worldgen/INFO] [net.minecraft.server.level.progress.LoggerChunkProgressListener/]: Preparing spawn area: 2%
+[20Oct2026 19:15:07.903] [Server thread/INFO] [net.minecraft.server.level.progress.LoggerChunkProgressListener/]: Time elapsed: 96 ms
+[20Oct2026 19:15:07.917] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: Started game test server
+[20Oct2026 19:15:07.974] [Server thread/INFO] [net.neoforged.neoforge.server.permission.PermissionAPI/]: Successfully initialized permission handler neoforge:default_handler
+[20Oct2026 19:15:08.074] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: 39 tests are now running at position 10911317, -59, 6970522!
+[20Oct2026 19:15:08.789] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestRunner/]: Running test batch 'defaultBatch:0' (38 tests)...
+[20Oct2026 19:15:08.846] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [                                       ]
+[20Oct2026 19:15:09.189] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Despawn enlisted MCA villager Guard (9af49276-1b63-4c97-a487-ed362817c47f) as guardvillagers:guard 87443636-501c-49ff-8f3c-2f30288b6dab
+[20Oct2026 19:15:09.191] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: The actor of enlisted character 87443636-501c-49ff-8f3c-2f30288b6dab was discarded; Jobless went back to civilian life.
+[20Oct2026 19:15:09.220] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Enlister enlisted MCA villager Edda (ac294816-5038-4a57-9214-0a841914358b) as guardvillagers:guard 931c8257-67e4-44da-9ca3-59d7740bd344
+[20Oct2026 19:15:09.225] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: The actor of enlisted character 931c8257-67e4-44da-9ca3-59d7740bd344 was discarded; Edda went back to civilian life.
+[20Oct2026 19:15:09.397] [Server thread/INFO] [net.minecraft.world.entity.npc.Villager/]: Villager VillagerEntityMCA['Gisela'/52, l='ServerLevel[Test Level]', x=10911343.50, y=-59.00, z=6970593.50] died, message: 'Gisela was killed'
+[20Oct2026 19:15:09.398] [Server thread/INFO] [net.minecraft.world.entity.LivingEntity/]: Named entity VillagerEntityMCA['Gisela'/52, l='ServerLevel[Test Level]', x=10911343.50, y=-59.00, z=6970593.50] died: Gisela was killed
+[20Oct2026 19:15:09.613] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Returner enlisted MCA villager Guard (a3462013-f41d-437c-a168-2b7d6b809e3f) as guardvillagers:guard d6e4d318-cdbf-4da9-bb98-b93a14180144
+[20Oct2026 19:15:09.615] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Returner returned Jobless (a3462013-f41d-437c-a168-2b7d6b809e3f) to civilian life from guardvillagers:guard d6e4d318-cdbf-4da9-bb98-b93a14180144
+[20Oct2026 19:15:09.655] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Recovery enlisted MCA villager Guard (0fa768ff-3831-474c-a8d2-16c06467667c) as guardvillagers:guard bb029001-7f15-4a66-83b3-bc7ccddef36b
+[20Oct2026 19:15:09.658] [Server thread/WARN] [dev.otectus.mcamobcompat.McaMobCompat/]: Recorded the pair of actor bb029001-7f15-4a66-83b3-bc7ccddef36b and identity 0fa768ff-3831-474c-a8d2-16c06467667c again: the entities were saved after a commit the store was not.
+[20Oct2026 19:15:09.661] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: The actor of enlisted character bb029001-7f15-4a66-83b3-bc7ccddef36b was discarded; Jobless went back to civilian life.
+[20Oct2026 19:15:09.790] [Server thread/INFO] [net.minecraft.world.entity.LivingEntity/]: Named entity Guard['Sabine'/78, l='ServerLevel[Test Level]', x=10911469.50, y=-59.00, z=6970593.50] died: Sabine died
+[20Oct2026 19:15:09.791] [Server thread/INFO] [net.minecraft.world.entity.npc.Villager/]: Villager VillagerEntityMCA['Sabine'/79, l='ServerLevel[Test Level]', x=10911469.50, y=-59.00, z=6970593.50] died, message: 'Sabine died'
+[20Oct2026 19:15:09.792] [Server thread/INFO] [net.minecraft.world.entity.LivingEntity/]: Named entity VillagerEntityMCA['Sabine'/79, l='ServerLevel[Test Level]', x=10911469.50, y=-59.00, z=6970593.50] died: Sabine died
+[20Oct2026 19:15:09.798] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++_+__++++++++++++++++_+++++_       ]
+[20Oct2026 19:15:09.825] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Hoarder enlisted MCA villager Guard (fad5fb92-0536-479f-8356-3335a429e282) as guardvillagers:guard e22537aa-84ce-4197-85dd-60c1f5495cca
+[20Oct2026 19:15:09.827] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: The actor of enlisted character e22537aa-84ce-4197-85dd-60c1f5495cca was discarded; Jobless went back to civilian life.
+[20Oct2026 19:15:09.879] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__++++++++++++++++_++++++++_+++ ]
+[20Oct2026 19:15:09.906] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__++++++++++++++++_++++++++_+++ ]
+[20Oct2026 19:15:09.924] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__+++++++++++++++++++++++++++++ ]
+[20Oct2026 19:15:09.936] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__+++++++++++++++++++++++++++++ ]
+[20Oct2026 19:15:09.959] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__+++++++++++++++++++++++++++++ ]
+[20Oct2026 19:15:09.971] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__+++++++++++++++++++++++++++++ ]
+[20Oct2026 19:15:09.978] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__+++++++++++++++++++++++++++++ ]
+[20Oct2026 19:15:09.987] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__+++++++++++++++++++++++++++++ ]
+[20Oct2026 19:15:09.995] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__+++++++++++++++++++++++++++++ ]
+[20Oct2026 19:15:10.002] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++_++++++++++++++++++++++++++++++ ]
+[20Oct2026 19:15:10.009] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++_++++++++++++++++++++++++++++++ ]
+[20Oct2026 19:15:10.038] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestRunner/]: Running test batch 'mcamobcompat_rebuild:0' (1 tests)...
+[20Oct2026 19:15:10.187] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [++++++++++++++++++++++++++++++++++++++ ]
+[20Oct2026 19:15:10.205] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++++++++++++++++++++++++++++++++++]
+[20Oct2026 19:15:10.207] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: ========= 39 GAME TESTS COMPLETE IN 2.130 s ======================
+[20Oct2026 19:15:10.207] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: All 39 required tests passed :)
+[20Oct2026 19:15:10.207] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: ====================================================
+[20Oct2026 19:15:10.212] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Stopping server
+[20Oct2026 19:15:10.213] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving players
+[20Oct2026 19:15:10.213] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving worlds
+[20Oct2026 19:15:10.352] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[Test Level]'/minecraft:overworld
+[20Oct2026 19:15:14.576] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_end
+[20Oct2026 19:15:14.580] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_nether
+[20Oct2026 19:15:14.597] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[20Oct2026 19:15:14.597] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[20Oct2026 19:15:14.597] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[20Oct2026 19:15:14.597] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage: All dimensions are saved
+[20Oct2026 19:15:14.605] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: Game test server shutting down

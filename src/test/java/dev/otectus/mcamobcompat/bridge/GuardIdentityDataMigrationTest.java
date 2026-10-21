@@ -91,9 +91,9 @@ class GuardIdentityDataMigrationTest {
 
         CompoundTag saved = data.save(new CompoundTag());
         assertEquals(GuardIdentityData.SCHEMA_VERSION, saved.getInt("Version"));
-        assertEquals(3, GuardIdentityData.SCHEMA_VERSION,
-                "Version 3 separates balance snapshots from queued changes; bumping it again needs "
-                        + "its own migration test.");
+        assertEquals(4, GuardIdentityData.SCHEMA_VERSION,
+                "Version 4 makes each record a character (CharacterSchemaMigrationTest); bumping it again "
+                        + "needs its own migration test.");
 
         GuardIdentityData.Entry reloaded = GuardIdentityData.load(saved).find(GUARD);
         assertNotNull(reloaded);

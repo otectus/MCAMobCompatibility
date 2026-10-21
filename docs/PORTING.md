@@ -74,6 +74,35 @@ Combat damage belongs to the visible guard. Final health damage generates a scop
 
 Since 0.2.1 a proxy's collision box is nested strictly inside its guard's (`ProxyShapeHandler`, through `EntityEvent.Size`): no wider than the proxy width and nine tenths of MCA's height, with MCA's eye height kept. Every ray that crosses the proxy crosses the guard first, so arrows, tridents, snowballs, melee and a player's pick hit the visible guard through vanilla's own code, with piercing, potion effects and knockback intact. This replaces 2.0's per-tick removal of proxy bounds from projectile sweeps. Entity searches that inflate an area around a player still find the proxy.
 
+## 0.3.0: native characters on NeoForge
+
+The character layer (`character`, `hook.mixin`, the Recruits and Workers bindings and adapters, the
+render views and the pose adapter) is loader-neutral and byte-identical to the Forge build's. What
+differs, and why:
+
+- **Upstream availability.** Villager Recruits and Villager Workers publish no NeoForge 1.21.1 build
+  (Modrinth, checked 2026-10-20). `integration/PlatformArtifacts`, a deliberate pair, lists only Guard
+  Villagers for this loader, so both adapters report themselves unavailable at startup and in
+  `characters adapters`, and their modules never activate, even under a mod with their id.
+  `-PwithRecruits` and `-PwithWorkers` are refused by the build. `WorkersChunkTickets` releases nothing
+  here: NeoForge's tickets belong to the owning mod's `TicketController`.
+- **The editor hook.** MCA's NeoForge editor request is a record payload handled by
+  `handleServer(ServerPlayer)`, under `net.conczin.mca` (7.7.0 to 7.7.36-beta.3, probed by
+  `McaBindingProbeTest`). `McaEditorSaveHook` names all three MCA roots and both method names, so it
+  stays byte-identical; `McaBinding.editorRequest` reads a record's accessors as well as Forge's fields.
+  NeoForge loads payload classes only when the first is used, so setup loads that one class before
+  reporting hooks, or the report would say "not armed" for a hook that lands later.
+- **Mixin config.** `mcamobcompat.mixins.json` is a pair only for `"compatibilityLevel": "JAVA_21"`, and is
+  declared in `neoforge.mods.toml` under `[[mixins]]` rather than in the jar manifest; `verifyProductionJar`
+  checks that declaration. `HookPlugin` reads NeoForge's `LoadingModList`.
+- **Events and payloads.** `RenderFrameEvent.Pre`/`Post` replace `RenderTickEvent` for the renderer's
+  per-frame reset, `ClientTickEvent.Post` the client tick, `ServerTickEvent.Post` the end-of-tick
+  settlement of promotion brackets, and `ICancellableEvent` the cancellation checks on Recruits' events.
+  The `proxy_pair` payload is a `CustomPacketPayload` registered at version `"2"`.
+- **Tests.** The GameTests build item names with data components, save stacks with a registry provider,
+  and call `handleServer` on MCA's record. GeckoLib's dev pin is 4.8.3, which SWEM, Icy's 1.1.6 and MCA:
+  Crime's NeoForge builds (`[4.8.3,5)`) all accept, and `-PwithCrime` brings it along.
+
 ## Boundaries and evidence
 
 See [VALIDATION.md](VALIDATION.md) for actual tests and limitations, and [DEPENDENCIES.json](DEPENDENCIES.json) for exact artifacts/hashes. No NeoForge Genetic Animals or DLO runtime is claimed tested. Optional legacy tags remain useful if a compatible entity implementation supplies those IDs.

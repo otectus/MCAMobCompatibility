@@ -92,3 +92,25 @@ The old eleven `entity_types` files and `META-INF/mods.toml` are removed.
 ## Documentation
 
 `README.md` describes installation, supported behavior, API and build commands. `DATAPACK.md` fixes extension namespaces/paths. `CLAUDE.md` and `MODMAP.md` describe the current architecture. `CHANGELOG.md` records the port without rewriting historical releases. `MCA_MOB_COMPATIBILITY.md` retains the historical record with a superseding notice. `docs/PORTING.md` explains design corrections, migration and upstream boundaries; `docs/DEPENDENCIES.json` records actual artifact metadata/hashes; `docs/VALIDATION.md` and `docs/validation/` contain the acceptance table, logs, screenshots, reports and artifact checksum. The supplied porting handoff is preserved separately.
+
+## 0.3.0: loader-specific files
+
+The 0.3.0 native-character layer is loader-neutral; these are the files that differ from the Forge
+build for it, and why. [PORTING.md](PORTING.md#030-native-characters-on-neoforge) has the reasoning.
+
+| File | Meaningful change |
+|---|---|
+| `integration/PlatformArtifacts.java` | Lists Guard Villagers only: Villager Recruits and Villager Workers have no NeoForge 1.21.1 build, so their adapters report themselves unavailable. |
+| `hook/HookPlugin.java` | NeoForge's `LoadingModList` and `ModFileInfo`. |
+| `integration/recruits/RecruitsEvents.java` | NeoForge bus, `ICancellableEvent`; never registered here, since its module never activates. |
+| `integration/workers/WorkersChunkTickets.java` | Releases nothing: NeoForge tickets belong to the owning mod's `TicketController`. |
+| `client/CharacterRenderHandler.java` | NeoForge render events; `RenderFrameEvent.Pre`/`Post` reset the in-world flag. |
+| `client/ClientProxyPairs.java` | `ClientTickEvent.Post`, `EntityTickEvent.Pre`, NeoForge level and logout events. |
+| `network/ProxyPairs.java` | Protocol 2 as a `CustomPacketPayload`, registrar version `"2"`. |
+| `McaMobCompat.java` | CLIENT config registration; loads MCA's editor request class before reporting hooks. |
+| `bridge/GuardIdentityData.java` | Schema 4, with the registry-aware `save`. |
+| `src/main/resources/mcamobcompat.mixins.json` | `JAVA_21`. |
+| `src/main/resources/META-INF/neoforge.mods.toml` | `[[mixins]]` declaration; no Recruits or Workers dependency entries. |
+| `src/gameTest/.../CharacterGameTests.java` | Data-component item names, registry-provider item saves, MCA's `handleServer`, and the platform-availability check that expects Recruits and Workers unavailable. |
+| `src/gameTest/.../RecruitsGameTests.java`, `WorkersGameTests.java` | NeoForge imports; never enabled here. |
+| `build.gradle` | Five-class dotted-name allowlist, hook-config checks in `verifyProductionJar`, `-PwithRecruits`/`-PwithWorkers` refused, GeckoLib for `-PwithCrime`. |

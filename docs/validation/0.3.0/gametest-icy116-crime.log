@@ -1,0 +1,196 @@
+[20Oct2026 19:16:42.936] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher running: args [--launchTarget, forgeserverdev, --gameDir, ., --fml.fmlVersion, 4.0.43, --fml.mcVersion, 1.21.1, --fml.neoForgeVersion, 21.1.248, --fml.neoFormVersion, 20240808.144430]
+[20Oct2026 19:16:42.938] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: JVM identified as Eclipse Adoptium OpenJDK 64-Bit Server VM 21.0.12.1+1-LTS
+[20Oct2026 19:16:42.939] [main/INFO] [cpw.mods.modlauncher.Launcher/MODLAUNCHER]: ModLauncher 11.0.5+main.901c6ea8 starting: java version 21.0.12.1 by Eclipse Adoptium; OS Linux arch amd64 version 7.2.11-1-cachyos
+[20Oct2026 19:16:43.016] [main/INFO] [net.neoforged.fml.loading.ImmediateWindowHandler/]: ImmediateWindowProvider not loading because launch target is forgeserverdev
+[20Oct2026 19:16:43.044] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.7 Source=union:/home/otectus/.gradle/caches/modules-2/files-2.1/net.fabricmc/sponge-mixin/0.15.2+mixin.0.8.7/2af2f021d8e02a0220dc27a7a72b4666d66d44ca/sponge-mixin-0.15.2+mixin.0.8.7.jar%2394!/ Service=ModLauncher Env=SERVER
+[20Oct2026 19:16:43.330] [main/INFO] [net.neoforged.fml.loading.moddiscovery.locators.JarInJarDependencyLocator/]: Found 2 dependencies adding them to mods collection
+[20Oct2026 19:16:43.332] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/]: 
+     Mod List:
+		Name Version (Mod Id)
+
+		GeckoLib 4 4.8.3 (geckolib)
+		Guard Villagers 2.4.12 (guardvillagers)
+		Icy's Better Horses 1.1.6 (icys_better_horses)
+		MCA: Crime 0.8.0 (mcacrime)
+		MCA: Mob Compatibility 0.3.0+1.21.1 (mcamobcompat)
+		MCA: Mob Compatibility GameTests 1 (mcamobcompat_tests)
+		Minecraft 1.21.1 (minecraft)
+		Minecraft Comes Alive 7.7.36-beta.3+1.21.1 (mca)
+		NeoForge 21.1.248 (neoforge)
+[20Oct2026 19:16:43.973] [main/INFO] [mixin/]: Compatibility level set to JAVA_21
+[20Oct2026 19:16:43.983] [main/INFO] [cpw.mods.modlauncher.LaunchServiceHandler/MODLAUNCHER]: Launching target 'forgeserverdev' with arguments [--gameDir, .]
+[20Oct2026 19:16:44.048] [main/WARN] [mixin/]: Reference map 'guardvillagers.refmap.json' for guardvillagers.mixins.json could not be read. If this is a development environment you can ignore this message
+[20Oct2026 19:16:44.049] [main/WARN] [mixin/]: Reference map 'geckolib.refmap.json' for geckolib.mixins.json could not be read. If this is a development environment you can ignore this message
+[20Oct2026 19:16:44.050] [main/WARN] [mixin/]: Reference map 'mca.refmap.json' for mca.mixins.json could not be read. If this is a development environment you can ignore this message
+[20Oct2026 19:16:44.516] [main/INFO] [MixinExtras|Service/]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.4).
+[20Oct2026 19:16:50.816] [main/WARN] [net.minecraft.commands.Commands/]: Ambiguity between arguments [teleport, location] and [teleport, destination] with inputs: [0.1 -0.5 .9, 0 0 0]
+[20Oct2026 19:16:50.817] [main/WARN] [net.minecraft.commands.Commands/]: Ambiguity between arguments [teleport, location] and [teleport, targets] with inputs: [0.1 -0.5 .9, 0 0 0]
+[20Oct2026 19:16:50.819] [main/WARN] [net.minecraft.commands.Commands/]: Ambiguity between arguments [teleport, destination] and [teleport, targets] with inputs: [Player, 0123, @e, dd12be42-52a9-4a91-a8a1-11c01849e498]
+[20Oct2026 19:16:50.820] [main/WARN] [net.minecraft.commands.Commands/]: Ambiguity between arguments [teleport, targets] and [teleport, destination] with inputs: [Player, 0123, dd12be42-52a9-4a91-a8a1-11c01849e498]
+[20Oct2026 19:16:50.821] [main/WARN] [net.minecraft.commands.Commands/]: Ambiguity between arguments [teleport, targets, location] and [teleport, targets, destination] with inputs: [0.1 -0.5 .9, 0 0 0]
+[20Oct2026 19:16:50.870] [modloading-worker-0/INFO] [icys_better_horses/]: Loaded config from /home/otectus/Projects/1.21.1 Ports/MCAMobCompatibility_1.21.1/run-gametest/config/icys_better_horses.json
+[20Oct2026 19:16:50.883] [modloading-worker-0/INFO] [net.neoforged.neoforge.common.NeoForgeMod/NEOFORGE-MOD]: NeoForge mod loading, version 21.1.248, for MC 1.21.1
+[20Oct2026 19:16:50.888] [modloading-worker-0/INFO] [icys_better_horses/]: Icy's Better Horses initialized.
+[20Oct2026 19:16:50.929] [modloading-worker-0/INFO] [dev.otectus.mcacrime.McaCrime/]: MCA: Crime initialising (mod id 'mcacrime')
+[20Oct2026 19:16:50.929] [modloading-worker-0/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: MCA: Mob Compatibility initialising (mod id 'mcamobcompat')
+[20Oct2026 19:16:51.400] [modloading-sync-worker/INFO] [dev.otectus.mcacrime.McaCrime/]: [MCA: Crime] Bound to Minecraft Comes Alive at 'net.conczin.mca.' (34 members).
+[20Oct2026 19:16:51.431] [modloading-sync-worker/WARN] [dev.otectus.mcacrime.McaCrime/]: MCA: Crime config has 1 problem(s) — run /crime validate:
+[20Oct2026 19:16:51.432] [modloading-sync-worker/WARN] [dev.otectus.mcacrime.McaCrime/]:   - guardThiefResponseRadius (24.0) is larger than guardAggroRadius (16.0), so a guard notices muggings it is immediately told to stop chasing.
+[20Oct2026 19:16:51.435] [modloading-sync-worker/INFO] [dev.otectus.mcacrime.McaCrime/]: MCA: Crime lock protection covers interaction, breaking, explosions, pistons, this mod's own cell door and safe (including the safe's item handler) and vanilla hopper and hopper minecart transfers. Two routes are NOT covered by any adapter in this release and a padlock on them protects interaction only: a modded container that neither routes through vanilla's hopper helpers nor exposes a NeoForge item-handler capability, and a redstone signal opening a padlocked vanilla door or trapdoor (a cell door ignores redstone and is unaffected).
+[20Oct2026 19:16:51.437] [modloading-sync-worker/WARN] [dev.otectus.mcacrime.McaCrime/]: MCA: Crime: criminalJobs.presentThiefAsMcaProfession is deprecated and no longer has any effect. As of 0.7.2 a Thief is a real, visible, exclusive villager profession ('mcacrime:thief') with its own Mask Station workplace; a hidden thief overlay on another job is no longer a supported state. The Fence presentation key is unchanged.
+[20Oct2026 19:16:51.440] [modloading-sync-worker/INFO] [dev.otectus.mcacrime.McaCrime/]: MCA: Crime — MCA: Reputation is not installed; using the built-in village standing store.
+[20Oct2026 19:16:51.450] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Detected Guard Villagers 2.4.12; integration enabled.
+[20Oct2026 19:16:51.451] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: SWEM not installed; integration skipped.
+[20Oct2026 19:16:51.451] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Genetic Animals not installed; integration skipped.
+[20Oct2026 19:16:51.451] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: DragN's Livestock Overhaul not installed; integration skipped.
+[20Oct2026 19:16:51.453] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Detected Icy's Better Horses 1.1.6; integration enabled.
+[20Oct2026 19:16:51.453] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Alex's Mobs not installed; integration skipped.
+[20Oct2026 19:16:51.453] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Villager Recruits not installed; integration skipped.
+[20Oct2026 19:16:51.453] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Villager Workers not installed; integration skipped.
+[20Oct2026 19:16:51.457] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: MCA binding: root net.conczin.mca, MCA 7.7.36-beta.3+1.21.1, members [VillagerEntityMCA: ok, getVillagerBrain: ok, getCurrentJob: ok, abandonJob: ok, getPersonality: ok, setPersonality: ok, getMemories: ok, getMemoriesForPlayer: ok, getMoveState: ok, setMoveState: ok, getGenetics/getGender: ok, getHearts: ok, modHearts: ok, setHearts: ok, getResidency: ok, seekHome: ok, getHomeVillage: ok, personality shape: registry (MCA 7.7), FamilyTree rollback: ok].
+[20Oct2026 19:16:51.457] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Character adapter mcamobcompat:workers: unavailable on NeoForge 1.21.1: no verified Villager Workers build exists for this platform
+[20Oct2026 19:16:51.458] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Character adapter mcamobcompat:recruits: unavailable on NeoForge 1.21.1: no verified Villager Recruits build exists for this platform
+[20Oct2026 19:16:51.458] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Character adapter mcamobcompat:guardvillagers: active
+[20Oct2026 19:16:51.467] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Hooks: [mca.editor_save: armed (2 call site(s) in net.conczin.mca.network.c2s.VillagerEditorSyncRequest, run 0 time(s)), recruits.create_recruit: not armed (0 call site(s), run 0 time(s)), recruits.create_noble: not armed (0 call site(s), run 0 time(s)), recruits.hire_from_villager: not armed (0 call site(s), run 0 time(s))]
+[20Oct2026 19:16:51.471] [modloading-sync-worker/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: MCA: Mob Compatibility ready. MCA villagers recognised as [mca:female_villager, mca:male_villager].
+[20Oct2026 19:16:51.609] [NeoForge Version Check/INFO] [net.neoforged.fml.VersionChecker/]: [guardvillagers] Starting version check at https://api.modrinth.com/updates/H1sntfo8/forge_updates.json
+[20Oct2026 19:16:51.675] [main/INFO] [com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService/]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[20Oct2026 19:16:51.751] [main/WARN] [net.neoforged.neoforge.common.CommonHooks/WP]: The following mods have version differences that were not resolved:
+alexsmobs (version 2.2.2 -> MISSING)
+codxlib (version 1.6.1 -> MISSING)
+Things may not work well.
+[20Oct2026 19:16:51.762] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/home/otectus/Projects/1.21.1%20Ports/MCAMobCompatibility_1.21.1/build/moddev/artifacts/neoforge-21.1.248.jar%23126!/assets/.mcassetsroot' uses unexpected schema
+[20Oct2026 19:16:51.763] [main/WARN] [net.minecraft.server.packs.VanillaPackResourcesBuilder/]: Assets URL 'union:/home/otectus/Projects/1.21.1%20Ports/MCAMobCompatibility_1.21.1/build/moddev/artifacts/neoforge-21.1.248.jar%23126!/data/.mcassetsroot' uses unexpected schema
+[20Oct2026 19:16:51.773] [main/INFO] [net.neoforged.neoforge.gametest.GameTestHooks/]: Enabled Gametest Namespaces: [mcamobcompat, mcamobcompat_crime, mcamobcompat_icy]
+[20Oct2026 19:16:52.120] [NeoForge Version Check/INFO] [net.neoforged.fml.VersionChecker/]: [guardvillagers] Found status: BETA Current: 2.4.12 Target: null
+[20Oct2026 19:16:52.729] [Worker-Main-17/ERROR] [net.minecraft.tags.TagLoader/]: Couldn't load tag icys_better_horses:horse_breeds as it is missing following references: 
+	minecraft:pale_garden (from mod/icys_better_horses)
+[20Oct2026 19:16:52.872] [main/ERROR] [net.minecraft.world.item.crafting.RecipeManager/]: Parsing error loading recipe icys_better_horses:horse_medkit_gear
+com.google.gson.JsonParseException: Map entry 'R' : Failed to parse either. First: Not a json array: {"neoforge:ingredient_type":"neoforge:components","items":["minecraft:potion"],"components":{"minecraft:potion_contents":{"potion":"minecraft:regeneration"}}}; Second: No key tag in MapLike[{"neoforge:ingredient_type":"neoforge:components","items":["minecraft:potion"],"components":{"minecraft:potion_contents":{"potion":"minecraft:regeneration"}}}]; No key item in MapLike[{"neoforge:ingredient_type":"neoforge:components","items":["minecraft:potion"],"components":{"minecraft:potion_contents":{"potion":"minecraft:regeneration"}}}]
+	at MC-BOOTSTRAP/datafixerupper@8.0.16/com.mojang.serialization.DataResult$Error.getOrThrow(DataResult.java:287) ~[datafixerupper-8.0.16.jar%2379!/:?]
+	at TRANSFORMER/minecraft@1.21.1/net.minecraft.world.item.crafting.RecipeManager.apply(RecipeManager.java:60) ~[neoforge-21.1.248.jar%23126!/:?]
+	at TRANSFORMER/minecraft@1.21.1/net.minecraft.world.item.crafting.RecipeManager.apply(RecipeManager.java:36) ~[neoforge-21.1.248.jar%23126!/:?]
+	at TRANSFORMER/minecraft@1.21.1/net.minecraft.server.packs.resources.SimplePreparableReloadListener.lambda$reload$1(SimplePreparableReloadListener.java:19) ~[neoforge-21.1.248.jar%23126!/:?]
+	at java.base/java.util.concurrent.CompletableFuture$UniAccept.tryFire(CompletableFuture.java:718) ~[?:?]
+	at java.base/java.util.concurrent.CompletableFuture$Completion.run(CompletableFuture.java:482) ~[?:?]
+	at TRANSFORMER/minecraft@1.21.1/net.minecraft.server.packs.resources.SimpleReloadInstance.lambda$new$3(SimpleReloadInstance.java:86) ~[neoforge-21.1.248.jar%23126!/:?]
+	at TRANSFORMER/minecraft@1.21.1/net.minecraft.Util.blockUntilDone(Util.java:872) ~[neoforge-21.1.248.jar%23126!/:?]
+	at TRANSFORMER/minecraft@1.21.1/net.minecraft.Util.blockUntilDone(Util.java:861) ~[neoforge-21.1.248.jar%23126!/:?]
+	at TRANSFORMER/minecraft@1.21.1/net.minecraft.gametest.framework.GameTestServer.create(GameTestServer.java:93) ~[neoforge-21.1.248.jar%23126!/:?]
+	at TRANSFORMER/minecraft@1.21.1/net.minecraft.server.Main.lambda$main$0(Main.java:195) ~[neoforge-21.1.248.jar%23126!/:?]
+	at TRANSFORMER/minecraft@1.21.1/net.minecraft.server.MinecraftServer.spin(MinecraftServer.java:273) ~[neoforge-21.1.248.jar%23126!/:?]
+	at TRANSFORMER/minecraft@1.21.1/net.minecraft.server.Main.main(Main.java:195) ~[neoforge-21.1.248.jar%23126!/:?]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[?:?]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[?:?]
+	at MC-BOOTSTRAP/fml_loader@4.0.43/net.neoforged.fml.loading.targets.CommonLaunchHandler.runTarget(CommonLaunchHandler.java:136) ~[loader-4.0.43.jar%23102!/:4.0]
+	at MC-BOOTSTRAP/fml_loader@4.0.43/net.neoforged.fml.loading.targets.CommonLaunchHandler.serverService(CommonLaunchHandler.java:128) ~[loader-4.0.43.jar%23102!/:4.0]
+	at MC-BOOTSTRAP/fml_loader@4.0.43/net.neoforged.fml.loading.targets.NeoForgeServerDevLaunchHandler.runService(NeoForgeServerDevLaunchHandler.java:23) ~[loader-4.0.43.jar%23102!/:4.0]
+	at MC-BOOTSTRAP/fml_loader@4.0.43/net.neoforged.fml.loading.targets.CommonLaunchHandler.lambda$launchService$4(CommonLaunchHandler.java:118) ~[loader-4.0.43.jar%23102!/:4.0]
+	at MC-BOOTSTRAP/cpw.mods.modlauncher@11.0.5/cpw.mods.modlauncher.LaunchServiceHandlerDecorator.launch(LaunchServiceHandlerDecorator.java:30) [modlauncher-11.0.5.jar%2382!/:?]
+	at MC-BOOTSTRAP/cpw.mods.modlauncher@11.0.5/cpw.mods.modlauncher.LaunchServiceHandler.launch(LaunchServiceHandler.java:53) [modlauncher-11.0.5.jar%2382!/:?]
+	at MC-BOOTSTRAP/cpw.mods.modlauncher@11.0.5/cpw.mods.modlauncher.LaunchServiceHandler.launch(LaunchServiceHandler.java:71) [modlauncher-11.0.5.jar%2382!/:?]
+	at MC-BOOTSTRAP/cpw.mods.modlauncher@11.0.5/cpw.mods.modlauncher.Launcher.run(Launcher.java:103) [modlauncher-11.0.5.jar%2382!/:?]
+	at MC-BOOTSTRAP/cpw.mods.modlauncher@11.0.5/cpw.mods.modlauncher.Launcher.main(Launcher.java:74) [modlauncher-11.0.5.jar%2382!/:?]
+	at MC-BOOTSTRAP/cpw.mods.modlauncher@11.0.5/cpw.mods.modlauncher.BootstrapLaunchConsumer.accept(BootstrapLaunchConsumer.java:26) [modlauncher-11.0.5.jar%2382!/:?]
+	at MC-BOOTSTRAP/cpw.mods.modlauncher@11.0.5/cpw.mods.modlauncher.BootstrapLaunchConsumer.accept(BootstrapLaunchConsumer.java:23) [modlauncher-11.0.5.jar%2382!/:?]
+	at cpw.mods.bootstraplauncher@2.0.2/cpw.mods.bootstraplauncher.BootstrapLauncher.run(BootstrapLauncher.java:210) [bootstraplauncher-2.0.2.jar:?]
+	at cpw.mods.bootstraplauncher@2.0.2/cpw.mods.bootstraplauncher.BootstrapLauncher.main(BootstrapLauncher.java:69) [bootstraplauncher-2.0.2.jar:?]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[?:?]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[?:?]
+	at net.neoforged.devlaunch.Main.main(Main.java:57) [DevLaunch-1.0.2.jar:?]
+[20Oct2026 19:16:52.908] [main/INFO] [net.minecraft.world.item.crafting.RecipeManager/]: Loaded 1593 recipes
+[20Oct2026 19:16:53.086] [main/INFO] [net.minecraft.advancements.AdvancementTree/]: Loaded 1622 advancements
+[20Oct2026 19:16:53.141] [main/INFO] [dev.otectus.mcacrime.McaCrime/]: Loaded 39 dialogue event(s) with 0 error(s).
+[20Oct2026 19:16:53.144] [main/INFO] [dev.otectus.mcacrime.McaCrime/]: Loaded 15 crime type(s) with 0 error(s).
+[20Oct2026 19:16:53.145] [main/INFO] [dev.otectus.mcacrime.McaCrime/]: Loaded 12 fence price(s) with 0 error(s).
+[20Oct2026 19:16:53.149] [main/INFO] [dev.otectus.mcacrime.McaCrime/]: Loaded 6 Townstead personality profile(s).
+[20Oct2026 19:16:53.150] [main/INFO] [dev.otectus.mcacrime.McaCrime/]: Loaded 5 Townstead building role(s).
+[20Oct2026 19:16:53.151] [main/INFO] [dev.otectus.mcacrime.McaCrime/]: Loaded 10 Townstead reaction binding(s).
+[20Oct2026 19:16:53.158] [main/WARN] [net.minecraft.core.MappedRegistry/]: Not all defined tags for registry ResourceKey[minecraft:root / minecraft:worldgen/biome] are present in data pack: icys_better_horses:horse_breeds
+[20Oct2026 19:16:53.915] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Preparing start region for dimension minecraft:overworld
+[20Oct2026 19:16:53.989] [worldgen/INFO] [net.minecraft.server.level.progress.LoggerChunkProgressListener/]: Preparing spawn area: 2%
+[20Oct2026 19:16:54.085] [Server thread/INFO] [net.minecraft.server.level.progress.LoggerChunkProgressListener/]: Time elapsed: 170 ms
+[20Oct2026 19:16:54.105] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: Started game test server
+[20Oct2026 19:16:54.163] [Server thread/INFO] [net.neoforged.neoforge.server.permission.PermissionAPI/]: Successfully initialized permission handler neoforge:default_handler
+[20Oct2026 19:16:54.166] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Mirroring MCA: Crime effects onto bridged guards: [mcacrime:restrained, mcacrime:sand_blinded].
+[20Oct2026 19:16:54.291] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: 42 tests are now running at position 8553916, -59, 13315882!
+[20Oct2026 19:16:55.280] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestRunner/]: Running test batch 'defaultBatch:0' (41 tests)...
+[20Oct2026 19:16:55.363] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [                                          ]
+[20Oct2026 19:16:55.827] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Despawn enlisted MCA villager Guard (be56447d-972d-4326-a538-125c1b53f8eb) as guardvillagers:guard fecd29ac-a842-4e4b-8950-c628c94eeb5c
+[20Oct2026 19:16:55.830] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: The actor of enlisted character fecd29ac-a842-4e4b-8950-c628c94eeb5c was discarded; Jobless went back to civilian life.
+[20Oct2026 19:16:55.875] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Returner enlisted MCA villager Guard (b2390233-1715-44ce-ae3c-698b3e4f116d) as guardvillagers:guard f5256f12-41ad-4ccd-920d-9e9daa1d7967
+[20Oct2026 19:16:55.878] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Returner returned Jobless (b2390233-1715-44ce-ae3c-698b3e4f116d) to civilian life from guardvillagers:guard f5256f12-41ad-4ccd-920d-9e9daa1d7967
+[20Oct2026 19:16:55.885] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Enlister enlisted MCA villager Edda (6bad09dc-8216-4b75-b18d-7892ab22f384) as guardvillagers:guard 460f7ea1-e3f2-46eb-972a-887f42eb607c
+[20Oct2026 19:16:55.890] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: The actor of enlisted character 460f7ea1-e3f2-46eb-972a-887f42eb607c was discarded; Edda went back to civilian life.
+[20Oct2026 19:16:56.046] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Recovery enlisted MCA villager Guard (55742927-fcd8-4f4f-a7ef-ee02ba69c0f5) as guardvillagers:guard 502f7559-b671-44a8-a92e-a7c7a913e67c
+[20Oct2026 19:16:56.047] [Server thread/WARN] [dev.otectus.mcamobcompat.McaMobCompat/]: Recorded the pair of actor 502f7559-b671-44a8-a92e-a7c7a913e67c and identity 55742927-fcd8-4f4f-a7ef-ee02ba69c0f5 again: the entities were saved after a commit the store was not.
+[20Oct2026 19:16:56.048] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: The actor of enlisted character 502f7559-b671-44a8-a92e-a7c7a913e67c was discarded; Jobless went back to civilian life.
+[20Oct2026 19:16:56.061] [Server thread/INFO] [net.minecraft.world.entity.npc.Villager/]: Villager VillagerEntityMCA['Osric'/71, l='ServerLevel[Test Level]', x=8553963.50, y=-59.00, z=13315953.50] died, message: 'Osric was killed'
+[20Oct2026 19:16:56.066] [Server thread/INFO] [net.minecraft.world.entity.LivingEntity/]: Named entity VillagerEntityMCA['Osric'/71, l='ServerLevel[Test Level]', x=8553963.50, y=-59.00, z=13315953.50] died: Osric was killed
+[20Oct2026 19:16:56.268] [Server thread/INFO] [net.minecraft.world.entity.LivingEntity/]: Named entity Guard['Alden'/81, l='ServerLevel[Test Level]', x=8553921.50, y=-59.00, z=13315975.50] died: Alden died
+[20Oct2026 19:16:56.269] [Server thread/INFO] [net.minecraft.world.entity.npc.Villager/]: Villager VillagerEntityMCA['Alden'/82, l='ServerLevel[Test Level]', x=8553921.50, y=-59.00, z=13315975.50] died, message: 'Alden died'
+[20Oct2026 19:16:56.269] [Server thread/INFO] [net.minecraft.world.entity.LivingEntity/]: Named entity VillagerEntityMCA['Alden'/82, l='ServerLevel[Test Level]', x=8553921.50, y=-59.00, z=13315975.50] died: Alden died
+[20Oct2026 19:16:56.329] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: Hoarder enlisted MCA villager Guard (b3960618-3329-433b-86b1-7e2dba9dff75) as guardvillagers:guard 8263fcc2-d489-461d-82ef-814d45d36cf4
+[20Oct2026 19:16:56.331] [Server thread/INFO] [dev.otectus.mcamobcompat.McaMobCompat/]: The actor of enlisted character 8263fcc2-d489-461d-82ef-814d45d36cf4 was discarded; Jobless went back to civilian life.
+[20Oct2026 19:16:56.370] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++_+__+++++++++++++++++_++++++__++_++_ ]
+[20Oct2026 19:16:56.639] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__+++++++++++++++++_++++++__++_+++ ]
+[20Oct2026 19:16:56.680] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__+++++++++++++++++_+++++++_++++++ ]
+[20Oct2026 19:16:56.699] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__+++++++++++++++++++++++++_++++++ ]
+[20Oct2026 19:16:56.713] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__+++++++++++++++++++++++++_++++++ ]
+[20Oct2026 19:16:56.735] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__++++++++++++++++++++++++++++++++ ]
+[20Oct2026 19:16:56.748] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__++++++++++++++++++++++++++++++++ ]
+[20Oct2026 19:16:56.758] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__++++++++++++++++++++++++++++++++ ]
+[20Oct2026 19:16:56.769] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++__++++++++++++++++++++++++++++++++ ]
+[20Oct2026 19:16:56.780] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++_+++++++++++++++++++++++++++++++++ ]
+[20Oct2026 19:16:56.789] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++_+++++++++++++++++++++++++++++++++ ]
+[20Oct2026 19:16:56.816] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestRunner/]: Running test batch 'mcamobcompat_rebuild:0' (1 tests)...
+[20Oct2026 19:16:56.836] [Yggdrasil Key Fetcher/ERROR] [com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo/]: Failed to request yggdrasil public key
+com.mojang.authlib.exceptions.MinecraftClientException: Failed to read from https://api.minecraftservices.com/publickeys due to Read timed out
+	at MC-BOOTSTRAP/authlib@6.0.54/com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:108) ~[authlib-6.0.54.jar%2377!/:?]
+	at MC-BOOTSTRAP/authlib@6.0.54/com.mojang.authlib.minecraft.client.MinecraftClient.get(MinecraftClient.java:57) ~[authlib-6.0.54.jar%2377!/:?]
+	at MC-BOOTSTRAP/authlib@6.0.54/com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo.fetch(YggdrasilServicesKeyInfo.java:114) ~[authlib-6.0.54.jar%2377!/:?]
+	at MC-BOOTSTRAP/authlib@6.0.54/com.mojang.authlib.yggdrasil.YggdrasilServicesKeyInfo$1.run(YggdrasilServicesKeyInfo.java:89) ~[authlib-6.0.54.jar%2377!/:?]
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:572) ~[?:?]
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:317) ~[?:?]
+	at java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304) ~[?:?]
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144) ~[?:?]
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642) ~[?:?]
+	at java.base/java.lang.Thread.run(Thread.java:1583) [?:?]
+Caused by: java.net.SocketTimeoutException: Read timed out
+	at java.base/sun.nio.ch.NioSocketImpl.timedRead(NioSocketImpl.java:278) ~[?:?]
+	at java.base/sun.nio.ch.NioSocketImpl.implRead(NioSocketImpl.java:304) ~[?:?]
+	at java.base/sun.nio.ch.NioSocketImpl.read(NioSocketImpl.java:346) ~[?:?]
+	at java.base/sun.nio.ch.NioSocketImpl$1.read(NioSocketImpl.java:796) ~[?:?]
+	at java.base/java.net.Socket$SocketInputStream.read(Socket.java:1099) ~[?:?]
+	at java.base/sun.security.ssl.SSLSocketInputRecord.read(SSLSocketInputRecord.java:489) ~[?:?]
+	at java.base/sun.security.ssl.SSLSocketInputRecord.readHeader(SSLSocketInputRecord.java:483) ~[?:?]
+	at java.base/sun.security.ssl.SSLSocketInputRecord.decode(SSLSocketInputRecord.java:160) ~[?:?]
+	at java.base/sun.security.ssl.SSLTransport.decode(SSLTransport.java:111) ~[?:?]
+	at java.base/sun.security.ssl.SSLSocketImpl.decode(SSLSocketImpl.java:1505) ~[?:?]
+	at java.base/sun.security.ssl.SSLSocketImpl.readHandshakeRecord(SSLSocketImpl.java:1420) ~[?:?]
+	at java.base/sun.security.ssl.SSLSocketImpl.startHandshake(SSLSocketImpl.java:455) ~[?:?]
+	at java.base/sun.security.ssl.SSLSocketImpl.startHandshake(SSLSocketImpl.java:426) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsClient.afterConnect(HttpsClient.java:593) ~[?:?]
+	at java.base/sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:190) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream0(HttpURLConnection.java:1707) ~[?:?]
+	at java.base/sun.net.www.protocol.http.HttpURLConnection.getInputStream(HttpURLConnection.java:1632) ~[?:?]
+	at java.base/java.net.HttpURLConnection.getResponseCode(HttpURLConnection.java:531) ~[?:?]
+	at java.base/sun.net.www.protocol.https.HttpsURLConnectionImpl.getResponseCode(HttpsURLConnectionImpl.java:307) ~[?:?]
+	at MC-BOOTSTRAP/authlib@6.0.54/com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:84) ~[authlib-6.0.54.jar%2377!/:?]
+	... 9 more
+[20Oct2026 19:16:56.934] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [+++++++++++++++++++++++++++++++++++++++++ ]
+[20Oct2026 19:16:56.953] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: [++++++++++++++++++++++++++++++++++++++++++]
+[20Oct2026 19:16:56.955] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: ========= 42 GAME TESTS COMPLETE IN 2.663 s ======================
+[20Oct2026 19:16:56.955] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: All 42 required tests passed :)
+[20Oct2026 19:16:56.955] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: ====================================================
+[20Oct2026 19:16:56.966] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Stopping server
+[20Oct2026 19:16:56.966] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving players
+[20Oct2026 19:16:56.967] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving worlds
+[20Oct2026 19:16:57.170] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[Test Level]'/minecraft:overworld
+[20Oct2026 19:16:59.160] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_nether
+[20Oct2026 19:16:59.165] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[Test Level]'/minecraft:the_end
+[20Oct2026 19:16:59.180] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[20Oct2026 19:16:59.180] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[20Oct2026 19:16:59.180] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[20Oct2026 19:16:59.180] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: ThreadedAnvilChunkStorage: All dimensions are saved
+[20Oct2026 19:16:59.188] [Server thread/INFO] [net.minecraft.gametest.framework.GameTestServer/]: Game test server shutting down

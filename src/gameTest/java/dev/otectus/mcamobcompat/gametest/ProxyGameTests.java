@@ -513,8 +513,14 @@ public final class ProxyGameTests {
         h.succeed();
     }
 
+    /** The 0.2 recruit, now the MCA_PROFESSION mode: the profession in place, MCA's own guard AI. */
     @GameTest(template = McaMobCompatTests.EMPTY, timeoutTicks = 80)
     public static void recruitmentPreservesIdentityAndItemData(GameTestHelper h) {
+        ConfigAccess.override(McaMobCompatConfig.SERVER.guardRecruitmentMode,
+                dev.otectus.mcamobcompat.character.GuardRecruitmentMode.MCA_PROFESSION, () -> professionRecruit(h));
+    }
+
+    private static void professionRecruit(GameTestHelper h) {
         var player = FakePlayerFactory.getMinecraft(h.getLevel());
         Villager villager = mcaVillager(h, new BlockPos(5, 1, 5));
         UUID uuid = villager.getUUID();

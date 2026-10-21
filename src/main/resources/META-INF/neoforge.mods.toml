@@ -9,6 +9,11 @@ displayName="${mod_name}"
 authors="${mod_authors}"
 description='''${mod_description}'''
 
+# This mod's optional hooks (docs/NATIVE_CHARACTER_COMPATIBILITY.md, "Hook contracts"). Every injection
+# in it is string-targeted and optional; hook.HookPlugin counts which ones landed.
+[[mixins]]
+config="mcamobcompat.mixins.json"
+
 # MCA: Mob Compatibility is meaningless without MCA Reborn, so MCA is a mandatory dependency.
 # We load AFTER MCA so its entities and registries are present.
 [[dependencies.${mod_id}]]
@@ -95,3 +100,7 @@ description='''${mod_description}'''
     versionRange="[0,)"
     ordering="AFTER"
     side="BOTH"
+
+# Villager Recruits and Villager Workers are deliberately NOT declared: neither publishes a NeoForge
+# 1.21.1 build, so their adapters report themselves unavailable on this platform (see
+# integration/PlatformArtifacts) and there is nothing to order against.

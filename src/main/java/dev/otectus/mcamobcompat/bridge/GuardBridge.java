@@ -1,11 +1,8 @@
 package dev.otectus.mcamobcompat.bridge;
 
-import dev.otectus.mcamobcompat.api.MobRole;
-import dev.otectus.mcamobcompat.classification.TagClassifier;
-import dev.otectus.mcamobcompat.integration.ModIntegrations;
-import dev.otectus.mcamobcompat.mca.McaEntities;
+import dev.otectus.mcamobcompat.character.NativeCharacterAdapters;
+import dev.otectus.mcamobcompat.integration.guardvillagers.GuardVillagersAdapter;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.Mob;
 
 /**
  * The one question the whole bridge turns on: is this entity a guard we give an MCA identity to?
@@ -19,6 +16,11 @@ import net.minecraft.world.entity.Mob;
  * <p>MCA's own villagers are excluded explicitly. They already have every one of these things from
  * MCA, and shadowing them with a second identity is exactly the kind of double bookkeeping this mod
  * exists to prevent.
+ *
+ * <p>Since 0.3.0 guards are one adapter among three ({@code character.NativeCharacterAdapters}), and
+ * this is the guard-only view of that registry: an entity is a bridged guard when the Guard Villagers
+ * adapter is the one bridging it. A recruit or a worker is a bridged actor but never a bridged guard,
+ * so nothing promised to guard listeners -- {@code GuardInteractEvent}, guard identities -- reaches it.
  */
 public final class GuardBridge {
 
@@ -30,15 +32,6 @@ public final class GuardBridge {
      * cheap checks reject first: this runs on every entity join.
      */
     public static boolean isBridgedGuard(Entity entity) {
-        if (!(entity instanceof Mob)) {
-            return false;
-        }
-        if (!ModIntegrations.guardVillagers().bridgesGuards()) {
-            return false;
-        }
-        if (McaEntities.isMcaVillager(entity)) {
-            return false;
-        }
-        return TagClassifier.hasRole(entity, MobRole.GUARD);
+        return NativeCharacterAdapters.bridging(entity) == GuardVillagersAdapter.INSTANCE;
     }
 }

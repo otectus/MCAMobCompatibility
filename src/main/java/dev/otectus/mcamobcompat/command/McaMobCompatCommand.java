@@ -92,16 +92,18 @@ public final class McaMobCompatCommand {
     }
 
     static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        // The root is open so players reach 'character'; every operator branch carries its own check.
         dispatcher.register(Commands.literal(McaMobCompat.MOD_ID)
-                .requires(source -> source.hasPermission(2))
-                .then(Commands.literal("status")
+                .then(CharacterCommands.player())
+                .then(CharacterCommands.operator())
+                .then(Commands.literal("status").requires(McaMobCompatCommand::operator)
                         .executes(context -> status(context.getSource())))
-                .then(Commands.literal("classify")
+                .then(Commands.literal("classify").requires(McaMobCompatCommand::operator)
                         .executes(context -> classifyLookedAt(context.getSource()))
                         .then(Commands.argument("targets", EntityArgument.entities())
                                 .executes(context -> classify(context.getSource(),
                                         EntityArgument.getEntities(context, "targets")))))
-                .then(Commands.literal("guards")
+                .then(Commands.literal("guards").requires(McaMobCompatCommand::operator)
                         .then(Commands.literal("status")
                                 .executes(context -> guardsStatus(context.getSource())))
                         .then(Commands.literal("inspect")
@@ -117,26 +119,30 @@ public final class McaMobCompatCommand {
                                 .then(Commands.argument("days", IntegerArgumentType.integer(0))
                                         .executes(context -> purge(context.getSource(),
                                                 IntegerArgumentType.getInteger(context, "days"))))))
-                .then(Commands.literal("mounts")
+                .then(Commands.literal("mounts").requires(McaMobCompatCommand::operator)
                         .then(Commands.literal("inspect")
                                 .executes(context -> mountsLookedAt(context.getSource()))
                                 .then(Commands.argument("target", EntityArgument.entity())
                                         .executes(context -> mounts(context.getSource(),
                                                 EntityArgument.getEntity(context, "target"))))))
-                .then(Commands.literal("threats")
+                .then(Commands.literal("threats").requires(McaMobCompatCommand::operator)
                         .then(Commands.literal("inspect")
                                 .executes(context -> threatsLookedAt(context.getSource()))
                                 .then(Commands.argument("target", EntityArgument.entity())
                                         .executes(context -> threats(context.getSource(),
                                                 EntityArgument.getEntity(context, "target"))))))
-                .then(Commands.literal("mca")
+                .then(Commands.literal("mca").requires(McaMobCompatCommand::operator)
                         .executes(context -> mcaBinding(context.getSource())))
-                .then(Commands.literal("dump")
+                .then(Commands.literal("dump").requires(McaMobCompatCommand::operator)
                         .then(Commands.argument("namespace", StringArgumentType.word())
                                 .suggests((context, builder) ->
                                         SharedSuggestionProvider.suggest(namespaces(), builder))
                                 .executes(context -> dump(context.getSource(),
                                         StringArgumentType.getString(context, "namespace"))))));
+    }
+
+    private static boolean operator(CommandSourceStack source) {
+        return source.hasPermission(2);
     }
 
     private static int status(CommandSourceStack source) {
@@ -213,6 +219,10 @@ public final class McaMobCompatCommand {
                 // find, never getOrCreate: a diagnostic that writes to the save file is a trap.
                 GuardIdentityStore.find((Mob) entity).ifPresent(identity ->
                         line(source, ChatFormatting.WHITE, "    identity: " + summarise(identity)));
+            } else if (dev.otectus.mcamobcompat.character.CharacterBridge.isBridgedActor(entity)) {
+                line(source, ChatFormatting.AQUA, "  MCA character actor ("
+                        + dev.otectus.mcamobcompat.character.CharacterBridge.adapterOf(entity).id()
+                        + "); see /mcamobcompat characters inspect");
             }
             MobCompatibilityAPI.getOwner(entity).ifPresent(owner ->
                     line(source, ChatFormatting.WHITE, "  owner: " + owner));

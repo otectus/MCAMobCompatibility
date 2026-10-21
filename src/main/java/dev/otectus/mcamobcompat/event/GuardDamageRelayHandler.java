@@ -1,10 +1,14 @@
 package dev.otectus.mcamobcompat.event;
 
 import dev.otectus.mcamobcompat.McaMobCompat;
-import dev.otectus.mcamobcompat.bridge.GuardBridge;
+import dev.otectus.mcamobcompat.bridge.GuardIdentityData;
 import dev.otectus.mcamobcompat.bridge.GuardIdentityStore;
 import dev.otectus.mcamobcompat.bridge.GuardProxy;
 import dev.otectus.mcamobcompat.bridge.GuardProxySync;
+import dev.otectus.mcamobcompat.character.CharacterBridge;
+import dev.otectus.mcamobcompat.character.CharacterOrigin;
+import dev.otectus.mcamobcompat.character.NativeCharacterAdapter;
+import dev.otectus.mcamobcompat.character.NativeCharacterAdapters;
 import dev.otectus.mcamobcompat.mca.McaEntities;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
@@ -59,6 +63,14 @@ import java.util.UUID;
  * guard walked off and take the guard's MCA identity with it. The one exception is damage that
  * bypasses invulnerability -- an operator's {@code /kill}, the void -- which is how a proxy is
  * deliberately removed.
+ *
+ * <p><b>Every adapter's actors, one rule each.</b> Since 0.3.0 the relay covers recruits and workers
+ * as well as guards. Battle is not assault: a hit from somebody a recruit is fighting, or who is
+ * fighting its side, lands natively and stays a native matter -- no MCA heart penalty, no crime -- and
+ * a recruit killed in such a fight dies to MCA without a named killer, so its family still mourns and
+ * nobody is charged with murder for a war. The adapter decides ({@code relaysSocialConsequences}).
+ * The actor drops its own loot and experience natively; an identity drops nothing, except that an
+ * enlisted person's own possessions -- theirs since before the role -- fall where they died.
  */
 @EventBusSubscriber(modid = McaMobCompat.MOD_ID)
 public final class GuardDamageRelayHandler {
@@ -96,11 +108,14 @@ public final class GuardDamageRelayHandler {
                 || McaEntities.isMcaVillager(guard) || isRelaying(guard)) {
             return;
         }
-        if (!guard.getPersistentData().hasUUID(GuardProxy.KEY_PROXY) && !GuardBridge.isBridgedGuard(guard)) {
+        if (!guard.getPersistentData().hasUUID(GuardProxy.KEY_PROXY) && !CharacterBridge.isBridgedActor(guard)) {
             return;
         }
         Villager proxy = GuardProxy.proxyOf(guard);
         if (proxy == null || !proxy.isAlive()) {
+            return;
+        }
+        if (!socialConsequences(guard, event.getSource())) {
             return;
         }
         // Post runs after the health change, so a hit that may be lethal has already brought it to 0.
@@ -170,7 +185,18 @@ public final class GuardDamageRelayHandler {
         }
     }
 
-    private static void finishDeath(Mob guard, DamageSource source) {
+    /** Whether a hit counts to MCA as an assault on the person, by the actor's adapter. */
+    private static boolean socialConsequences(Mob guard, DamageSource source) {
+        NativeCharacterAdapter adapter = NativeCharacterAdapters.claimant(guard);
+        return adapter == null || source.getEntity() == null
+                || adapter.relaysSocialConsequences(guard, source.getDirectEntity() != null
+                ? source.getDirectEntity() : source.getEntity());
+    }
+
+    private static void finishDeath(Mob guard, DamageSource relayedSource) {
+        // A death in battle is still a death to MCA -- family, grave, announcement -- but with no named
+        // killer, so no crime or reputation penalty is invented for a fight the native mod started.
+        DamageSource source = socialConsequences(guard, relayedSource) ? relayedSource : guard.damageSources().generic();
         DEATHS.remove(guard.getUUID());
         if (guard.getServer() != null) {
             GuardIdentityStore.get(guard.getServer()).markDeceased(guard.getUUID(), guard.level().getGameTime());
@@ -243,12 +269,27 @@ public final class GuardDamageRelayHandler {
         }
     }
 
-    /** The visible guard drops the combat loot; its proxy drops nothing of its own. */
+    /**
+     * The visible actor drops the combat loot; an identity drops nothing of its own -- except an
+     * enlisted person, whose own possessions are theirs and fall where they died.
+     */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void proxyLoot(LivingDropsEvent event) {
-        if (GuardProxy.isProxy(event.getEntity())) {
+        if (GuardProxy.isProxy(event.getEntity()) && !enlistedPerson(event.getEntity())) {
             event.setCanceled(true);
         }
+    }
+
+    private static boolean enlistedPerson(LivingEntity identity) {
+        if (identity.getServer() == null) {
+            return false;
+        }
+        GuardIdentityData.Entry entry = GuardIdentityStore.get(identity.getServer()).findByProxy(identity.getUUID());
+        if (entry == null) {
+            // The link is released once the death is relayed; the person's own stamp still says who they are.
+            return identity.getPersistentData().contains(dev.otectus.mcamobcompat.character.CharacterTransitions.KEY_CIVILIAN);
+        }
+        return entry.origin() == CharacterOrigin.ENLISTED_PERSON;
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

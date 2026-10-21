@@ -1,10 +1,12 @@
 package dev.otectus.mcamobcompat.bridge;
 
+import dev.otectus.mcamobcompat.character.CharacterCommandRouter;
+import dev.otectus.mcamobcompat.character.CharacterSync;
+import dev.otectus.mcamobcompat.character.NativeCharacterAdapter;
+import dev.otectus.mcamobcompat.character.NativeCharacterAdapters;
 import dev.otectus.mcamobcompat.integration.ModIntegrations;
-import dev.otectus.mcamobcompat.integration.guardvillagers.GuardReflection;
 import dev.otectus.mcamobcompat.mca.McaBinding;
 import dev.otectus.mcamobcompat.mca.McaEntities;
-import dev.otectus.mcamobcompat.mca.McaMemories;
 import dev.otectus.mcamobcompat.network.ProxyPairs;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -17,26 +19,27 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.npc.Villager;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Keeps a guard and its hidden MCA proxy the same NPC, once per tick.
+ * Keeps a native actor and its hidden MCA identity the same character, once per tick.
  *
  * <p>Position, rotation and the hiding flags go down every tick, because anything less is visible:
- * a proxy one tick behind opens MCA's screen out of reach, and a flag MCA's own tick cleared shows
- * a floating villager. The expensive half -- profession, movement intent, names, hearts, the client
- * pairing -- runs once a second, which is far faster than a player can notice and cheap enough for
- * a village full of guards.
+ * an identity one tick behind opens MCA's screen out of reach, and a flag MCA's own tick cleared shows
+ * a floating villager. The expensive half -- profession, orders, names, hearts, the client
+ * association -- runs once a second, which is far faster than a player can notice and cheap enough
+ * for a village full of NPCs.
  *
- * <p>The interesting direction is upward. MCA drives an NPC by setting a movement state and by
- * pathing it, and the proxy has no AI and cannot walk; so the state is translated into Guard
- * Villagers' own follow and patrol flags, and any path MCA gives the proxy is replayed onto the
- * guard's navigation and then cancelled. That is what makes MCA's Follow button, and MCACrime's
- * escort, actually move the guard. Targets travel both ways for the same reason: MCACrime orders a
- * guard to close on a wanted player through {@code setTarget} on the villager it can see, which is the
- * proxy, and a NoAI proxy cannot act on it -- see {@link #mirrorTargets}.
+ * <p>The interesting direction is upward. MCA drives an NPC by setting a movement state and by pathing
+ * it, and the identity has no AI and cannot walk; so MCA's orders are carried out by the actor's
+ * adapter through the native mod's own controls ({@link CharacterCommandRouter}), and -- for Guard
+ * Villagers' guards only -- any path MCA gives the identity is replayed onto the guard's navigation and
+ * then cancelled. That is what makes MCA's Follow button, and MCA: Crime's escort, move a guard. A
+ * recruit's or a worker's path is dropped instead: it would fight the formation or the job the owner set.
+ * Targets travel both ways where the adapter allows it, for the same reason: MCA: Crime orders a guard
+ * to close on a wanted player through {@code setTarget} on the villager it can see, which is the
+ * identity -- see {@link #mirrorTargets}.
  *
  * <p>An existing pair keeps being hidden and pinned even when the bridge options are turned off:
  * switching an option must never expose a hidden villager. Only the upward mirroring stops.
@@ -52,23 +55,10 @@ public final class GuardProxySync {
     /** Speed the guard is given when it is replaying a path MCA laid for the proxy. */
     private static final double RELAY_SPEED = 1.0D;
 
-    /** Persistent-data key on the proxy: whom it follows, so a restart keeps the order. */
-    private static final String KEY_FOLLOW_TARGET = "mcamobcompat:follow_target";
-
-    /**
-     * The last player to open a guard's screen, by guard UUID -- only a fallback for MCA builds
-     * whose following memory cannot be read. MCA's own memory says whom it was told to follow,
-     * and merely opening another player's screen must not steal an existing follow order.
-     */
-    private static final Map<UUID, UUID> LAST_INTERACTION = new ConcurrentHashMap<>();
-
     /** The name last agreed between the pair, to tell which side changed it. */
     private static final Map<UUID, String> LAST_NAME = new ConcurrentHashMap<>();
 
-    /** The movement intent last applied to the guard, so it is only re-applied on change. */
-    private static final Map<UUID, String> LAST_MOVE = new ConcurrentHashMap<>();
-
-    /** The pairing last sent to clients, so it is only re-sent when something in it changed. */
+    /** The association last sent to clients, so it is only re-sent when something in it changed. */
     private static final Map<UUID, String> LAST_PAIRING = new ConcurrentHashMap<>();
 
     /** The target (entity id) last agreed between the pair, so the side that changed it can be told. */
@@ -80,27 +70,25 @@ public final class GuardProxySync {
     private GuardProxySync() {
     }
 
-    /** Records who opened a guard's screen. Called from the interaction router. */
+    /** Records who opened an actor's MCA screen. Called from the interaction router. */
     public static void noteInteraction(Mob guard, UUID player) {
-        if (guard != null && player != null) {
-            LAST_INTERACTION.put(guard.getUUID(), player);
-        }
+        CharacterCommandRouter.noteInteraction(guard, player);
     }
 
-    /** Forgets a guard's transient state, so the maps cannot outlive the world's guards. */
+    /** Forgets an actor's transient state, so the maps cannot outlive the world's NPCs. */
     public static void forget(Mob guard) {
         if (guard != null) {
             ProxyEffects.forget(guard);
+            CharacterCommandRouter.forget(guard);
+            CharacterSync.forget(guard.getUUID());
             UUID id = guard.getUUID();
-            LAST_INTERACTION.remove(id);
             LAST_NAME.remove(id);
-            LAST_MOVE.remove(id);
             LAST_PAIRING.remove(id);
             LAST_TARGET.remove(id);
         }
     }
 
-    /** Logs, once per server start, which MCA: Crime effects will be mirrored onto bridged guards. */
+    /** Logs, once per server start, which MCA: Crime effects will be mirrored onto bridged actors. */
     public static void logMirroredEffects() {
         ProxyEffects.logResolution();
     }
@@ -108,9 +96,9 @@ public final class GuardProxySync {
     /** Drops all transient state. Called when the server stops. */
     public static void clear() {
         ProxyEffects.clear();
-        LAST_INTERACTION.clear();
+        CharacterCommandRouter.clear();
+        CharacterSync.clear();
         LAST_NAME.clear();
-        LAST_MOVE.clear();
         LAST_PAIRING.clear();
         LAST_TARGET.clear();
     }
@@ -124,26 +112,31 @@ public final class GuardProxySync {
         }
         pin(guard, proxy);
 
-        boolean mirroring = GuardBridge.isBridgedGuard(guard)
-                && ModIntegrations.guardVillagers().opensMcaInteraction();
-        mirrorTargets(guard, proxy, mirroring);
-        if (mirroring) {
+        NativeCharacterAdapter adapter = NativeCharacterAdapters.bridging(guard);
+        boolean mirroring = adapter != null && adapter.opensMcaInteraction();
+        mirrorTargets(guard, proxy, mirroring, adapter);
+        if (mirroring && adapter.relaysNavigation()) {
             relayNavigation(guard, proxy);
+        } else if (!proxy.getNavigation().isDone()) {
+            // Nobody may walk an identity, and its own path must not be left to look like an order.
+            proxy.getNavigation().stop();
         }
         ProxyEffects.tick(guard, proxy, proxy.tickCount % SLOW_INTERVAL == 0);
+        CharacterCommandRouter.tickPause(guard);
 
         if (proxy.tickCount % HOMING_INTERVAL == 0 && !McaBinding.hasHomeVillage(proxy)) {
-            // The guard may have been made outside any village and walked into one since.
+            // The actor may have been made outside any village and walked into one since.
             McaBinding.seekHome(proxy);
         }
 
         if (proxy.tickCount % SLOW_INTERVAL == 0) {
             reassertProfession(guard, proxy);
             if (mirroring) {
-                mirrorMoveState(guard, proxy);
+                CharacterCommandRouter.mirrorMoveState(guard, proxy, adapter);
             }
-            reconcileNames(guard, proxy);
+            reconcileNames(guard, proxy, adapter);
             GuardIdentityStore.synchronize(guard);
+            CharacterSync.observe(level, guard, proxy);
             sendPairingIfChanged(guard, proxy);
         }
     }
@@ -152,7 +145,7 @@ public final class GuardProxySync {
      * Keeps one target across the pair, in both directions.
      *
      * <p>Downward is the older rule: MCA and its addons read the proxy's target to decide whether a
-     * villager was defending itself (MCACrime does), so the guard's enemy becomes the proxy's.
+     * villager was defending itself (MCACrime does), so the actor's enemy becomes the proxy's.
      * Upward is what lets an addon's order reach the entity that can act on it. MCACrime makes a guard
      * pursue a wanted player by calling {@code setTarget} on the villager it selected as a responder,
      * and for a bridged guard that villager is the proxy: NoAI, unable to move, and until 0.2.2 wiped
@@ -160,13 +153,12 @@ public final class GuardProxySync {
      * Crime's law while Crime believed a responder was assigned.
      *
      * <p>Whichever side changed since the last agreed target wins, exactly as {@link #reconcileNames}
-     * decides names. The guard wins a tie, because it is the one in combat. An order is pushed up only
-     * while the bridge is mirroring at all, and a <em>player</em> target only under
-     * {@code followAddonTargets}, because a guard turning on a player is a consequence Guard Villagers'
-     * own player policy exists to control. An MCA villager is never pushed up while friendly-fire
-     * prevention is on: that handler would cancel it again next tick and the pair would churn events.
+     * decides names. The actor wins a tie, because it is the one in combat. An order is pushed up only
+     * while the bridge is mirroring at all, and only when the actor's adapter accepts it: a guard takes
+     * a non-player target, and a player target only under {@code followAddonTargets}; a recruit takes
+     * one only when the server made recruits law enforcement; a worker never does.
      */
-    static void mirrorTargets(Mob guard, Villager proxy, boolean mirroring) {
+    static void mirrorTargets(Mob guard, Villager proxy, boolean mirroring, NativeCharacterAdapter adapter) {
         LivingEntity guardTarget = guard.getTarget();
         LivingEntity proxyTarget = proxy.getTarget();
         UUID key = guard.getUUID();
@@ -177,7 +169,8 @@ public final class GuardProxySync {
         int agreed = LAST_TARGET.getOrDefault(key, NO_TARGET);
         boolean guardChanged = targetId(guardTarget) != agreed;
         boolean proxyChanged = targetId(proxyTarget) != agreed;
-        if (proxyChanged && !guardChanged && mirroring && acceptsOrder(proxyTarget)) {
+        if (proxyChanged && !guardChanged && mirroring
+                && (proxyTarget == null || adapter.acceptsAddonTarget(guard, proxyTarget))) {
             guard.setTarget(proxyTarget);
         } else {
             // Only on change: every setTarget posts an event.
@@ -186,7 +179,7 @@ public final class GuardProxySync {
         LAST_TARGET.put(key, targetId(guard.getTarget()));
     }
 
-    /** The pure half of the upward rule, pinned by GuardProxySyncTargetTest. */
+    /** The pure half of the guards' upward rule, pinned by GuardProxySyncTargetTest. */
     static boolean acceptsOrder(boolean playerTarget, boolean mcaVillagerTarget,
                                 boolean followAddonTargets, boolean preventsFriendlyFire) {
         if (playerTarget) {
@@ -195,7 +188,8 @@ public final class GuardProxySync {
         return !(mcaVillagerTarget && preventsFriendlyFire);
     }
 
-    private static boolean acceptsOrder(LivingEntity target) {
+    /** Whether a target an add-on set on a guard's identity may be pushed up to the guard. */
+    public static boolean acceptsAddonTarget(LivingEntity target) {
         if (target == null) {
             return true; // clearing an order is always allowed
         }
@@ -208,7 +202,7 @@ public final class GuardProxySync {
         return target == null ? NO_TARGET : target.getId();
     }
 
-    /** Puts the proxy exactly where the guard is, facing where it faces, and keeps it hidden. */
+    /** Puts the proxy exactly where the actor is, facing where it faces, and keeps it hidden. */
     public static void pin(Mob guard, Villager proxy) {
         proxy.moveTo(guard.getX(), guard.getY(), guard.getZ(), guard.getYRot(), guard.getXRot());
         proxy.setYHeadRot(guard.getYHeadRot());
@@ -217,10 +211,16 @@ public final class GuardProxySync {
     }
 
     private static void sendPairingIfChanged(Mob guard, Villager proxy) {
-        String state = proxy.getUUID() + "/" + proxy.getId() + "/" + guard.getId() + "/"
-                + (GuardBridge.isBridgedGuard(guard) && ModIntegrations.guardVillagers().opensMcaInteraction());
+        String state = ProxyPairs.fingerprint(guard, proxy);
         if (!state.equals(LAST_PAIRING.put(guard.getUUID(), state))) {
             ProxyPairs.broadcast(guard, proxy);
+        }
+    }
+
+    /** Re-sends this pair's association on the next heartbeat, after something clients cache changed. */
+    public static void invalidatePairing(UUID actor) {
+        if (actor != null) {
+            LAST_PAIRING.remove(actor);
         }
     }
 
@@ -245,94 +245,45 @@ public final class GuardProxySync {
     }
 
     /**
-     * Puts the profession back to {@code mca:guard} if anything moved it.
+     * Puts the identity's profession back if anything moved it.
      *
-     * <p>MCA's own profession-change option operates on the proxy like any other villager, and a
-     * proxy that became a farmer would stop being a guard to every addon that keys off the
-     * profession -- including MCA's own guard quota.
+     * <p>MCA's own profession-change option operates on the identity like any other villager, and a
+     * guard's identity that became a farmer would stop being a guard to every addon that keys off the
+     * profession -- including MCA's own guard quota. An adapter that names no profession (an enlisted
+     * recruit's person keeps their own) is left alone.
      */
     private static void reassertProfession(Mob guard, Villager proxy) {
+        ResourceLocation wanted = GuardProxy.wantedProfession(guard);
+        if (wanted == null) {
+            return;
+        }
         ResourceLocation current =
                 BuiltInRegistries.VILLAGER_PROFESSION.getKey(proxy.getVillagerData().getProfession());
-        if (!GuardProxy.GUARD_PROFESSION.equals(current)) {
+        if (!wanted.equals(current)) {
             GuardProxy.applyVillagerData(proxy, guard);
-        }
-    }
-
-    /**
-     * Translates MCA's movement intent into Guard Villagers' follow and patrol flags.
-     *
-     * <p>Follow uses the player MCA itself recorded in its following memory, saved on the proxy so a
-     * restart keeps the order. A Follow order whose player is offline stops the guard following
-     * rather than following nobody. Re-applied only when the intent changes, so a guard an
-     * operator moved by hand is not fought every second.
-     */
-    private static void mirrorMoveState(Mob guard, Villager proxy) {
-        Optional<String> state = McaBinding.moveState(proxy);
-        if (state.isEmpty()) {
-            return;
-        }
-        String movement = state.get();
-        UUID followTarget = null;
-        if ("FOLLOW".equals(movement)) {
-            followTarget = McaMemories.followTarget(proxy).orElse(null);
-            if (followTarget != null) {
-                proxy.getPersistentData().putUUID(KEY_FOLLOW_TARGET, followTarget);
-            } else if (proxy.getPersistentData().hasUUID(KEY_FOLLOW_TARGET)) {
-                followTarget = proxy.getPersistentData().getUUID(KEY_FOLLOW_TARGET);
-            } else {
-                followTarget = LAST_INTERACTION.get(guard.getUUID());
-            }
-            if (followTarget == null || guard.getServer() == null
-                    || guard.getServer().getPlayerList().getPlayer(followTarget) == null) {
-                GuardReflection.setFollowing(guard, false);
-                LAST_MOVE.remove(guard.getUUID());
-                return;
-            }
-        } else {
-            proxy.getPersistentData().remove(KEY_FOLLOW_TARGET);
-        }
-
-        String intent = movement + ":" + followTarget;
-        if (intent.equals(LAST_MOVE.put(guard.getUUID(), intent))) {
-            return;
-        }
-        switch (movement) {
-            case "FOLLOW" -> {
-                GuardReflection.setOwnerId(guard, followTarget);
-                GuardReflection.setPatrolling(guard, false);
-                GuardReflection.setFollowing(guard, true);
-            }
-            case "STAY" -> {
-                GuardReflection.setFollowing(guard, false);
-                GuardReflection.setPatrolPos(guard, guard.blockPosition());
-                GuardReflection.setPatrolling(guard, true);
-            }
-            default -> {
-                GuardReflection.setFollowing(guard, false);
-                GuardReflection.setPatrolling(guard, false);
-            }
         }
     }
 
     /**
      * Keeps one name across the pair, in both directions.
      *
-     * <p>Whichever side changed since the last agreed name wins: a name tag used on the guard (the
-     * crouch gesture runs vanilla's name-tag handling on it) goes up into MCA, and a rename made in
-     * MCA's own screen comes down to the guard. If both changed in the same second, the guard's
-     * wins, because it is the one a player can see being renamed.
+     * <p>Whichever side changed since the last agreed name wins: a name tag used on the actor goes up
+     * into MCA, and a rename made in MCA's own screen or editor comes down to the actor. If both changed
+     * in the same second, the actor's wins, because it is the one a player can see being renamed. A
+     * label the native mod gives every one of its NPCs ("Recruit", "Farmer") is not a name and never
+     * goes up: the person's MCA name replaces it.
      */
-    private static void reconcileNames(Mob guard, Villager proxy) {
+    private static void reconcileNames(Mob guard, Villager proxy, NativeCharacterAdapter adapter) {
         String proxyName = proxy.hasCustomName() ? proxy.getCustomName().getString() : "";
         String guardName = guard.hasCustomName() ? guard.getCustomName().getString() : "";
+        boolean meaningful = adapter == null || adapter.meaningfulName(guard).isPresent();
         String previous = LAST_NAME.get(guard.getUUID());
         if (previous == null) {
             GuardIdentityData.Entry entry = guard.getServer() == null ? null
                     : GuardIdentityStore.get(guard.getServer()).find(guard.getUUID());
             previous = entry == null ? proxyName : entry.name();
         }
-        if (!guardName.isBlank() && !guardName.equals(previous) && !guardName.equals(proxyName)) {
+        if (meaningful && !guardName.isBlank() && !guardName.equals(previous) && !guardName.equals(proxyName)) {
             proxy.setCustomName(guard.getCustomName());
         } else if (!proxyName.isBlank() && !proxyName.equals(guardName)) {
             GuardProxy.copyNameToGuard(guard, proxy);

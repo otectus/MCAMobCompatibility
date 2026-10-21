@@ -1,6 +1,73 @@
 # Changelog
 
-## 0.2.2 (unreleased)
+## 0.3.0 (unreleased)
+
+Native characters. Guard Villagers' guards, Villager Recruits' recruits and Villager Workers' workers
+are now MCA people: the native NPC is the body, and a real, hidden MCA villager is the person behind
+it. This release also contains everything listed under 0.2.2, which was never released on its own.
+The design, the capability table and the tested builds are in
+[docs/NATIVE_CHARACTER_COMPATIBILITY.md](docs/NATIVE_CHARACTER_COMPATIBILITY.md); how to play with it
+is in [docs/PLAYER_GUIDE.md](docs/PLAYER_GUIDE.md).
+
+- **Villager Recruits and Villager Workers** (audited at 1.15.2 and 2.0.3 for Forge 1.20.1). Every
+  recruit, companion, noble and worker gets a persistent MCA person, adopted in place: its UUID, owner,
+  equipment, progression and assignments are untouched. Adapters are chosen Workers, then Recruits,
+  then Guard Villagers, so a worker has one person. A plain click opens MCA's screen, a crouching click
+  opens Recruits' or Workers' own screen, and MCA's Follow, Stay and Move become Recruits' own orders,
+  for the owner only. For a worker, Move means back to work. A promotion moves the person to the
+  promoted body; if the new body never arrives, the old one is restored.
+- **Recruits never takes an MCA villager.** Its profession conversion and its noble conversion are
+  refused for MCA villagers (the profession is put back), and a noble's hire of an MCA villager enlists
+  the same person through Recruits' own payment and ownership, or is refused unpaid
+  (`[recruits] villagerConversion`). Vanilla villagers convert exactly as before.
+- **Drawn as their MCA persons.** Clients draw guards, recruits and workers with MCA's own renderer:
+  face, skin, hair, clothes, dyes, custom skin and genetic proportions, in the NPC's own walk, swing,
+  arm poses, items, armour and mount. A portrait of the hidden person (MCA: Conversations, MCA: Quests)
+  shows the person. The NPC keeps its own hitbox, reach and stats. Each mod's look is a server option
+  (`guardAppearance`, `[recruits] appearance`, `[workers] appearance`), and `rendering.mcaAppearance`
+  in the new `mcamobcompat-client.toml` lets a player keep each mod's own models.
+- **MCA's editor on native NPCs.** MCA's villager editor on a guard, recruit or worker opens MCA's own
+  editor for its person. Saves go through MCA's own request, checked and rebuilt first: session, range,
+  generation and conflicts; cosmetic fields for whoever `[characters] editorPermission` admits,
+  administrative fields for `editorAdminPermissionLevel`; bounds, size and no change to a child. A
+  conflicting save is refused and the editor reopens on the latest version.
+- **Enlistment and the way home.** The recruit gesture now makes an MCA villager a real Guard
+  Villagers guard, holding the weapon, with the same person behind it (`guardRecruitmentMode`,
+  `NATIVE_GUARD` by default; `MCA_PROFESSION` is the 0.2 behaviour), initialised as Guard Villagers'
+  own conversion initialises one, the player's reputation with it included. `/mcamobcompat character enlist
+  <role>` gives any native role through the native mod's own hiring and costs, and `/mcamobcompat
+  character release` brings the person home: visible again where the NPC stood, with everything it
+  carried in their own inventory, their old job and their old MCA order. No death, loot or grief.
+  Every change of body is a journaled transition, stamped on both entities and recovered at start
+  without guessing; a payment is refunded exactly when an enlistment fails.
+- **Commands.** `/mcamobcompat character info|controls|enlist|release` for players, and `/mcamobcompat
+  characters status|inspect|adapters|transitions|repair` for operators. The other subcommands still
+  need permission level 2.
+- **Save format 4.** Records gain an adapter, an origin, a lifecycle state, an association
+  generation, an appearance revision, a civilian life and a 16-entry transition journal. Schemas 1 to
+  3 migrate in place, keeping every UUID, name, hearts ledger and proxy link.
+- **Protocol 2** for `mcamobcompat:proxy_pair`: one association per character, with both runtime ids,
+  the dimension, the generation (an older message never replaces a newer one), the appearance
+  revision and the adapter's capabilities. A 0.2 client is refused at login.
+- **Fixed:** an MCA order that merely persisted on a person was applied again at every restart, over an
+  order given through the native mod's own screen. The order last applied is now remembered on the
+  person, and an order is carried out once per change.
+- **Optional hooks.** Four string-targeted, optional Mixin injections: MCA's editor save, and three
+  Recruits conversions. Their landing is counted at start; a feature whose hook did not land refuses
+  safely and says so. This is the first Mixin use in this mod; why is recorded in the compatibility
+  document. The build's foreign-name scan allows the dotted names in exactly five classes.
+- **NeoForge 1.21.1.** Villager Recruits and Villager Workers publish no NeoForge 1.21.1 build, so
+  there both adapters report themselves unavailable, at start and in `characters adapters`. Every
+  configuration key exists on both loaders.
+- **API:** `MobCompatibilityAPI.isCharacterActor`, `characterIdentity`, `characterActor` and
+  `characterUuid`.
+- **Tests:** unit tests for schema 4 migration, transition recovery, the editor patch policy, the hook
+  plugin and the Recruits and Workers bindings against their audited jars. New GameTests: the character
+  suite in the core namespace, plus `mcamobcompat_recruits` and `mcamobcompat_workers` (`-PwithRecruits`,
+  `-PwithWorkers`). The production probe now covers drawing, the editor across two clients, native
+  screens, enlistment and the way home.
+
+## 0.2.2 (unreleased, included in 0.3.0)
 
 Bridged guards under the sibling add-ons' law. Every MCA add-on acts on the villager it can see, and
 for a bridged Guard Villagers guard that is the hidden MCA proxy; three gaps in the pairing meant the
