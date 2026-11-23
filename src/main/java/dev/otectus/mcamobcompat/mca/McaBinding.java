@@ -6,6 +6,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -135,6 +136,11 @@ public final class McaBinding {
     private static volatile Method familyGet;
     private static volatile Method familyLookup;
     private static volatile Method familyRemove;
+
+    /** {@code Config#getInstance()} and its {@code useMCAVoices} / {@code useVanillaVoices} flags. */
+    private static volatile Method configInstance;
+    private static volatile Field useMcaVoicesField;
+    private static volatile Field useVanillaVoicesField;
 
     /** Members that failed to bind or were retired, with the reason, for {@code /mcamobcompat mca}. */
     private static final Map<String, String> FAILURES = new ConcurrentHashMap<>();
@@ -276,6 +282,17 @@ public final class McaBinding {
             getHearts = typed(memoriesClass, "getHearts", int.class);
             modHearts = typed(memoriesClass, "modHearts", void.class, int.class);
             setHearts = typed(memoriesClass, "setHearts", void.class, int.class);
+        }
+
+        try {
+            Class<?> configClass = Class.forName(root + ".Config", false, loader);
+            configInstance = configClass.getMethod("getInstance");
+            useMcaVoicesField = configClass.getField("useMCAVoices");
+            useVanillaVoicesField = configClass.getField("useVanillaVoices");
+        } catch (ReflectiveOperationException | LinkageError ignored) {
+            configInstance = null;
+            useMcaVoicesField = null;
+            useVanillaVoicesField = null;
         }
     }
 
@@ -698,6 +715,31 @@ public final class McaBinding {
         }
     }
 
+    /** Whether MCA's own config has MCA villager voices enabled (defaults to {@code true} if unbound). */
+    public static boolean usesMcaVoices() {
+        return readConfigFlag(useMcaVoicesField, true);
+    }
+
+    /** Whether MCA's own config falls back to vanilla villager voices (defaults to {@code false} if unbound). */
+    public static boolean usesVanillaVoices() {
+        return readConfigFlag(useVanillaVoicesField, false);
+    }
+
+    private static boolean readConfigFlag(Field field, boolean fallback) {
+        Method instance = configInstance;
+        if (instance == null || field == null) {
+            return fallback;
+        }
+        try {
+            Object cfg = instance.invoke(null);
+            return cfg != null ? field.getBoolean(cfg) : fallback;
+        } catch (Throwable t) {
+            configInstance = null;
+            retire("Config." + field.getName(), t);
+            return fallback;
+        }
+    }
+
     /**
      * The fields of one of MCA's editor save requests, read from the request object MCA's network
      * handed to the hook: the command, the target's UUID and the payload. Works on both request shapes
@@ -919,6 +961,9 @@ public final class McaBinding {
         familyGet = null;
         familyLookup = null;
         familyRemove = null;
+        configInstance = null;
+        useMcaVoicesField = null;
+        useVanillaVoicesField = null;
         FAILURES.clear();
     }
 
